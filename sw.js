@@ -3,10 +3,12 @@ const CACHE_NAME = 'fiona-pwa-v1';
 const PRECACHE = [
   '/',
   '/index.html',
+  '/privacy',
+  '/privacy.html',
   '/site.webmanifest',
-  '/assets/icon-192.png',
-  '/assets/icon-512.png',
-  '/assets/apple-touch-icon.png'
+  '/icon-192.png',
+  '/icon-512.png',
+  '/apple-touch-icon.png'
 ];
 
 self.addEventListener('install', (event) => {
