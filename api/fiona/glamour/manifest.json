@@ -1,0 +1,34 @@
+{
+  "name": "Fiona: Your Wingwoman",
+  "short_name": "Fiona",
+  "description": "Your private spa suite for calm, style, and high-EQ support — Fiona, your wingwoman.",
+  "start_url": "/",
+  "scope": "/",
+  "id": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#FAF7F5",
+  "theme_color": "#5E2750",
+  "lang": "en",
+  "categories": ["lifestyle", "health", "fashion"],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
