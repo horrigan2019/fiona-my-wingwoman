@@ -1,0 +1,3403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Fiona: Your Wingwoman — Private Spa Suite</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts: Playfair Display (Serif) & Plus Jakarta Sans (Clean Modern) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            spa: {
+              cream: '#FAF7F5',
+              card: '#FFFFFF',
+              darkcard: '#1F1B24',
+              blush: '#FCEFEF',
+              rose: '#E8B4B8',
+              plum: '#5E2750',
+              plumdark: '#3F1836',
+              plumlight: '#7A3568',
+              lilac: '#F3E8FF',
+              lavender: '#E9D5FF',
+              gold: '#D4AF37',
+              sage: '#E3EBDC',
+              darkbg: '#141118'
+            }
+          },
+          fontFamily: {
+            serif: ['"Playfair Display"', 'serif'],
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    .custom-scroll::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background-color: #E8B4B8;
+      border-radius: 9999px;
+    }
+    @keyframes pulse-slow {
+      0%, 100% { transform: scale(1); opacity: 0.8; }
+      50% { transform: scale(1.08); opacity: 1; }
+    }
+    .animate-pulse-slow {
+      animation: pulse-slow 5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fadeIn {
+      animation: fadeIn 0.35s ease-out;
+    }
+    @keyframes scaleUp {
+      from { opacity: 0; transform: scale(0.96); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .animate-scaleUp {
+      animation: scaleUp 0.25s ease-out;
+    }
+    #daily-affirmation-text {
+      transition: opacity 0.15s ease;
+    }
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border-width: 0;
+    }
+    .ritual-item .ritual-actions {
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+    .ritual-item:hover .ritual-actions,
+    .ritual-item:focus-within .ritual-actions {
+      opacity: 1;
+    }
+    @keyframes ritual-sparkle {
+      0% { transform: translate(0, 0) scale(0.4); opacity: 0; }
+      20% { opacity: 1; }
+      100% { transform: translate(var(--sx), var(--sy)) scale(1); opacity: 0; }
+    }
+    .ritual-spark {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      border-radius: 9999px;
+      background: radial-gradient(circle, #F7E7CE 0%, #E8B4B8 45%, #D4AF37 100%);
+      box-shadow: 0 0 8px rgba(212, 175, 55, 0.55);
+      animation: ritual-sparkle 0.9s ease-out forwards;
+      pointer-events: none;
+    }
+    .ritual-check-pop {
+      animation: scaleUp 0.28s ease-out;
+    }
+  </style>
+</head>
+
+<body class="bg-spa-cream text-gray-800 dark:bg-spa-darkbg dark:text-gray-100 min-h-screen flex flex-col antialiased selection:bg-pink-100 selection:text-spa-plum">
+
+  <header class="sticky top-0 z-40 bg-spa-cream/90 dark:bg-spa-darkbg/90 backdrop-blur-md border-b border-pink-100/80 dark:border-purple-950/50 transition-colors">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      
+      <!-- Brand Logo -->
+      <div class="flex items-center gap-3 cursor-pointer" onclick="navigateTo('lounge')">
+        <div class="relative w-12 h-12 rounded-full overflow-hidden shadow-sm border-2 border-white dark:border-pink-200/30 bg-white shrink-0">
+          <img src="assets/fiona-avatar.jpg" alt="Fiona" class="w-full h-full object-cover object-top scale-110">
+        </div>
+        <div>
+          <h1 class="font-serif text-xl sm:text-2xl font-bold tracking-tight text-spa-plum dark:text-pink-200 leading-tight">
+            Fiona: Your Wingwoman
+          </h1>
+          <p class="text-[10px] tracking-widest uppercase font-semibold text-spa-plum/60 dark:text-pink-300/70">
+            Your No-Guilt Wingwoman
+          </p>
+        </div>
+      </div>
+
+      <!-- Main Navigation Dock -->
+      <nav class="hidden md:flex items-center gap-1.5 bg-white/70 dark:bg-spa-darkcard/70 p-1.5 rounded-full border border-pink-100/80 dark:border-purple-900/40 shadow-sm">
+        <button onclick="navigateTo('lounge')" id="nav-lounge" class="nav-tab px-4 py-2 text-xs font-semibold rounded-full transition-all text-spa-plum hover:bg-pink-50 dark:hover:bg-purple-900/30">
+          The Lounge
+        </button>
+        <button onclick="navigateTo('sanctuary')" id="nav-sanctuary" class="nav-tab px-4 py-2 text-xs font-semibold rounded-full transition-all text-gray-600 dark:text-gray-300 hover:bg-pink-50 dark:hover:bg-purple-900/30">
+          The Sanctuary Suite
+        </button>
+        <button onclick="navigateTo('lagoon')" id="nav-lagoon" class="nav-tab px-4 py-2 text-xs font-semibold rounded-full transition-all text-gray-600 dark:text-gray-300 hover:bg-pink-50 dark:hover:bg-purple-900/30">
+          The Calming Lagoon
+        </button>
+        <button onclick="navigateTo('strut')" id="nav-strut" class="nav-tab px-4 py-2 text-xs font-semibold rounded-full transition-all text-gray-600 dark:text-gray-300 hover:bg-pink-50 dark:hover:bg-purple-900/30">
+          Strut & Sweat
+        </button>
+        <button onclick="navigateTo('glamour')" id="nav-glamour" class="nav-tab px-4 py-2 text-xs font-semibold rounded-full transition-all text-gray-600 dark:text-gray-300 hover:bg-pink-50 dark:hover:bg-purple-900/30">
+          The Glamour Suite
+        </button>
+      </nav>
+
+      <!-- Right Utility Pill -->
+      <div class="flex items-center gap-2">
+        <button onclick="toggleTheme()" class="p-2.5 rounded-full bg-white dark:bg-spa-darkcard border border-pink-100 dark:border-purple-900/50 text-gray-600 dark:text-gray-300 hover:text-spa-plum transition" aria-label="Toggle Theme">
+          <i data-lucide="sun" class="w-4 h-4 hidden dark:block text-amber-300"></i>
+          <i data-lucide="moon" class="w-4 h-4 block dark:hidden text-spa-plum"></i>
+        </button>
+        
+        <button id="vip-status-pill" onclick="openVipModal()" class="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-spa-darkcard rounded-full border border-pink-100 dark:border-purple-900/50 text-xs font-medium text-gray-700 dark:text-gray-300 hover:border-spa-gold/50 transition">
+          <span id="vip-status-dot" class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          <span id="vip-status-label">Guest Suite</span>
+        </button>
+        <button onclick="openVipModal()" class="sm:hidden p-2.5 rounded-full bg-gradient-to-r from-spa-plum to-pink-600 text-white border border-white/40" aria-label="VIP Suite Key">
+          <i data-lucide="key-round" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Nav Bar -->
+    <div class="md:hidden flex overflow-x-auto custom-scroll gap-1 px-4 py-2 border-t border-pink-100 dark:border-purple-950/40 bg-white/50 dark:bg-spa-darkcard/50">
+      <button onclick="navigateTo('lounge')" class="mob-tab whitespace-nowrap px-3 py-1.5 text-xs font-medium rounded-full bg-pink-100 text-spa-plum dark:bg-purple-900 dark:text-pink-100">Lounge</button>
+      <button onclick="navigateTo('sanctuary')" class="mob-tab whitespace-nowrap px-3 py-1.5 text-xs font-medium rounded-full text-gray-600 dark:text-gray-300">Sanctuary</button>
+      <button onclick="navigateTo('lagoon')" class="mob-tab whitespace-nowrap px-3 py-1.5 text-xs font-medium rounded-full text-gray-600 dark:text-gray-300">Lagoon</button>
+      <button onclick="navigateTo('strut')" class="mob-tab whitespace-nowrap px-3 py-1.5 text-xs font-medium rounded-full text-gray-600 dark:text-gray-300">Strut</button>
+      <button onclick="navigateTo('glamour')" class="mob-tab whitespace-nowrap px-3 py-1.5 text-xs font-medium rounded-full text-gray-600 dark:text-gray-300">Glamour</button>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-28 sm:pb-32 transition-all" style="padding-bottom: max(7rem, calc(6rem + env(safe-area-inset-bottom, 0px)));">
+
+    <!-- ================================================================= -->
+    <!-- WING 1: THE LOUNGE (Home & Foyer)                                  -->
+    <!-- ================================================================= -->
+    <section id="wing-lounge" class="space-y-8 animate-fadeIn">
+      
+      <!-- Spa Suite Arrival Header -->
+      <div class="text-center max-w-2xl mx-auto space-y-2 pt-2">
+        <h2 class="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white tracking-tight">
+          Welcome to Your Suite, Gorgeous
+        </h2>
+        <p class="text-sm sm:text-base text-gray-600 dark:text-gray-300">
+          Step inside, drop your heavy baggage at the door, and choose where you'd like to restore today.
+        </p>
+      </div>
+
+      <!-- Fiona Avatar Hero -->
+      <div class="flex justify-center">
+        <div class="relative w-full max-w-md rounded-3xl bg-white dark:bg-spa-darkcard border border-pink-100 dark:border-purple-900/40 shadow-sm overflow-visible px-6 pt-8 pb-2">
+          <img src="assets/fiona-avatar.jpg" alt="Fiona, your wingwoman flamingo" class="block w-full h-auto max-w-full object-contain mx-auto" style="object-fit: contain; width: 100%; height: auto;">
+          <p class="text-center font-serif italic text-sm text-spa-plum dark:text-pink-200 pb-4">
+            "I'm right here with you, gorgeous."
+          </p>
+        </div>
+      </div>
+
+      <!-- Fiona's Daily Feather Fluff (365 Day Indexed Deck) -->
+      <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-pink-50 via-purple-50 to-rose-50 dark:from-spa-darkcard dark:via-purple-950/20 dark:to-spa-darkcard border border-pink-200/70 dark:border-purple-900/40 p-6 sm:p-7 shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div class="space-y-2">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold uppercase tracking-wider text-spa-plum dark:text-pink-300 flex items-center gap-1.5">
+                <i data-lucide="sparkles" class="w-3.5 h-3.5 text-spa-gold"></i>
+                Fiona's Daily Feather Fluff <span id="day-number-badge" class="font-normal opacity-75 text-[11px]">(Day 1 of 365)</span>
+              </span>
+            </div>
+            <p id="daily-affirmation-text" class="font-serif italic text-lg sm:text-xl font-medium text-gray-900 dark:text-pink-50 leading-snug">
+              "Darling, stop trying to make everyone happy. You are a woman, not a bowl of warm queso."
+            </p>
+          </div>
+
+          <div class="flex items-center gap-2 self-end sm:self-center shrink-0">
+            <button onclick="shuffleAffirmation()" class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-spa-plum/30 text-spa-plum dark:text-pink-200 border border-pink-200/80 dark:border-purple-800 text-xs font-semibold hover:shadow-sm active:scale-95 transition">
+              <i data-lucide="dice-5" class="w-3.5 h-3.5"></i> Shuffle Feathers
+            </button>
+            <button onclick="copyAffirmation()" class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-spa-plum text-white text-xs font-semibold hover:bg-spa-plumdark active:scale-95 transition shadow-sm">
+              <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy Quote
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3 Primary Check-In Cards (Fully Clickable Action Launchpads) -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        
+        <!-- Card 1: Quick Check-in -->
+        <div onclick="openModal('modal-checkin')" role="button" class="group p-6 rounded-2xl bg-white dark:bg-spa-darkcard border border-pink-100 dark:border-purple-900/40 hover:border-pink-300 dark:hover:border-purple-700 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer flex flex-col justify-between space-y-4">
+          <div class="space-y-3">
+            <div class="w-10 h-10 rounded-xl bg-pink-100 dark:bg-purple-900/50 flex items-center justify-center text-spa-plum dark:text-pink-300 group-hover:scale-110 transition">
+              <i data-lucide="heart" class="w-5 h-5"></i>
+            </div>
+            <h3 class="font-serif text-xl font-bold text-gray-900 dark:text-white">A Quick Check-in</h3>
+            <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-300">Name the feeling without fixing it. Curious, not critical.</p>
+          </div>
+          <div class="flex items-center text-xs font-semibold text-spa-plum dark:text-pink-300 group-hover:translate-x-1 transition">
+            <span>Explore feelings</span>
+            <i data-lucide="arrow-right" class="w-3.5 h-3.5 ml-1"></i>
+          </div>
+        </div>
+
+        <!-- Card 2: Spot a Tiny Win -->
+        <div onclick="openModal('modal-win')" role="button" class="group p-6 rounded-2xl bg-white dark:bg-spa-darkcard border border-pink-100 dark:border-purple-900/40 hover:border-pink-300 dark:hover:border-purple-700 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer flex flex-col justify-between space-y-4">
+          <div class="space-y-3">
+            <div class="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center text-spa-plum dark:text-pink-300 group-hover:scale-110 transition">
+              <i data-lucide="sparkle" class="w-5 h-5"></i>
+            </div>
+            <h3 class="font-serif text-xl font-bold text-gray-900 dark:text-white">Spot a Tiny Win</h3>
+            <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-300">Notice one thing you already did for you today. Even brushing your teeth counts.</p>
+          </div>
+          <div class="flex items-center text-xs font-semibold text-spa-plum dark:text-pink-300 group-hover:translate-x-1 transition">
+            <span>Toast your effort</span>
+            <i data-lucide="arrow-right" class="w-3.5 h-3.5 ml-1"></i>
+          </div>
+        </div>
+
+        <!-- Card 3: Just Keep Me Company -->
+        <div onclick="openModal('modal-company')" role="button" class="group p-6 rounded-2xl bg-white dark:bg-spa-darkcard border border-pink-100 dark:border-purple-900/40 hover:border-pink-300 dark:hover:border-purple-700 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer flex flex-col justify-between space-y-4">
+          <div class="space-y-3">
+            <div class="w-10 h-10 rounded-xl bg-rose-100 dark:bg-purple-900/50 flex items-center justify-center text-spa-plum dark:text-pink-300 group-hover:scale-110 transition">
+              <i data-lucide="coffee" class="w-5 h-5"></i>
+            </div>
+            <h3 class="font-serif text-xl font-bold text-gray-900 dark:text-white">Just Keep Me Company</h3>
+            <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-300">Low-battery sanctuary. Zero productivity required, stay as long as you like.</p>
+          </div>
+          <div class="flex items-center text-xs font-semibold text-spa-plum dark:text-pink-300 group-hover:translate-x-1 transition">
+            <span>Relax with Fiona</span>
+            <i data-lucide="arrow-right" class="w-3.5 h-3.5 ml-1"></i>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 🪶 Fiona's Gentle Rituals (guilt-free habit tracker) -->
+      <div id="ritual-suite" class="rounded-2xl border border-lavender/60 dark:border-purple-900/40 bg-gradient-to-br from-[#F5F0FF] via-[#FCEFEF] to-[#FFF7F5] dark:from-spa-darkcard dark:via-purple-950/30 dark:to-spa-darkcard p-6 sm:p-7 shadow-sm space-y-5 overflow-hidden relative">
+        <div class="pointer-events-none absolute -top-10 -right-10 w-40 h-40 rounded-full bg-pink-200/30 dark:bg-purple-800/20 blur-2xl"></div>
+
+        <div class="relative flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+          <div>
+            <span class="text-[11px] font-bold uppercase tracking-wider text-spa-plum dark:text-pink-300">The Ritual Suite</span>
+            <h3 class="font-serif text-2xl font-bold text-gray-900 dark:text-white mt-1 flex items-center gap-2">
+              <span>🪶 Fiona's Gentle Rituals</span>
+            </h3>
+            <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-300 mt-1 max-w-xl">
+              Tiny, restorative habits to keep your crown steady. No guilt, no pressure.
+            </p>
+            <p id="ritual-rest-note" class="hidden mt-2 text-xs font-medium italic text-spa-plum dark:text-pink-200">
+              Resting is part of the work, darling. Clean slate today.
+            </p>
+          </div>
+        </div>
+
+        <!-- Nourishment Gauge -->
+        <div class="relative space-y-2">
+          <div class="flex items-center justify-between gap-2">
+            <p id="ritual-progress-label" class="text-xs font-semibold text-spa-plum dark:text-pink-200">
+              Nourishment Gauge: 0 of 5 gentle intentions honored today.
+            </p>
+            <span id="ritual-progress-pct" class="text-[10px] font-bold uppercase tracking-wider text-spa-plum/70 dark:text-pink-300/70">0%</span>
+          </div>
+          <div class="h-2.5 rounded-full bg-white/70 dark:bg-black/30 border border-pink-100 dark:border-purple-900 overflow-hidden">
+            <div id="ritual-progress-bar" class="h-full rounded-full bg-gradient-to-r from-[#E8B4B8] via-[#D4A5C0] to-[#C9B1FF] transition-all duration-500 ease-out" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <!-- Ritual list -->
+        <ul id="ritual-list" class="relative space-y-2.5">
+          <!-- filled by JS -->
+        </ul>
+
+        <!-- Add custom ritual -->
+        <div class="relative pt-2 border-t border-pink-200/60 dark:border-purple-900/50 space-y-3">
+          <p class="text-xs font-semibold text-gray-700 dark:text-gray-200">Add a personal ritual</p>
+          <div class="flex flex-col sm:flex-row gap-2">
+            <input id="ritual-new-input" type="text" maxlength="120" placeholder="e.g., Soft stretch before bed…"
+              class="flex-1 px-3.5 py-2.5 rounded-xl border border-pink-100 dark:border-purple-900/60 bg-white/80 dark:bg-spa-darkbg/50 focus:outline-none focus:ring-2 focus:ring-purple-300 text-sm">
+            <select id="ritual-new-category" class="px-3 py-2.5 rounded-xl border border-pink-100 dark:border-purple-900/60 bg-white/80 dark:bg-spa-darkbg/50 text-xs font-semibold text-gray-700 dark:text-gray-200">
+              <option value="Hydration">Hydration</option>
+              <option value="Somatic">Somatic</option>
+              <option value="Mind">Mind</option>
+              <option value="Boundaries">Boundaries</option>
+            </select>
+            <button type="button" onclick="addCustomRitual()" class="px-4 py-2.5 rounded-xl bg-spa-plum text-white text-xs font-bold hover:bg-spa-plumdark transition shrink-0">
+              Add Ritual
+            </button>
+          </div>
+        </div>
+
+        <!-- Sparkle overlay host -->
+        <div id="ritual-sparkle-host" class="pointer-events-none absolute inset-0 overflow-hidden"></div>
+      </div>
+
+      <!-- Spa Suite Chambers Grid (The 4 Wings Portals) -->
+      <div class="pt-4 space-y-4">
+        <h3 class="font-serif text-2xl font-bold text-gray-900 dark:text-white">The Suite Chambers</h3>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          
+          <!-- Chamber: The Sanctuary Suite -->
+          <div onclick="navigateTo('sanctuary')" class="p-6 rounded-2xl bg-white dark:bg-spa-darkcard border border-pink-100 dark:border-purple-900/40 hover:border-purple-300 dark:hover:border-purple-600 shadow-sm hover:shadow-md cursor-pointer transition flex items-start gap-4">
+            <div class="w-12 h-12 rounded-xl bg-spa-blush dark:bg-purple-950 flex items-center justify-center text-spa-plum dark:text-pink-300 shrink-0">
+              <i data-lucide="feather" class="w-6 h-6"></i>
+            </div>
+            <div class="space-y-1">
+              <h4 class="font-serif text-lg font-bold text-gray-900 dark:text-white">The Sanctuary Suite</h4>
+              <p class="text-xs text-gray-600 dark:text-gray-300">Private journal reflection, emotional clarity, and the high-EQ Perspective Mirror.</p>
+            </div>
+          </div>
+
+          <!-- Chamber: The Calming Lagoon -->
+          <div onclick="navigateTo('lagoon')" class="p-6 rounded-2xl bg-white dark:bg-spa-darkcard border border-pink-100 dark:border-purple-900/40 hover:border-purple-300 dark:hover:border-purple-600 shadow-sm hover:shadow-md cursor-pointer transition flex items-start gap-4">
+            <div class="w-12 h-12 rounded-xl bg-teal-50 dark:bg-teal-950/40 flex items-center justify-center text-teal-700 dark:text-teal-300 shrink-0">
+              <i data-lucide="waves" class="w-6 h-6"></i>
+            </div>
+            <div class="space-y-1">
+              <h4 class="font-serif text-lg font-bold text-gray-900 dark:text-white">The Calming Lagoon</h4>
+              <p class="text-xs text-gray-600 dark:text-gray-300">Flare tracker, Feather Tiers for tender days, Yin studio, and vagus breathwork.</p>
+            </div>
+          </div>
+
+          <!-- Chamber: Strut & Sweat -->
+          <div onclick="navigateTo('strut')" class="p-6 rounded-2xl bg-white dark:bg-spa-darkcard border border-pink-100 dark:border-purple-900/40 hover:border-purple-300 dark:hover:border-purple-600 shadow-sm hover:shadow-md cursor-pointer transition flex items-start gap-4">
+            <div class="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-950/40 flex items-center justify-center text-amber-700 dark:text-amber-300 shrink-0">
+              <i data-lucide="activity" class="w-6 h-6"></i>
+            </div>
+            <div class="space-y-1">
+              <h4 class="font-serif text-lg font-bold text-gray-900 dark:text-white">Strut & Sweat</h4>
+              <p class="text-xs text-gray-600 dark:text-gray-300">Daily mobility deck for spine, hips, neck, and joint freedom with active timers.</p>
+            </div>
+          </div>
+
+          <!-- Chamber: The Glamour Suite -->
+          <div onclick="navigateTo('glamour')" class="p-6 rounded-2xl bg-white dark:bg-spa-darkcard border border-pink-100 dark:border-purple-900/40 hover:border-purple-300 dark:hover:border-purple-600 shadow-sm hover:shadow-md cursor-pointer transition flex items-start gap-4">
+            <div class="w-12 h-12 rounded-xl bg-pink-50 dark:bg-pink-950/40 flex items-center justify-center text-pink-700 dark:text-pink-300 shrink-0">
+              <i data-lucide="sparkles" class="w-6 h-6"></i>
+            </div>
+            <div class="space-y-1">
+              <h4 class="font-serif text-lg font-bold text-gray-900 dark:text-white">The Glamour Suite</h4>
+              <p class="text-xs text-gray-600 dark:text-gray-300">Effortless wardrobe styling recommendations and hair & makeup vanity mirror.</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- WING 2: THE SANCTUARY SUITE (Journaling & Cognitive Shift)         -->
+    <!-- ================================================================= -->
+    <section id="wing-sanctuary" class="hidden space-y-6 animate-fadeIn">
+      
+      <!-- Suite Header -->
+      <div class="border-b border-pink-100 dark:border-purple-900/40 pb-5">
+        <span class="text-[11px] font-bold uppercase tracking-wider text-spa-plum dark:text-pink-300">
+          Private Chamber
+        </span>
+        <h2 class="font-serif text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">
+          The Sanctuary Suite
+        </h2>
+        <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">
+          Your confidential haven to unpack heavy thoughts, reframe anxiety, and hear what your intuition is saying.
+        </p>
+
+        <!-- Sub-chamber tabs -->
+        <div class="flex items-center gap-2 mt-4">
+          <button onclick="switchSanctuaryTab('diary')" id="subtab-diary" class="px-4 py-1.5 rounded-full text-xs font-bold transition bg-spa-plum text-white shadow-sm">
+            📖 The Private Diary
+          </button>
+          <button onclick="switchSanctuaryTab('mirror')" id="subtab-mirror" class="px-4 py-1.5 rounded-full text-xs font-bold transition text-gray-600 dark:text-gray-300 hover:bg-pink-50 dark:hover:bg-purple-900/30">
+            🪞 Talk It Out (Perspective Mirror)
+          </button>
+        </div>
+      </div>
+
+      <!-- SUB-CHAMBER A: The Private Diary -->
+      <div id="sanctuary-diary-view" class="space-y-6">
+        
+        <!-- Prompt Generator -->
+        <div class="p-5 rounded-2xl bg-gradient-to-r from-purple-50 to-pink-50 dark:from-spa-darkcard dark:to-purple-950/20 border border-purple-100 dark:border-purple-900/40 flex items-center justify-between gap-4">
+          <div>
+            <span class="text-[10px] font-bold tracking-widest text-spa-plum dark:text-pink-300 uppercase">EQ Inward Prompt</span>
+            <p id="diary-prompt-text" class="font-serif text-base sm:text-lg font-medium text-gray-800 dark:text-gray-100 mt-0.5">
+              "What feeling is asking for your gentle attention right now—not your criticism?"
+            </p>
+          </div>
+          <button onclick="sparkDiaryPrompt()" class="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-purple-900 text-spa-plum dark:text-pink-200 border border-purple-200 dark:border-purple-700 rounded-xl text-xs font-semibold shadow-sm hover:bg-pink-50 transition">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5 text-spa-gold"></i> Spark Prompt
+          </button>
+        </div>
+
+        <!-- Journal Typing Area -->
+        <div class="bg-white dark:bg-spa-darkcard p-6 rounded-2xl border border-pink-100 dark:border-purple-900/40 shadow-sm space-y-4">
+          <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200">
+            Your Private Thoughts Stay Protected Here
+          </label>
+
+          <div class="space-y-2">
+            <span class="text-xs font-semibold text-gray-700 dark:text-gray-300">How’s your mood right now? <span class="font-normal text-gray-500">(pick up to 2)</span></span>
+            <div id="diary-mood-chips" class="flex flex-wrap gap-2">
+              <button type="button" data-mood="Overwhelmed" onclick="toggleDiaryMood(this)" class="mood-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 dark:border-purple-900 text-gray-700 dark:text-gray-300">Overwhelmed</button>
+              <button type="button" data-mood="Imposter Syndrome" onclick="toggleDiaryMood(this)" class="mood-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 dark:border-purple-900 text-gray-700 dark:text-gray-300">Imposter Syndrome</button>
+              <button type="button" data-mood="Proud of Myself" onclick="toggleDiaryMood(this)" class="mood-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 dark:border-purple-900 text-gray-700 dark:text-gray-300">Proud of Myself</button>
+              <button type="button" data-mood="People-Pleasing" onclick="toggleDiaryMood(this)" class="mood-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 dark:border-purple-900 text-gray-700 dark:text-gray-300">People-Pleasing</button>
+              <button type="button" data-mood="Second-Guessing" onclick="toggleDiaryMood(this)" class="mood-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 dark:border-purple-900 text-gray-700 dark:text-gray-300">Second-Guessing</button>
+              <button type="button" data-mood="Fired Up" onclick="toggleDiaryMood(this)" class="mood-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 dark:border-purple-900 text-gray-700 dark:text-gray-300">Fired Up</button>
+              <button type="button" data-mood="Drained" onclick="toggleDiaryMood(this)" class="mood-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 dark:border-purple-900 text-gray-700 dark:text-gray-300">Drained</button>
+            </div>
+          </div>
+
+          <textarea id="journal-input" rows="6" placeholder="Spill it, gorgeous. How does today feel so far? What is taking up rent in your head?" class="w-full p-4 rounded-xl border border-pink-100 dark:border-purple-900/60 bg-spa-cream/40 dark:bg-spa-darkbg/40 focus:outline-none focus:ring-2 focus:ring-purple-300 dark:focus:ring-purple-600 text-sm leading-relaxed"></textarea>
+          
+          <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
+            <div class="flex items-center gap-2">
+              <button id="reflect-btn" onclick="reflectWithFiona()" class="px-5 py-2.5 rounded-xl bg-spa-plum text-white text-xs font-semibold hover:bg-spa-plumdark transition shadow-sm flex items-center gap-2 disabled:opacity-60">
+                <span>Reflect with Fiona</span> 🦩✨
+              </button>
+              <button onclick="saveDiaryEntry()" class="px-4 py-2.5 rounded-xl bg-pink-100 dark:bg-purple-900/50 text-spa-plum dark:text-pink-200 text-xs font-semibold hover:bg-pink-200 transition">
+                Save to My Suite 💾
+              </button>
+            </div>
+            <span id="journal-char-count" class="text-xs text-gray-600 dark:text-gray-300">0 characters</span>
+          </div>
+
+          <!-- Fiona's 3-part reflection (matches live product) -->
+          <div id="fiona-reflection-box" class="hidden mt-4 space-y-3">
+            <div class="flex items-center gap-2 text-spa-plum dark:text-pink-300 text-xs font-bold uppercase tracking-wider">
+              <img src="assets/fiona-head.jpg" alt="" class="w-6 h-6 rounded-full object-cover object-top">
+              <span>Fiona’s Reflection</span>
+            </div>
+            <div class="p-4 rounded-xl bg-purple-50/80 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800 space-y-1">
+              <p class="text-[11px] font-bold uppercase tracking-wider text-spa-plum/80 dark:text-pink-300">✨ Clarity Refocus</p>
+              <p id="reflect-clarity" class="text-sm leading-relaxed text-gray-800 dark:text-gray-200"></p>
+            </div>
+            <div class="p-4 rounded-xl bg-pink-50/80 dark:bg-purple-950/30 border border-pink-200 dark:border-purple-800 space-y-1">
+              <p class="text-[11px] font-bold uppercase tracking-wider text-spa-plum/80 dark:text-pink-300">🪞 The Confidence Anchor</p>
+              <p id="reflect-anchor" class="text-sm leading-relaxed text-gray-800 dark:text-gray-200"></p>
+            </div>
+            <div class="p-4 rounded-xl bg-gradient-to-r from-pink-50 to-purple-50 dark:from-spa-darkcard dark:to-purple-950/40 border border-spa-plum/20 dark:border-purple-700 space-y-1">
+              <p class="text-[11px] font-bold uppercase tracking-wider text-spa-plum dark:text-pink-300">🪶 Fiona’s Wingwoman Quip</p>
+              <p id="reflect-quip" class="text-sm leading-relaxed font-medium text-spa-plumdark dark:text-pink-100"></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Saved Past Entries -->
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <h4 class="font-serif text-lg font-bold text-gray-800 dark:text-gray-200">Saved Sanctuary Reflections</h4>
+            <span id="entries-count-badge" class="text-xs text-gray-600 dark:text-gray-300">2 entries saved</span>
+          </div>
+          <div id="past-entries-list" class="space-y-3">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- SUB-CHAMBER B: The Perspective Mirror (Story First, Camera Fact Second) -->
+      <div id="sanctuary-mirror-view" class="hidden space-y-6">
+        
+        <div class="bg-white dark:bg-spa-darkcard p-6 sm:p-7 rounded-2xl border border-pink-100 dark:border-purple-900/40 shadow-sm space-y-5">
+          <div>
+            <span class="text-[11px] font-bold uppercase tracking-wider text-spa-plum dark:text-pink-300">
+              Emotional Intelligence Calibration
+            </span>
+            <h3 class="font-serif text-2xl font-bold text-gray-900 dark:text-white mt-0.5">
+              The Perspective Mirror
+            </h3>
+            <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
+              Vent the panic narrative first. Then anchor to neutral reality so Fiona can help you unhook.
+            </p>
+          </div>
+
+          <!-- Step 1: Mind's Story FIRST -->
+          <div class="space-y-2">
+            <label class="block text-sm font-semibold text-gray-800 dark:text-gray-200 flex items-center justify-between">
+              <span>1. Mind's Story <span class="font-normal text-xs text-gray-600 dark:text-gray-300">(What is your brain spinning?)</span></span>
+              <span class="text-[11px] text-pink-600 dark:text-pink-400 font-medium">Vent without filter</span>
+            </label>
+            <textarea id="mirror-story-input" rows="3" placeholder="e.g., 'They haven't replied to my email yet so they definitely think my work is terrible and I'm a failure.'" class="w-full p-3.5 rounded-xl border border-pink-100 dark:border-purple-900/60 bg-spa-cream/40 dark:bg-spa-darkbg/40 focus:outline-none focus:ring-2 focus:ring-purple-300 text-sm"></textarea>
+          </div>
+
+          <!-- Step 2: Camera Fact SECOND -->
+          <div class="space-y-2">
+            <label class="block text-sm font-semibold text-gray-800 dark:text-gray-200 flex items-center justify-between">
+              <span>2. Camera Fact <span class="font-normal text-xs text-gray-600 dark:text-gray-300">(What would an objective camera record?)</span></span>
+              <span class="text-[11px] text-emerald-700 dark:text-emerald-400 font-medium">Observable facts only</span>
+            </label>
+            <textarea id="mirror-fact-input" rows="3" placeholder="e.g., 'I sent an email at 10:15 AM and it is now 11:45 AM. No reply has arrived yet.'" class="w-full p-3.5 rounded-xl border border-pink-100 dark:border-purple-900/60 bg-spa-cream/40 dark:bg-spa-darkbg/40 focus:outline-none focus:ring-2 focus:ring-purple-300 text-sm"></textarea>
+          </div>
+
+          <!-- Unpack Button -->
+          <div class="flex items-center gap-3">
+            <button onclick="unpackPerspectiveMirror()" class="px-6 py-2.5 rounded-xl bg-spa-plum text-white text-xs font-semibold hover:bg-spa-plumdark active:scale-95 transition shadow-sm flex items-center gap-2">
+              <span>Unpack the Story with Fiona</span> 🦩✨
+            </button>
+            <button onclick="clearPerspectiveMirror()" class="px-4 py-2.5 rounded-xl bg-gray-100 dark:bg-purple-950 text-gray-600 dark:text-gray-300 text-xs font-semibold hover:bg-gray-200 transition">
+              Reset Fields
+            </button>
+          </div>
+
+          <!-- Interactive Reframe Card Result -->
+          <div id="mirror-result-card" class="hidden mt-6 p-6 rounded-2xl bg-gradient-to-br from-pink-50 via-purple-50 to-white dark:from-spa-darkcard dark:via-purple-950/40 dark:to-spa-darkcard border border-pink-200 dark:border-purple-800 space-y-4">
+            <div class="flex items-center gap-2 text-spa-plum dark:text-pink-300 font-serif font-bold text-lg">
+              <span>🪞 Fiona's Reality Reframe</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+              <div class="p-3.5 rounded-xl bg-white/80 dark:bg-black/20 border border-purple-100 dark:border-purple-900">
+                <span class="font-bold text-pink-700 dark:text-pink-400 block mb-1">🔍 What The Camera Recorded:</span>
+                <p id="reframe-echo-fact" class="text-gray-700 dark:text-gray-300 italic"></p>
+              </div>
+              <div class="p-3.5 rounded-xl bg-white/80 dark:bg-black/20 border border-purple-100 dark:border-purple-900">
+                <span class="font-bold text-purple-700 dark:text-purple-400 block mb-1">✂️ The Fiction Your Mind Layered:</span>
+                <p id="reframe-echo-story" class="text-gray-700 dark:text-gray-300 italic"></p>
+              </div>
+            </div>
+
+            <div class="p-4 rounded-xl bg-purple-100/60 dark:bg-purple-900/30 text-sm leading-relaxed text-spa-plumdark dark:text-pink-100 space-y-2">
+              <p id="reframe-coaching-body" class="font-medium"></p>
+              <p class="text-xs italic text-spa-plum/80 dark:text-pink-200">
+                "Unclench your jaw, drop your shoulders two inches, and stop paying rent on problems you invented in the shower, gorgeous." — Fiona
+              </p>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- WING 3: THE CALMING LAGOON (Rest, Chronic Illness & Breath)        -->
+    <!-- ================================================================= -->
+    <section id="wing-lagoon" class="hidden space-y-6 animate-fadeIn">
+      
+      <!-- Suite Header -->
+      <div class="border-b border-pink-100 dark:border-purple-900/40 pb-5">
+        <span class="text-[11px] font-bold uppercase tracking-wider text-teal-700 dark:text-teal-300">
+          Somatic Restoration & Flare Support
+        </span>
+        <h2 class="font-serif text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">
+          The Calming Lagoon
+        </h2>
+        <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">
+          Zero clinical jargon. No guilt. Flare tracking, floor rests, vagus breathing, and Feather Tiers for high-pain days.
+        </p>
+
+        <!-- Sub-Chamber Switcher -->
+        <div class="flex flex-wrap items-center gap-2 mt-4">
+          <button onclick="switchLagoonTab('tracker')" id="subtab-tracker" class="px-4 py-1.5 rounded-full text-xs font-bold transition text-gray-600 dark:text-gray-300 hover:bg-pink-50 dark:hover:bg-purple-900/30">
+            🩺 Flare Tracker
+          </button>
+          <button onclick="switchLagoonTab('sanctuary-flare')" id="subtab-flare" class="px-4 py-1.5 rounded-full text-xs font-bold transition text-gray-600 dark:text-gray-300 hover:bg-pink-50 dark:hover:bg-purple-900/30">
+            🪶 Feather Tiers
+          </button>
+          <button onclick="switchLagoonTab('yin')" id="subtab-yin" class="px-4 py-1.5 rounded-full text-xs font-bold transition bg-spa-plum text-white shadow-sm">
+            🧘 The Yin Studio
+          </button>
+          <button onclick="switchLagoonTab('breath')" id="subtab-breath" class="px-4 py-1.5 rounded-full text-xs font-bold transition text-gray-600 dark:text-gray-300 hover:bg-pink-50 dark:hover:bg-purple-900/30">
+            🌊 Breath Chamber
+          </button>
+        </div>
+      </div>
+
+      <!-- SUB-CHAMBER 0: Gentle Care & Flare Tracker -->
+      <div id="lagoon-tracker-view" class="hidden space-y-6">
+        <div class="bg-white dark:bg-spa-darkcard p-6 rounded-2xl border border-pink-100 dark:border-purple-900/40 shadow-sm space-y-6">
+          <div>
+            <span class="text-[11px] font-bold uppercase tracking-wider text-teal-700 dark:text-teal-300">A gentler read of the day</span>
+            <h3 class="font-serif text-2xl font-bold text-gray-900 dark:text-white mt-1">Gentle Care & Flare Tracker</h3>
+            <p class="text-xs text-gray-600 dark:text-gray-300 mt-1">Log capacity without judgment. Patterns stay private on this device.</p>
+          </div>
+
+          <!-- Battery Level -->
+          <fieldset class="space-y-2">
+            <legend class="font-serif text-lg font-bold text-gray-900 dark:text-white">Battery Level</legend>
+            <p class="text-xs text-gray-600 dark:text-gray-300">Choose the reserve you have today.</p>
+            <div id="flare-battery-options" class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              <!-- filled by JS -->
+            </div>
+          </fieldset>
+
+          <!-- Flare Status -->
+          <fieldset class="space-y-2">
+            <legend class="font-serif text-lg font-bold text-gray-900 dark:text-white">Flare Status</legend>
+            <p class="text-xs text-gray-600 dark:text-gray-300">A label for capacity — not a grade.</p>
+            <div id="flare-status-options" class="grid gap-2 sm:grid-cols-2">
+              <!-- filled by JS -->
+            </div>
+          </fieldset>
+
+          <!-- Soft care (shown on Active / Severe) -->
+          <div id="flare-soft-care" class="hidden p-4 rounded-xl border border-orange-200 dark:border-orange-900/50 bg-orange-50/70 dark:bg-orange-950/20 space-y-3">
+            <p class="text-sm font-semibold text-orange-950 dark:text-orange-100">Soft care checklist (optional)</p>
+            <div id="flare-soft-care-list" class="space-y-2"></div>
+            <p class="text-xs font-semibold text-gray-800 dark:text-gray-200 pt-1">You did not fail your body. This flare is a signal to slow down, not a personal character flaw.</p>
+          </div>
+
+          <!-- Symptoms -->
+          <fieldset class="space-y-2">
+            <legend class="font-serif text-lg font-bold text-gray-900 dark:text-white">Symptoms</legend>
+            <p class="text-xs text-gray-600 dark:text-gray-300">Select what you’re noticing (optional).</p>
+            <div id="flare-symptom-options" class="flex flex-wrap gap-2"></div>
+          </fieldset>
+
+          <!-- Triggers -->
+          <fieldset class="space-y-2">
+            <legend class="font-serif text-lg font-bold text-gray-900 dark:text-white">Possible Triggers</legend>
+            <p class="text-xs text-gray-600 dark:text-gray-300">What might have nudged this (optional).</p>
+            <div id="flare-trigger-options" class="flex flex-wrap gap-2"></div>
+          </fieldset>
+
+          <p id="flare-form-error" class="hidden text-xs font-medium text-rose-700 dark:text-rose-300"></p>
+
+          <button type="button" onclick="logFlareCheckin()" class="w-full sm:w-auto px-6 py-3 rounded-xl bg-spa-plum text-white text-xs font-bold hover:bg-spa-plumdark transition shadow-sm">
+            Log Today’s Status
+          </button>
+        </div>
+
+        <!-- History -->
+        <div class="space-y-3">
+          <div>
+            <span class="text-[11px] font-bold uppercase tracking-wider text-teal-700 dark:text-teal-300">A private pattern log</span>
+            <h4 class="font-serif text-xl font-bold text-gray-900 dark:text-white">Recent Check-ins</h4>
+          </div>
+          <div id="flare-history-list" class="grid gap-3 sm:grid-cols-2">
+            <!-- filled by JS -->
+          </div>
+          <p id="flare-history-empty" class="text-xs text-gray-600 dark:text-gray-300">No check-ins yet. Log today when you’re ready — even a calm day counts.</p>
+        </div>
+      </div>
+
+      <!-- SUB-CHAMBER 1: The Sanctuary Suite (Feather Tiers for Pain/Flares) -->
+      <div id="lagoon-flare-view" class="hidden space-y-6">
+        
+        <!-- Feather Tier Selector -->
+        <div class="bg-white dark:bg-spa-darkcard p-6 rounded-2xl border border-pink-100 dark:border-purple-900/40 shadow-sm space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h3 class="font-serif text-xl font-bold text-gray-900 dark:text-white">Feather Tiers for Flare & Tender Days</h3>
+              <p class="text-xs text-gray-600 dark:text-gray-300">Choose your current body capacity. No floor pretzels; all shapes are bed- or sofa-supported.</p>
+            </div>
+            <div class="flex items-center gap-1.5 bg-pink-50 dark:bg-purple-950 p-1 rounded-full border border-pink-100">
+              <button onclick="filterFeatherTier('all', this)" class="feather-filter-btn px-3 py-1 rounded-full text-xs font-semibold bg-white dark:bg-purple-800 text-spa-plum dark:text-white shadow-xs">All</button>
+              <button onclick="filterFeatherTier('down', this)" class="feather-filter-btn px-3 py-1 rounded-full text-xs font-semibold text-gray-600 dark:text-gray-300 hover:text-spa-plum">Plumage Down (Flat)</button>
+              <button onclick="filterFeatherTier('nestled', this)" class="feather-filter-btn px-3 py-1 rounded-full text-xs font-semibold text-gray-600 dark:text-gray-300 hover:text-spa-plum">Nestled (Pillows)</button>
+              <button onclick="filterFeatherTier('fluff', this)" class="feather-filter-btn px-3 py-1 rounded-full text-xs font-semibold text-gray-600 dark:text-gray-300 hover:text-spa-plum">Fluffing Up (Gentle)</button>
+            </div>
+          </div>
+
+          <!-- Flare Cards Grid -->
+          <div id="feather-tier-cards" class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+            
+            <!-- Card 1 -->
+            <div data-tier="down" class="feather-card p-5 rounded-xl border border-purple-100 dark:border-purple-900 bg-purple-50/40 dark:bg-spa-darkbg/50 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-rose-100 text-rose-800">Plumage Down</span>
+                <span class="text-xs text-gray-600 dark:text-gray-300">Zero Effort • 5-15 min</span>
+              </div>
+              <h4 class="font-serif font-bold text-base text-gray-900 dark:text-white">Headboard Legs Elevation</h4>
+              <p class="text-xs text-gray-600 dark:text-gray-300">Lie flat on back, swing heels up the headboard or wall, hands resting on belly.</p>
+              <p class="text-xs italic text-spa-plum dark:text-pink-300">"The royal shortcut to a circulation reboot. Let gravity do 100% of the heavy lifting."</p>
+            </div>
+
+            <!-- Card 2 -->
+            <div data-tier="nestled" class="feather-card p-5 rounded-xl border border-purple-100 dark:border-purple-900 bg-purple-50/40 dark:bg-spa-darkbg/50 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-purple-100 text-purple-800">Nestled</span>
+                <span class="text-xs text-gray-600 dark:text-gray-300">Pillow Supported • 3-8 min</span>
+              </div>
+              <h4 class="font-serif font-bold text-base text-gray-900 dark:text-white">Pillow Mountain Chest Opener</h4>
+              <p class="text-xs text-gray-600 dark:text-gray-300">Two pillows lengthwise along your upper spine. Head supported, arms open wide like relaxed wings.</p>
+              <p class="text-xs italic text-spa-plum dark:text-pink-300">"Opens tight rib cages constricted by pain without forcing your back into arching."</p>
+            </div>
+
+            <!-- Card 3 -->
+            <div data-tier="down" class="feather-card p-5 rounded-xl border border-purple-100 dark:border-purple-900 bg-purple-50/40 dark:bg-spa-darkbg/50 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-rose-100 text-rose-800">Plumage Down</span>
+                <span class="text-xs text-gray-600 dark:text-gray-300">Side-Lying Hug • 5-10 min</span>
+              </div>
+              <h4 class="font-serif font-bold text-base text-gray-900 dark:text-white">Cocoon Side-Lying Hug</h4>
+              <p class="text-xs text-gray-600 dark:text-gray-300">Curled on your favorite side, hug a firm duvet or bolster to your chest with a pillow between knees.</p>
+              <p class="text-xs italic text-spa-plum dark:text-pink-300">"Relieves lower spine tension and signals your nervous system that you are totally safe."</p>
+            </div>
+
+            <!-- Card 4 -->
+            <div data-tier="fluff" class="feather-card p-5 rounded-xl border border-purple-100 dark:border-purple-900 bg-purple-50/40 dark:bg-spa-darkbg/50 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800">Fluffing Up</span>
+                <span class="text-xs text-gray-600 dark:text-gray-300">Gentle Micro-Moves • 3 min</span>
+              </div>
+              <h4 class="font-serif font-bold text-base text-gray-900 dark:text-white">Bedside Jaw & Temple Sweep</h4>
+              <p class="text-xs text-gray-600 dark:text-gray-300">Gentle fingertips gliding down from hairline, over cheekbones, releasing involuntary jaw clench.</p>
+              <p class="text-xs italic text-spa-plum dark:text-pink-300">"Pain makes us bite down in our sleep. Let that jaw hang open softly, honey."</p>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- SUB-CHAMBER 2: The Yin Studio -->
+      <div id="lagoon-yin-view" class="space-y-6">
+        <div class="bg-white dark:bg-spa-darkcard p-6 rounded-2xl border border-pink-100 dark:border-purple-900/40 shadow-sm space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h3 class="font-serif text-xl font-bold text-gray-900 dark:text-white">The Yin Studio</h3>
+              <p class="text-xs text-gray-600 dark:text-gray-300">Long, passive floor holds to restore connective tissue and melt frozen postures.</p>
+            </div>
+            
+            <!-- Yin Hold Timer Component -->
+            <div class="flex items-center gap-2 p-2 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-100">
+              <span class="text-xs font-bold text-spa-plum dark:text-pink-300 flex items-center gap-1">
+                <i data-lucide="timer" class="w-3.5 h-3.5"></i> Hold Timer:
+              </span>
+              <span id="yin-timer-display" class="font-mono text-sm font-bold text-gray-800 dark:text-white">02:00</span>
+              <button onclick="toggleYinTimer()" id="yin-timer-toggle-btn" class="px-2.5 py-1 bg-spa-plum text-white text-xs font-semibold rounded-lg hover:bg-spa-plumdark">Start</button>
+              <button onclick="resetYinTimer()" class="px-2 py-1 bg-gray-200 dark:bg-purple-900 text-xs font-semibold rounded-lg text-gray-700 dark:text-gray-200">Reset</button>
+            </div>
+          </div>
+
+          <!-- Yin Pose Cards -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+            
+            <div class="p-4 rounded-xl border border-pink-100 dark:border-purple-900 bg-spa-cream/30 dark:bg-spa-darkbg/40 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="font-serif font-bold text-base">Reclined Butterfly (Supta Baddha Konasana)</span>
+                <span class="text-xs text-spa-plum font-semibold">2 - 5 min</span>
+              </div>
+              <p class="text-xs text-gray-600 dark:text-gray-300">Soles together, knees heavy. Place cushions under outer knees to completely remove joint pull.</p>
+              <p class="text-xs italic text-spa-plum dark:text-pink-300">"Release the hips where all your unsaid 'I'm fines' are hiding."</p>
+            </div>
+
+            <div class="p-4 rounded-xl border border-pink-100 dark:border-purple-900 bg-spa-cream/30 dark:bg-spa-darkbg/40 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="font-serif font-bold text-base">Sphinx Pose (Salamba Bhujangasana)</span>
+                <span class="text-xs text-spa-plum font-semibold">2 - 3 min</span>
+              </div>
+              <p class="text-xs text-gray-600 dark:text-gray-300">Lie face down, prop on forearms with elbows beneath shoulders. Let the lower back sag softly.</p>
+              <p class="text-xs italic text-spa-plum dark:text-pink-300">"A therapeutic decompression for your lumbar spine after hours of desk hunch."</p>
+            </div>
+
+            <div class="p-4 rounded-xl border border-pink-100 dark:bg-purple-900 bg-spa-cream/30 dark:bg-spa-darkbg/40 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="font-serif font-bold text-base">Supported Child's Pose (Balasana)</span>
+                <span class="text-xs text-spa-plum font-semibold">3 - 5 min</span>
+              </div>
+              <p class="text-xs text-gray-600 dark:text-gray-300">Big toes together, knees wide. Fold forward over a thick pillow, resting one ear at a time.</p>
+              <p class="text-xs italic text-spa-plum dark:text-pink-300">"Pure surrender. No one expects anything from you here."</p>
+            </div>
+
+            <div class="p-4 rounded-xl border border-pink-100 dark:border-purple-900 bg-spa-cream/30 dark:bg-spa-darkbg/40 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="font-serif font-bold text-base">Bananasana (Side Meridian Stretch)</span>
+                <span class="text-xs text-spa-plum font-semibold">2 min / side</span>
+              </div>
+              <p class="text-xs text-gray-600 dark:text-gray-300">Lie flat on back, curve legs and arms toward the right into a gentle crescent banana shape.</p>
+              <p class="text-xs italic text-spa-plum dark:text-pink-300">"Fluffs open your intercostal ribs for fuller, deeper oxygen."</p>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- SUB-CHAMBER 3: The Breath Chamber -->
+      <div id="lagoon-breath-view" class="hidden space-y-6">
+        <div class="bg-white dark:bg-spa-darkcard p-8 rounded-2xl border border-pink-100 dark:border-purple-900/40 shadow-sm text-center max-w-xl mx-auto space-y-6">
+          <div class="space-y-1">
+            <span class="text-xs font-bold tracking-widest text-teal-700 dark:text-teal-300 uppercase">Vagus Down-Regulation</span>
+            <h3 class="font-serif text-2xl font-bold text-gray-900 dark:text-white">Ocean Tide Breathing Pacer</h3>
+            <p class="text-xs text-gray-600 dark:text-gray-300">Inhale gentle oxygen for 4 seconds, hold soft for 4, exhale long for 6 seconds.</p>
+          </div>
+
+          <!-- Pulsing Pacer Circle -->
+          <div class="relative w-48 h-48 mx-auto flex items-center justify-center">
+            <div id="breath-circle" class="w-40 h-40 rounded-full bg-gradient-to-tr from-pink-200 via-teal-200 to-purple-200 dark:from-purple-900 dark:to-teal-900 flex items-center justify-center shadow-inner transition-all duration-1000">
+              <div class="text-center space-y-1">
+                <span id="breath-instruction" class="font-serif text-lg font-bold text-spa-plum dark:text-pink-100">Breathe In</span>
+                <span id="breath-seconds" class="block font-mono text-2xl font-bold text-spa-plumdark dark:text-white">4</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-center gap-3">
+            <button onclick="toggleBreathPacer()" id="pacer-toggle-btn" class="px-6 py-2 rounded-xl bg-teal-800 hover:bg-teal-900 text-white text-xs font-bold shadow-sm transition">
+              Start Gentle Pacing
+            </button>
+            <button onclick="triggerSomaticSigh()" class="px-4 py-2 rounded-xl bg-pink-100 dark:bg-purple-900 text-spa-plum dark:text-pink-200 text-xs font-semibold hover:bg-pink-200 transition">
+              Physiological Sigh 💨
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- WING 4: STRUT & SWEAT (Daily Mobility & Stretching Deck)           -->
+    <!-- ================================================================= -->
+    <section id="wing-strut" class="hidden space-y-6 animate-fadeIn">
+      
+      <div class="border-b border-pink-100 dark:border-purple-900/40 pb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <span class="text-[11px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-300">
+            Joint Freedom & Mobility
+          </span>
+          <h2 class="font-serif text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">
+            Fluff & Flex: Daily Mobility
+          </h2>
+          <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">
+            Quick, feel-good stretches to wake up stiff joints, release desk-slouch, and get your strut back.
+          </p>
+        </div>
+
+        <!-- Filter Chips -->
+        <div class="flex flex-wrap items-center gap-1.5 bg-white dark:bg-spa-darkcard p-1.5 rounded-2xl border border-pink-100 dark:border-purple-900">
+          <button onclick="filterMobility('all', this)" class="mobility-filter px-3 py-1 text-xs font-semibold rounded-xl bg-spa-plum text-white shadow-xs">All Moves</button>
+          <button onclick="filterMobility('spine', this)" class="mobility-filter px-3 py-1 text-xs font-semibold rounded-xl text-gray-600 dark:text-gray-300 hover:text-spa-plum">Spine & Core</button>
+          <button onclick="filterMobility('upper', this)" class="mobility-filter px-3 py-1 text-xs font-semibold rounded-xl text-gray-600 dark:text-gray-300 hover:text-spa-plum">Upper & Neck</button>
+          <button onclick="filterMobility('hips', this)" class="mobility-filter px-3 py-1 text-xs font-semibold rounded-xl text-gray-600 dark:text-gray-300 hover:text-spa-plum">Hips & Glutes</button>
+          <button onclick="filterMobility('legs', this)" class="mobility-filter px-3 py-1 text-xs font-semibold rounded-xl text-gray-600 dark:text-gray-300 hover:text-spa-plum">Legs & Calves</button>
+        </div>
+      </div>
+
+      <!-- Mobility 12-Move Grid (Derived from Reference Chart) -->
+      <div id="mobility-cards-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <!-- Injected by JavaScript from MOBILITY_DECK data -->
+      </div>
+
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- WING 5: THE GLAMOUR SUITE (Wardrobe & Vanity Mirror)                -->
+    <!-- ================================================================= -->
+    <section id="wing-glamour" class="hidden space-y-6 animate-fadeIn">
+      
+      <div class="border-b border-pink-100 dark:border-purple-900/40 pb-5">
+        <span class="text-[11px] font-bold uppercase tracking-wider text-pink-700 dark:text-pink-300">
+          Personal Mirror Sanctuary
+        </span>
+        <h2 class="font-serif text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">
+          The Glamour Suite
+        </h2>
+        <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">
+          Feel-good style advice and customized beauty palettes. No body shaming, just pure plumage celebration.
+        </p>
+
+        <!-- Clean Sub-Tabs (No Double Pill Overlap) -->
+        <div class="mt-4 inline-flex max-w-full flex-wrap items-center gap-1 p-1 rounded-full bg-pink-50/90 dark:bg-purple-950/50 border border-pink-100 dark:border-purple-900/60">
+          <button onclick="switchGlamourTab('wardrobe')" id="subtab-wardrobe" class="px-4 py-2 text-sm font-medium rounded-full transition bg-spa-plum text-white shadow-sm">
+            👗 The Wardrobe
+          </button>
+          <button onclick="switchGlamourTab('hairmakeup')" id="subtab-hairmakeup" class="px-4 py-2 text-sm font-medium rounded-full transition text-purple-900/70 dark:text-pink-100/80 hover:bg-white/70 dark:hover:bg-purple-900/40">
+            💄 Hair & Makeup
+          </button>
+        </div>
+      </div>
+
+      <!-- SUB-CHAMBER 1: The Wardrobe -->
+      <div id="glamour-wardrobe-view" class="space-y-6">
+        <div class="bg-white dark:bg-spa-darkcard p-6 sm:p-7 rounded-2xl border border-pink-100 dark:border-purple-900/40 shadow-sm space-y-5">
+          <h3 class="font-serif text-xl font-bold text-gray-900 dark:text-white">What's the Occasion, Gorgeous?</h3>
+          <p class="text-xs text-gray-600 dark:text-gray-300 -mt-2">Give Fiona a little context — and optionally a photo of you or an outfit — and she’ll find the magic in what you already have.</p>
+          
+          <!-- Wardrobe photo canvas -->
+          <div class="space-y-3">
+            <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+              <div>
+                <h4 class="font-serif text-base font-bold text-gray-900 dark:text-white">Your Look Canvas</h4>
+                <p class="text-xs text-gray-600 dark:text-gray-300">Upload or snap a photo of you / your outfit so Fiona can style from what’s real.</p>
+              </div>
+              <span class="text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-1 rounded-full shrink-0">🔒 Local Only</span>
+            </div>
+            <div class="flex flex-col sm:flex-row items-center gap-5 p-4 rounded-xl border border-dashed border-pink-200 dark:border-purple-800 bg-spa-cream/40 dark:bg-spa-darkbg/30">
+              <div class="relative w-32 h-32 rounded-2xl overflow-hidden border-2 border-spa-plum/30 bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center shrink-0 shadow-sm">
+                <img id="wardrobe-preview" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150'%3E%3Crect fill='%23FCEFEF' width='150' height='150'/%3E%3Ctext x='50%25' y='52%25' dominant-baseline='middle' text-anchor='middle' fill='%235E2750' font-family='serif' font-size='13'%3EYour Look%3C/text%3E%3C/svg%3E" alt="Wardrobe look preview" class="w-full h-full object-cover">
+              </div>
+              <div class="space-y-2 text-center sm:text-left w-full">
+                <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                  <button type="button" onclick="triggerPhotoUpload('wardrobe')" class="px-4 py-2.5 rounded-xl bg-spa-plum text-white text-xs font-semibold hover:bg-spa-plumdark transition active:scale-95">
+                    Upload Photo
+                  </button>
+                  <button type="button" onclick="startSelfieCamera('wardrobe')" class="px-4 py-2.5 rounded-xl bg-pink-100 dark:bg-purple-900/50 text-spa-plum dark:text-pink-200 text-xs font-semibold hover:bg-pink-200 transition active:scale-95">
+                    Take a Photo 📸
+                  </button>
+                  <button type="button" id="clear-wardrobe-btn" onclick="clearCanvasPhoto('wardrobe')" class="hidden px-3 py-2.5 rounded-xl bg-gray-100 dark:bg-purple-950 text-gray-600 dark:text-gray-300 text-xs font-semibold">
+                    Clear
+                  </button>
+                </div>
+                <p id="wardrobe-status" class="text-[11px] text-gray-600 dark:text-gray-300">Photos stay in your browser only — never uploaded to a server.</p>
+                <p id="wardrobe-error" class="hidden text-[11px] text-rose-700 dark:text-rose-300 font-medium"></p>
+              </div>
+            </div>
+            <input id="wardrobe-upload-input" type="file" accept="image/*" class="sr-only" aria-label="Upload wardrobe photo" onchange="handleCanvasUpload(event, 'wardrobe')">
+            <input id="wardrobe-camera-input" type="file" accept="image/*" capture="environment" class="sr-only" aria-label="Take wardrobe photo" onchange="handleCanvasUpload(event, 'wardrobe')">
+          </div>
+
+          <!-- Occasion Selector -->
+          <div class="space-y-2">
+            <span class="text-xs font-semibold text-gray-700 dark:text-gray-300">Select Today's Setting:</span>
+            <div class="flex flex-wrap gap-2">
+              <button onclick="selectOccasion(this, 'Desk to Dinner')" class="occasion-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-purple-200 dark:border-purple-800 bg-pink-50 dark:bg-purple-950 text-spa-plum dark:text-pink-200">💼 Desk to Dinner</button>
+              <button onclick="selectOccasion(this, 'Casual Comfort Chic')" class="occasion-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 dark:border-purple-900 text-gray-700 dark:text-gray-300">☕ Casual Comfort Chic</button>
+              <button onclick="selectOccasion(this, 'Power Meeting')" class="occasion-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 dark:border-purple-900 text-gray-700 dark:text-gray-300">🔥 Power Meeting</button>
+              <button onclick="selectOccasion(this, 'Soft Evening Out')" class="occasion-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 dark:border-purple-900 text-gray-700 dark:text-gray-300">🍸 Soft Evening Out</button>
+              <button onclick="selectOccasion(this, 'Cozy Home Luxe')" class="occasion-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 dark:border-purple-900 text-gray-700 dark:text-gray-300">🛋️ Cozy Home Luxe</button>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <label for="wardrobe-vibe" class="text-xs font-semibold text-gray-700 dark:text-gray-300">Or tell Fiona the exact vibe / event:</label>
+            <textarea id="wardrobe-vibe" rows="3" placeholder="e.g., brunch with the girls, first day back at the office, gallery opening…" class="w-full p-3 rounded-xl border border-pink-100 dark:border-purple-900/60 bg-spa-cream/40 dark:bg-spa-darkbg/40 focus:outline-none focus:ring-2 focus:ring-purple-300 text-sm"></textarea>
+          </div>
+
+          <!-- Outfit Recommendation Trigger -->
+          <button onclick="generateWardrobeAdvice()" class="px-6 py-2.5 rounded-xl bg-spa-plum text-white text-xs font-bold hover:bg-spa-plumdark active:scale-95 transition shadow-sm">
+            Style Me, Fiona ✨
+          </button>
+
+          <!-- Wardrobe Recommendation Card -->
+          <div id="wardrobe-recommendation-box" class="p-5 rounded-xl bg-pink-50/70 dark:bg-purple-950/40 border border-pink-200 dark:border-purple-900 space-y-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-spa-plum dark:text-pink-300">✨ Fiona's Curated Look</span>
+            <div class="space-y-1">
+              <h4 id="wardrobe-look-title" class="font-serif text-lg font-bold text-gray-900 dark:text-white">The Effortless Boss Silhouette</h4>
+              <p id="wardrobe-look-desc" class="text-xs sm:text-sm text-gray-700 dark:text-gray-200 leading-relaxed">
+                Tailored wide-leg trousers in rich plum with a tucked silk cami and an unstructured soft blazer. Polished, completely comfortable around the waist, and commands respect.
+              </p>
+            </div>
+            <p id="wardrobe-look-quote" class="text-xs italic text-spa-plum dark:text-pink-300">
+              "When you feel comfortable in your clothes, you stop thinking about your clothes and start owning the room."
+            </p>
+            <p id="wardrobe-photo-note" class="hidden text-xs font-medium text-spa-plum dark:text-pink-200"></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUB-CHAMBER 2: Hair & Makeup (With Photo / Selfie Upload & Color Swatches) -->
+      <div id="glamour-hairmakeup-view" class="hidden space-y-6">
+        <div class="bg-white dark:bg-spa-darkcard p-6 sm:p-7 rounded-2xl border border-pink-100 dark:border-purple-900/40 shadow-sm space-y-6">
+          
+          <!-- Photo Upload / Selfie Canvas -->
+          <div class="space-y-3">
+            <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+              <div>
+                <h3 class="font-serif text-lg font-bold text-gray-900 dark:text-white">Your Canvas: Upload or Snap a Selfie</h3>
+                <p class="text-xs text-gray-600 dark:text-gray-300">Add a clear, well-lit photo so Fiona can frame your glam palette.</p>
+              </div>
+              <span class="text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-1 rounded-full shrink-0">🔒 100% Private (Local Only)</span>
+            </div>
+
+            <!-- Preview + actions -->
+            <div class="flex flex-col sm:flex-row items-center gap-5 p-4 rounded-xl border border-dashed border-pink-200 dark:border-purple-800 bg-spa-cream/40 dark:bg-spa-darkbg/30">
+              <div class="relative w-32 h-32 rounded-full overflow-hidden border-4 border-spa-plum/30 bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center shrink-0 shadow-sm">
+                <img id="glam-preview" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150'%3E%3Crect fill='%23FCEFEF' width='150' height='150'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%235E2750' font-family='serif' font-size='14'%3EYour Face%3C/text%3E%3C/svg%3E" alt="Selfie Preview" class="w-full h-full object-cover">
+              </div>
+              <div class="space-y-2 text-center sm:text-left w-full">
+                <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                  <button type="button" onclick="triggerPhotoUpload('glam')" class="px-4 py-2.5 rounded-xl bg-spa-plum text-white text-xs font-semibold hover:bg-spa-plumdark transition active:scale-95">
+                    Upload Photo
+                  </button>
+                  <button type="button" onclick="startSelfieCamera('glam')" class="px-4 py-2.5 rounded-xl bg-pink-100 dark:bg-purple-900/50 text-spa-plum dark:text-pink-200 text-xs font-semibold hover:bg-pink-200 transition active:scale-95">
+                    Take a Selfie 📸
+                  </button>
+                  <button type="button" id="clear-glam-btn" onclick="clearCanvasPhoto('glam')" class="hidden px-3 py-2.5 rounded-xl bg-gray-100 dark:bg-purple-950 text-gray-600 dark:text-gray-300 text-xs font-semibold">
+                    Clear
+                  </button>
+                </div>
+                <p id="glam-status" class="text-[11px] text-gray-600 dark:text-gray-300">Photos stay in your browser only — never uploaded to a server.</p>
+                <p id="glam-error" class="hidden text-[11px] text-rose-700 dark:text-rose-300 font-medium"></p>
+              </div>
+            </div>
+
+            <!-- Hidden file inputs (sr-only so iOS can open them) -->
+            <input id="glam-upload-input" type="file" accept="image/*" class="sr-only" aria-label="Upload Photo" onchange="handleCanvasUpload(event, 'glam')">
+            <input id="glam-camera-input" type="file" accept="image/*" capture="user" class="sr-only" aria-label="Take Selfie with camera roll" onchange="handleCanvasUpload(event, 'glam')">
+          </div>
+
+          <!-- Undertone Selector -->
+          <div class="space-y-2">
+            <span class="text-xs font-semibold text-gray-700 dark:text-gray-300">Skin Undertone:</span>
+            <div class="flex flex-wrap gap-2">
+              <button onclick="selectUndertone(this, 'Cool')" class="undertone-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-purple-200 dark:border-purple-800 bg-pink-50 dark:bg-purple-950 text-spa-plum dark:text-pink-200">❄️ Cool (Rosy / Berry)</button>
+              <button onclick="selectUndertone(this, 'Warm')" class="undertone-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 dark:border-purple-900 text-gray-700 dark:text-gray-300">☀️ Warm (Golden / Peachy)</button>
+              <button onclick="selectUndertone(this, 'Neutral')" class="undertone-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 dark:border-purple-900 text-gray-700 dark:text-gray-300">⚖️ Neutral (Balanced)</button>
+              <button onclick="selectUndertone(this, 'Deep Olive')" class="undertone-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 dark:border-purple-900 text-gray-700 dark:text-gray-300">🫒 Olive / Rich</button>
+            </div>
+          </div>
+
+          <button onclick="generateGlamPalette()" class="px-6 py-2.5 rounded-xl bg-spa-plum text-white text-xs font-bold hover:bg-spa-plumdark active:scale-95 transition shadow-sm">
+            Reveal My Glam Palette ✨
+          </button>
+
+          <!-- Tailored Glam Palette Swatches -->
+          <div id="glam-palette-box" class="p-5 rounded-xl bg-gradient-to-r from-purple-50 via-pink-50 to-rose-50 dark:from-spa-darkcard dark:to-purple-950/40 border border-purple-100 dark:border-purple-900 space-y-4">
+            <span class="text-xs font-bold uppercase tracking-wider text-spa-plum dark:text-pink-300">💄 Customized Color Harmony</span>
+            
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+              <div class="p-3 bg-white dark:bg-black/20 rounded-xl border border-pink-100 dark:border-purple-900 space-y-1">
+                <div id="swatch-lip" class="w-10 h-10 rounded-full mx-auto shadow-inner bg-[#9E2A2B]"></div>
+                <span class="block text-[11px] font-bold text-gray-800 dark:text-gray-200">Signature Lip</span>
+                <span id="swatch-lip-name" class="block text-[10px] text-gray-600 dark:text-gray-300">Velvet Currant</span>
+              </div>
+              <div class="p-3 bg-white dark:bg-black/20 rounded-xl border border-pink-100 dark:border-purple-900 space-y-1">
+                <div id="swatch-cheek" class="w-10 h-10 rounded-full mx-auto shadow-inner bg-[#E07A5F]"></div>
+                <span class="block text-[11px] font-bold text-gray-800 dark:text-gray-200">Cheek Flush</span>
+                <span id="swatch-cheek-name" class="block text-[10px] text-gray-600 dark:text-gray-300">Rose Radiance</span>
+              </div>
+              <div class="p-3 bg-white dark:bg-black/20 rounded-xl border border-pink-100 dark:border-purple-900 space-y-1">
+                <div id="swatch-eye" class="w-10 h-10 rounded-full mx-auto shadow-inner bg-[#5E2750]"></div>
+                <span class="block text-[11px] font-bold text-gray-800 dark:text-gray-200">Lid Wash</span>
+                <span id="swatch-eye-name" class="block text-[10px] text-gray-600 dark:text-gray-300">Champagne Plum</span>
+              </div>
+              <div class="p-3 bg-white dark:bg-black/20 rounded-xl border border-pink-100 dark:border-purple-900 space-y-1">
+                <div id="swatch-hair" class="w-10 h-10 rounded-full mx-auto shadow-inner bg-[#3D405B]"></div>
+                <span class="block text-[11px] font-bold text-gray-800 dark:text-gray-200">Hair Accent</span>
+                <span id="swatch-hair-name" class="block text-[10px] text-gray-600 dark:text-gray-300">Soft French Twist</span>
+              </div>
+            </div>
+
+            <p id="glam-palette-quote" class="text-xs italic text-spa-plum dark:text-pink-300">
+              "A bold lip is just high-fashion armor for days when you have zero patience for foolishness."
+            </p>
+          </div>
+
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Shared camera capture modal (Wardrobe + Hair & Makeup) -->
+  <div id="camera-capture-panel" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-spa-darkcard w-full max-w-md rounded-2xl p-4 border border-purple-800 shadow-2xl space-y-3">
+      <div class="flex items-center justify-between">
+        <p id="camera-capture-hint" class="text-xs font-semibold text-pink-100">Line up your shot, then capture</p>
+        <button type="button" onclick="stopSelfieCamera()" class="text-gray-300 hover:text-white text-xs font-semibold">Close</button>
+      </div>
+      <video id="selfie-video" autoplay playsinline muted class="w-full max-h-80 rounded-xl object-cover bg-black"></video>
+      <canvas id="selfie-canvas" class="hidden"></canvas>
+      <div class="flex flex-wrap justify-center gap-2">
+        <button type="button" onclick="captureSelfieFrame()" class="px-5 py-2.5 rounded-xl bg-spa-plum text-white text-xs font-bold">Capture Photo</button>
+        <button type="button" onclick="stopSelfieCamera()" class="px-4 py-2.5 rounded-xl bg-white/10 text-white text-xs font-semibold border border-white/30">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating SOS + Fiona mascot (mobile-safe, non-colliding) -->
+  <aside class="fixed bottom-4 right-4 z-40 flex flex-col items-center gap-3" style="bottom: max(1rem, env(safe-area-inset-bottom, 0px));">
+    <button onclick="navigateTo('lounge')" class="w-12 h-12 rounded-full overflow-hidden border-2 border-white dark:border-pink-200/40 shadow-lg bg-white hover:scale-105 active:scale-95 transition" aria-label="Meet Fiona">
+      <img src="assets/fiona-avatar.jpg" alt="Fiona" class="w-full h-full rounded-full object-cover object-top" style="object-fit: cover; object-position: top center;">
+    </button>
+    <button onclick="openModal('modal-sos')" class="w-12 h-12 rounded-full flex items-center justify-center shadow-lg bg-gradient-to-r from-pink-600 to-purple-800 text-white hover:scale-105 active:scale-95 transition border-2 border-white/50 dark:border-purple-900/60" aria-label="Emergency Feathers" title="Emergency Feathers">
+      <span class="text-lg leading-none" aria-hidden="true">🪶</span>
+    </button>
+  </aside>
+
+  <!-- ================================================================= -->
+  <!-- MODALS SECTION                                                    -->
+  <!-- ================================================================= -->
+
+  <!-- MODAL: The VIP Suite Key -->
+  <div id="modal-vip" class="hidden fixed inset-0 z-[60] bg-black/40 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+    <div class="relative w-full max-w-[520px] my-4 rounded-3xl border border-purple-200 dark:border-purple-800 bg-white/90 dark:bg-slate-900/90 shadow-2xl shadow-pink-200/40 dark:shadow-purple-950/50 p-6 sm:p-7 space-y-5 animate-scaleUp overflow-hidden">
+      <div class="pointer-events-none absolute -top-16 -right-10 w-48 h-48 rounded-full bg-gradient-to-br from-pink-200/50 via-amber-100/40 to-purple-200/40 blur-2xl"></div>
+
+      <button type="button" onclick="closeModal('modal-vip')" class="absolute top-4 right-4 z-10 w-8 h-8 rounded-full bg-white/80 dark:bg-spa-darkcard border border-pink-100 dark:border-purple-800 text-gray-500 hover:text-spa-plum flex items-center justify-center" aria-label="Close">
+        <span class="text-base leading-none">✕</span>
+      </button>
+
+      <div class="relative space-y-2 pr-8">
+        <span class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-spa-plum dark:text-pink-300">
+          <i data-lucide="key-round" class="w-3.5 h-3.5 text-spa-gold"></i> The VIP Suite Key
+        </span>
+        <h3 class="font-serif text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white leading-tight">
+          Unlock Your Full VIP Suite ✨
+        </h3>
+        <p class="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+          Because your peace of mind and nervous system deserve the penthouse treatment, darling.
+        </p>
+      </div>
+
+      <!-- Plan toggle -->
+      <div class="relative space-y-2">
+        <p class="text-xs font-semibold text-gray-700 dark:text-gray-200">Choose your key</p>
+        <div class="grid gap-2.5">
+          <button type="button" id="vip-plan-annual" onclick="selectVipPlan('annual')" class="vip-plan text-left p-4 rounded-2xl border-2 border-spa-plum bg-gradient-to-r from-pink-50 to-purple-50 dark:from-purple-950/40 dark:to-spa-darkcard shadow-sm transition">
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-start gap-3">
+                <span class="mt-0.5 w-4 h-4 rounded-full border-2 border-spa-plum bg-spa-plum flex items-center justify-center shrink-0">
+                  <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
+                </span>
+                <div>
+                  <p class="text-sm font-bold text-gray-900 dark:text-white">Annual VIP Pass</p>
+                  <p class="text-xs text-gray-600 dark:text-gray-300 mt-0.5">7 Days Free, then $79/year</p>
+                </div>
+              </div>
+              <div class="text-right shrink-0">
+                <p class="text-sm font-bold text-spa-plum dark:text-pink-200">$79.00<span class="text-[10px] font-semibold text-gray-500">/yr</span></p>
+                <span class="inline-block mt-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wide bg-gradient-to-r from-amber-100 to-pink-100 text-spa-plumdark border border-amber-200/80">Save 34% • Just $6.58/mo</span>
+              </div>
+            </div>
+          </button>
+
+          <button type="button" id="vip-plan-monthly" onclick="selectVipPlan('monthly')" class="vip-plan text-left p-4 rounded-2xl border-2 border-pink-100 dark:border-purple-900 bg-white/70 dark:bg-spa-darkbg/40 transition hover:border-purple-200">
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-start gap-3">
+                <span class="mt-0.5 w-4 h-4 rounded-full border-2 border-pink-300 dark:border-purple-700 bg-white dark:bg-spa-darkcard flex items-center justify-center shrink-0">
+                  <span class="w-1.5 h-1.5 rounded-full bg-transparent"></span>
+                </span>
+                <div>
+                  <p class="text-sm font-bold text-gray-900 dark:text-white">Monthly VIP Key</p>
+                  <p class="text-xs text-gray-600 dark:text-gray-300 mt-0.5">Billed monthly, cancel anytime in one click</p>
+                </div>
+              </div>
+              <p class="text-sm font-bold text-gray-800 dark:text-pink-100 shrink-0">$9.99<span class="text-[10px] font-semibold text-gray-500">/mo</span></p>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Perks -->
+      <ul class="relative space-y-2.5">
+        <li class="flex items-start gap-3 text-sm text-gray-700 dark:text-gray-200">
+          <span class="text-base shrink-0">🪶</span>
+          <span><strong class="text-spa-plum dark:text-pink-200">The Sanctuary Suite:</strong> Full Feather Tier bed-supported care for pain &amp; fatigue days.</span>
+        </li>
+        <li class="flex items-start gap-3 text-sm text-gray-700 dark:text-gray-200">
+          <span class="text-base shrink-0">🪞</span>
+          <span><strong class="text-spa-plum dark:text-pink-200">Talk It Out with Fiona:</strong> Unlimited high-EQ cognitive shifts &amp; perspective reframes.</span>
+        </li>
+        <li class="flex items-start gap-3 text-sm text-gray-700 dark:text-gray-200">
+          <span class="text-base shrink-0">💄</span>
+          <span><strong class="text-spa-plum dark:text-pink-200">The Glamour Vanity:</strong> AI selfie tone analysis &amp; customized cosmetic swatches.</span>
+        </li>
+        <li class="flex items-start gap-3 text-sm text-gray-700 dark:text-gray-200">
+          <span class="text-base shrink-0">🎲</span>
+          <span><strong class="text-spa-plum dark:text-pink-200">365-Day Affirmation Vault:</strong> Complete library shuffle, history, and audio snippets.</span>
+        </li>
+      </ul>
+
+      <p class="relative text-[11px] leading-relaxed text-gray-600 dark:text-gray-300 bg-pink-50/80 dark:bg-purple-950/40 border border-pink-100 dark:border-purple-900 rounded-xl px-3.5 py-3">
+        🔒 No sneaky charges. Try it free for 7 days. We'll send a heads-up before your trial ends, and you can cancel anytime with zero guilt.
+      </p>
+
+      <div class="relative space-y-2">
+        <button type="button" id="vip-cta-btn" onclick="startVipTrial()" class="w-full bg-purple-800 hover:bg-purple-900 text-white rounded-xl py-3.5 font-semibold text-sm shadow-md transition active:scale-[0.99]">
+          Start My 7-Day Free Pass
+        </button>
+        <button type="button" onclick="continueFreeSuite()" class="w-full text-center text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-spa-plum dark:hover:text-pink-200 py-1.5 transition">
+          Continue with the Free Suite (Basic Access)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 1: Emergency Feathers (60-Second SOS Calm) -->
+  <div id="modal-sos" class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-spa-darkcard w-full max-w-md rounded-2xl p-6 border border-pink-100 dark:border-purple-900 shadow-2xl space-y-5 animate-scaleUp">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <img src="assets/fiona-head.jpg" alt="" class="w-8 h-8 rounded-full object-cover object-top border border-pink-200">
+          <h3 class="font-serif text-xl font-bold text-gray-900 dark:text-white">Emergency Feathers</h3>
+        </div>
+        <button onclick="closeModal('modal-sos')" class="text-gray-400 hover:text-gray-700 dark:hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="text-center space-y-3 py-2">
+        <p class="text-sm text-gray-600 dark:text-gray-300">
+          Overwhelmed? Heart pounding? Stop right here. We are not solving the world's problems for the next 60 seconds.
+        </p>
+        <div class="w-24 h-24 mx-auto rounded-full bg-pink-100 dark:bg-purple-900/60 flex items-center justify-center animate-pulse-slow">
+          <span id="sos-timer-text" class="font-mono text-2xl font-bold text-spa-plum dark:text-pink-200">60</span>
+        </div>
+        <p class="text-xs font-medium text-spa-plum dark:text-pink-300">
+          "Feel your feet on the floor. Drop your shoulders away from your earlobes."
+        </p>
+      </div>
+
+      <div class="flex gap-2">
+        <button onclick="startSOSTimer()" id="sos-start-btn" class="flex-1 py-2.5 rounded-xl bg-spa-plum text-white text-xs font-bold hover:bg-spa-plumdark transition">
+          Start 60-Second Breath
+        </button>
+        <button onclick="closeModal('modal-sos')" class="px-4 py-2.5 rounded-xl bg-gray-100 dark:bg-purple-900/40 text-gray-700 dark:text-gray-200 text-xs font-semibold">
+          I'm Centered
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: A Quick Check-In -->
+  <div id="modal-checkin" class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-spa-darkcard w-full max-w-md rounded-2xl p-6 border border-pink-100 dark:border-purple-900 shadow-2xl space-y-5">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center text-spa-plum">
+            <i data-lucide="heart" class="w-4 h-4"></i>
+          </span>
+          <h3 class="font-serif text-xl font-bold text-gray-900 dark:text-white">Quick check-in with Fiona</h3>
+        </div>
+        <button onclick="closeModal('modal-checkin')" class="text-gray-400 hover:text-gray-700">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
+        Let's get curious, not critical: Which feeling is closest right now?
+      </p>
+
+      <div id="checkin-options" class="flex flex-col gap-2.5">
+        <button type="button" data-feeling="Tense" onclick="selectCheckinCard(this)" class="checkin-option-card w-full text-left px-4 py-3.5 rounded-xl border border-pink-100 dark:border-purple-900 bg-white dark:bg-spa-darkcard hover:border-spa-plum/50 transition">
+          <span class="block text-sm font-bold text-gray-900 dark:text-white">Tense</span>
+          <span class="block text-xs italic text-gray-500 dark:text-gray-400 mt-0.5">braced, tight, or on alert</span>
+        </button>
+        <button type="button" data-feeling="Overwhelmed" onclick="selectCheckinCard(this)" class="checkin-option-card w-full text-left px-4 py-3.5 rounded-xl border border-pink-100 dark:border-purple-900 bg-white dark:bg-spa-darkcard hover:border-spa-plum/50 transition">
+          <span class="block text-sm font-bold text-gray-900 dark:text-white">Overwhelmed</span>
+          <span class="block text-xs italic text-gray-500 dark:text-gray-400 mt-0.5">Too much, too fast, too many tabs open</span>
+        </button>
+        <button type="button" data-feeling="Irritable" onclick="selectCheckinCard(this)" class="checkin-option-card w-full text-left px-4 py-3.5 rounded-xl border border-pink-100 dark:border-purple-900 bg-white dark:bg-spa-darkcard hover:border-spa-plum/50 transition">
+          <span class="block text-sm font-bold text-gray-900 dark:text-white">Irritable</span>
+          <span class="block text-xs italic text-gray-500 dark:text-gray-400 mt-0.5">short-fused, prickly, easily bothered</span>
+        </button>
+      </div>
+
+      <div id="checkin-fiona-advice" class="hidden p-4 rounded-xl bg-purple-50 dark:bg-purple-950/40 border border-purple-100 text-xs leading-relaxed text-spa-plum dark:text-pink-200">
+        <!-- Injected by JS -->
+      </div>
+
+      <button type="button" id="checkin-continue-btn" onclick="continueCheckin()" disabled class="w-full py-3 rounded-xl bg-spa-plum text-white text-sm font-semibold shadow-sm transition disabled:opacity-40 disabled:cursor-not-allowed hover:bg-spa-plumdark enabled:active:scale-[0.99]">
+        Continue →
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL 3: Spot a Tiny Win (Category Aware) -->
+  <div id="modal-win" class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-spa-darkcard w-full max-w-md rounded-2xl p-6 border border-pink-100 dark:border-purple-900 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-spa-plum">
+            <i data-lucide="sparkle" class="w-4 h-4"></i>
+          </span>
+          <h3 class="font-serif text-xl font-bold text-gray-900 dark:text-white">Spot a Tiny Win ✨</h3>
+        </div>
+        <button onclick="closeModal('modal-win')" class="text-gray-400 hover:text-gray-700">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <p class="text-xs text-gray-600 dark:text-gray-300">
+        Ate food without guilt? Drank water? Held back from screaming at an email? It counts.
+      </p>
+
+      <textarea id="win-input" rows="3" placeholder="I ate a cookie and didn't feel bad..." class="w-full p-3 rounded-xl border border-pink-100 dark:border-purple-900 bg-spa-cream/40 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"></textarea>
+
+      <button onclick="evaluateTinyWin()" class="w-full py-2.5 rounded-xl bg-spa-plum text-white text-xs font-bold hover:bg-spa-plumdark transition shadow-sm">
+        Celebrate It With Fiona 🥂
+      </button>
+
+      <div id="win-response-card" class="hidden p-4 rounded-xl bg-pink-50 dark:bg-purple-950/40 border border-pink-200 text-xs leading-relaxed space-y-2">
+        <p id="win-echo-text" class="font-semibold text-spa-plum dark:text-pink-300"></p>
+        <p id="win-fiona-reaction" class="text-gray-800 dark:text-gray-200"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 4: Just Keep Me Company (Low Battery Ambient) -->
+  <div id="modal-company" class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-spa-darkcard w-full max-w-md rounded-2xl p-6 border border-pink-100 dark:border-purple-900 shadow-2xl space-y-5 text-center">
+      <div class="flex items-center justify-between">
+        <h3 class="font-serif text-xl font-bold text-gray-900 dark:text-white">Low-Battery Sanctuary ☕</h3>
+        <button onclick="closeModal('modal-company')" class="text-gray-400 hover:text-gray-700">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="w-28 h-28 mx-auto rounded-full overflow-hidden border-2 border-pink-200 dark:border-purple-800 bg-white shadow-sm">
+        <img src="assets/fiona-head.jpg" alt="Fiona" class="w-full h-full object-cover object-top scale-110">
+      </div>
+
+      <p class="text-sm font-serif italic text-gray-800 dark:text-gray-200">
+        "Put your feet up, gorgeous. Zero logging, zero homework, zero expectations. Just hang out here with me."
+      </p>
+
+      <p class="text-xs text-gray-500">
+        Soft ambient pulse active. Rest your eyes for two full minutes.
+      </p>
+
+      <button onclick="closeModal('modal-company')" class="w-full py-2.5 rounded-xl bg-spa-plum text-white text-xs font-bold hover:bg-spa-plumdark transition">
+        I'm Ready to Rejoin the World ✨
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL 5: Mobility Pose Detail & Active Timer -->
+  <div id="modal-mobility" class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-spa-darkcard w-full max-w-lg rounded-2xl p-6 border border-pink-100 dark:border-purple-900 shadow-2xl space-y-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <span id="mob-modal-target" class="text-[10px] font-bold tracking-wider uppercase text-spa-plum dark:text-pink-300"></span>
+          <h3 id="mob-modal-title" class="font-serif text-2xl font-bold text-gray-900 dark:text-white"></h3>
+        </div>
+        <button onclick="closeModal('modal-mobility')" class="text-gray-400 hover:text-gray-700">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3 text-xs leading-relaxed">
+        <div class="p-3.5 rounded-xl bg-spa-cream/60 dark:bg-spa-darkbg/40 border border-purple-100 dark:border-purple-900">
+          <span class="font-bold text-spa-plum dark:text-pink-300 block mb-1">Visual Alignment Cue:</span>
+          <p id="mob-modal-cue" class="text-gray-700 dark:text-gray-300"></p>
+        </div>
+
+        <div class="p-3.5 rounded-xl bg-purple-50/50 dark:bg-purple-950/30 border border-purple-100 dark:border-purple-900">
+          <span class="font-bold text-purple-800 dark:text-purple-300 block mb-1">Why It Helps:</span>
+          <p id="mob-modal-benefit" class="text-gray-700 dark:text-gray-300"></p>
+        </div>
+
+        <p id="mob-modal-nudge" class="italic text-spa-plum dark:text-pink-300 font-medium"></p>
+      </div>
+
+      <!-- Quick Timer Row -->
+      <div class="p-4 rounded-xl bg-pink-50/60 dark:bg-purple-950/40 border border-pink-200 flex items-center justify-between">
+        <div class="space-y-0.5">
+          <span class="text-[11px] font-semibold text-gray-600 dark:text-gray-300">Hold Duration:</span>
+          <div class="font-mono text-2xl font-bold text-spa-plum dark:text-pink-200" id="mob-active-timer-display">20s</div>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="startMobilityTimer(15)" class="px-3 py-1.5 rounded-lg bg-white text-xs font-semibold border border-purple-200">15s</button>
+          <button onclick="startMobilityTimer(20)" class="px-3 py-1.5 rounded-lg bg-white text-xs font-semibold border border-purple-200">20s</button>
+          <button onclick="startMobilityTimer(30)" class="px-3 py-1.5 rounded-lg bg-white text-xs font-semibold border border-purple-200">30s</button>
+        </div>
+      </div>
+
+      <button onclick="logMobilityStretch()" class="w-full py-2.5 rounded-xl bg-spa-plum text-white text-xs font-bold hover:bg-spa-plumdark transition">
+        Stretch Logged ✨
+      </button>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast-message" class="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 hidden bg-spa-plumdark text-white px-5 py-2.5 rounded-full text-xs font-semibold shadow-lg border border-pink-300/30 max-w-[90vw] text-center">
+    Notification toast
+  </div>
+
+  <script>
+    /* ================================================================= */
+    /* 1. SASSY 365-DAY AFFIRMATION DECK                                  */
+    /* ================================================================= */
+    const AFFIRMATIONS_DECK = [
+      "Darling, stop trying to make everyone happy. You are a woman, not a bowl of warm queso.",
+      "I am not an acquired taste. If they don't like me, they can acquire some taste.",
+      "My tolerance for other people's chaos is currently in airplane mode.",
+      "Stand on one leg, ruffle your feathers, and stop apologizing for taking up space.",
+      "My boundaries are not rude; they are prime real estate fencing, honey.",
+      "I am calm, I am capable, and I look far too fabulous to stress over things I cannot control.",
+      "Today's forecast: 100% chance of minding my own gorgeous business.",
+      "I don't hold grudges; I hold high standards and top-tier lip gloss.",
+      "Take a nap, darling. The world's fires will burn just fine for an hour without your supervision.",
+      "You don't need easy, gorgeous. You just need to remember who the heck you are.",
+      "I can be a masterpiece and a work in progress at the exact same time. Watch me.",
+      "No is a complete sentence. It does not require a side of justification.",
+      "Let them misunderstand you. You don't owe anyone a dissertation on your value.",
+      "Unclench your jaw, drop your shoulders, and exhale that imaginary guilt.",
+      "Resting is not a reward you have to earn; it is basic maintenance for a high-end vehicle.",
+      "I am entirely too expensive to argue with cheap opinions."
+    ];
+
+    /* ================================================================= */
+    /* 2. 12-MOVE MOBILITY DECK (FROM REFERENCE GUIDE)                    */
+    /* ================================================================= */
+    const MOBILITY_DECK = [
+      {
+        id: "cat-cow",
+        title: "Cat-Cow Flow",
+        category: "spine",
+        target: "Spine & Core",
+        time: "6 Slow Cycles",
+        cue: "On hands and knees under shoulders and hips. Inhale: drop belly, lift tailbone, open chest upward. Exhale: push into palms, arch spine high, tuck chin gently.",
+        benefit: "Mobilizes the entire vertebral column and soothes mid-back desk ache.",
+        nudge: "Move like warm honey, gorgeous. No snapping; just smooth spinal waves."
+      },
+      {
+        id: "cobra",
+        title: "Cobra Stretch",
+        category: "spine",
+        target: "Spine & Core",
+        time: "20s Hold",
+        cue: "Lie on belly, palms under shoulders. Press gently into hands to lift chest forward and up. Keep elbows soft and shoulders relaxed away from ears.",
+        benefit: "Counteracts hunching over keyboards, opens the heart, strengthens lower back.",
+        nudge: "Keep your shoulders out of your earrings and let your collarbones shine."
+      },
+      {
+        id: "seated-twist",
+        title: "Seated Torso Twist",
+        category: "spine",
+        target: "Spine & Core",
+        time: "15s Each Side",
+        cue: "Sit tall with legs straight or crossed. Place right hand behind your hip, hook left forearm across right knee, and gently rotate through ribs.",
+        benefit: "Decompresses spinal discs and releases rotational tension in lower back.",
+        nudge: "Grow an inch taller through the crown of your head before you rotate."
+      },
+      {
+        id: "shoulder-cross",
+        title: "Shoulder Cross-Body Stretch",
+        category: "upper",
+        target: "Upper & Neck",
+        time: "15s Each Arm",
+        cue: "Stand or sit upright. Draw one arm straight across your chest; hook the opposite forearm around it and hug it gently inward.",
+        benefit: "Stretches posterior deltoids and scapular muscles strained by phone use.",
+        nudge: "Drop that working shoulder blade downward—don't let it touch your cheek."
+      },
+      {
+        id: "side-reach",
+        title: "Standing Side Reach",
+        category: "upper",
+        target: "Upper & Neck",
+        time: "15s Each Side",
+        cue: "Stand tall with feet hip-width. Sweep right arm overhead and curve softly to the left, opening the entire right rib cage.",
+        benefit: "Opens intercostal muscles for deeper breathing and releases side body tightness.",
+        nudge: "Make room in those ribs, darling. Breathe all the way down to your hip."
+      },
+      {
+        id: "quad-stretch",
+        title: "Standing Quad Stretch",
+        category: "legs",
+        target: "Legs & Calves",
+        time: "15s Each Leg",
+        cue: "Stand tall (hold wall for balance). Bend one knee back, clasp ankle with hand, and draw heel toward glute with knees hugging together.",
+        benefit: "Lengthens tight quadriceps and opens anterior hip flexors.",
+        nudge: "Stand proud on that standing leg—Fiona knows everything about one-legged balance."
+      },
+      {
+        id: "hamstring-fold",
+        title: "Seated Hamstring Fold",
+        category: "legs",
+        target: "Legs & Calves",
+        time: "20s Hold",
+        cue: "Sit with legs extended long in front. Hinge from hips and reach hands toward shins or toes. Keep knees softly relaxed.",
+        benefit: "Relieves tight hamstrings and diminishes pull on the sacroiliac joint.",
+        nudge: "No forcing toes! Lead with your chest, not just straining fingers."
+      },
+      {
+        id: "hip-flexor",
+        title: "Active Hip Flexor Lunge",
+        category: "hips",
+        target: "Hips & Glutes",
+        time: "15s Each Side",
+        cue: "Step into a low lunge with back knee resting softly on mat. Keep spine upright and gently tuck pelvis forward until front hip stretches.",
+        benefit: "Unlocks the primary psoas muscle shortened by prolonged daily sitting.",
+        nudge: "Tuck your tailbone under just a millimeter—that's where the real magic hides."
+      },
+      {
+        id: "calf-wall",
+        title: "Standing Calf Wall Press",
+        category: "legs",
+        target: "Legs & Calves",
+        time: "20s Each Side",
+        cue: "Hands flat on a wall. Step one foot back straight, firmly anchoring the heel into the floor while bending the front knee forward.",
+        benefit: "Releases tight Achilles tendons and calf stiffness from walking or footwear.",
+        nudge: "Plant that heel down like you own the ground beneath you."
+      },
+      {
+        id: "downward-dog",
+        title: "Downward-Facing Dog",
+        category: "legs",
+        target: "Legs & Calves",
+        time: "20s Hold",
+        cue: "Hands and feet on floor, hips pressed high into an inverted 'V'. Press through knuckles, lengthen spine, and pedal heels gently.",
+        benefit: "Full posterior chain stretch from wrists down to calf tendons.",
+        nudge: "Bend your knees as much as you like—a long, happy spine beats straight legs any day."
+      },
+      {
+        id: "neck-release",
+        title: "Side Neck Release",
+        category: "upper",
+        target: "Upper & Neck",
+        time: "15s Each Side",
+        cue: "Drop right ear toward right shoulder. Rest right palm on head without pulling. Reach left fingertips gently toward floor.",
+        benefit: "Melts trapezius and levator tension caused by stress clenching.",
+        nudge: "Zero pulling here, honey. Just the gentle, natural weight of your hand."
+      },
+      {
+        id: "chest-opener",
+        title: "Interlaced Chest Opener",
+        category: "upper",
+        target: "Upper & Neck",
+        time: "20s Hold",
+        cue: "Stand tall, interlace fingers behind lower back. Roll shoulders back and gently extend arms while lifting the sternum.",
+        benefit: "Reverses forward computer posture and restores full pectoral expansion.",
+        nudge: "Roll those shoulder blades back and puff that fabulous plumage with pride."
+      }
+    ];
+
+    /* Sample Diary History */
+    let diaryEntries = [
+      { date: "Yesterday, 4:15 PM", text: "Felt a lot of pressure around deadlines, but I took 5 minutes to breathe in the Lagoon instead of spiraling." },
+      { date: "Sep 16, 9:30 AM", text: "Woke up with heavy legs. Chose Plumage Down in the Sanctuary and did not force myself to exercise." }
+    ];
+
+    function navigateTo(wingId) {
+      if (typeof stopSelfieCamera === 'function') stopSelfieCamera(false);
+      const wings = ['lounge', 'sanctuary', 'lagoon', 'strut', 'glamour'];
+      wings.forEach(w => {
+        const sec = document.getElementById(`wing-${w}`);
+        const navBtn = document.getElementById(`nav-${w}`);
+        if (sec) sec.classList.add('hidden');
+        if (navBtn) {
+          navBtn.classList.remove('bg-spa-plum', 'text-white', 'shadow-xs');
+          navBtn.classList.add('text-gray-600', 'dark:text-gray-300');
+        }
+      });
+
+      const activeSec = document.getElementById(`wing-${wingId}`);
+      const activeBtn = document.getElementById(`nav-${wingId}`);
+      if (activeSec) {
+        activeSec.classList.remove('hidden');
+        activeSec.classList.remove('animate-fadeIn');
+        void activeSec.offsetWidth;
+        activeSec.classList.add('animate-fadeIn');
+      }
+      if (activeBtn) {
+        activeBtn.classList.add('bg-spa-plum', 'text-white', 'shadow-xs');
+        activeBtn.classList.remove('text-gray-600', 'dark:text-gray-300');
+      }
+
+      document.querySelectorAll('.mob-tab').forEach((btn, i) => {
+        const isActive = wings[i] === wingId;
+        btn.classList.toggle('bg-pink-100', isActive);
+        btn.classList.toggle('text-spa-plum', isActive);
+        btn.classList.toggle('dark:bg-purple-900', isActive);
+        btn.classList.toggle('dark:text-pink-100', isActive);
+        btn.classList.toggle('text-gray-600', !isActive);
+        btn.classList.toggle('dark:text-gray-300', !isActive);
+      });
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function switchSanctuaryTab(subtab) {
+      const diaryView = document.getElementById('sanctuary-diary-view');
+      const mirrorView = document.getElementById('sanctuary-mirror-view');
+      const diaryBtn = document.getElementById('subtab-diary');
+      const mirrorBtn = document.getElementById('subtab-mirror');
+
+      if (subtab === 'diary') {
+        diaryView.classList.remove('hidden');
+        mirrorView.classList.add('hidden');
+        diaryBtn.classList.add('bg-spa-plum', 'text-white');
+        diaryBtn.classList.remove('text-gray-600', 'dark:text-gray-300');
+        mirrorBtn.classList.remove('bg-spa-plum', 'text-white');
+        mirrorBtn.classList.add('text-gray-600', 'dark:text-gray-300');
+      } else {
+        mirrorView.classList.remove('hidden');
+        diaryView.classList.add('hidden');
+        mirrorBtn.classList.add('bg-spa-plum', 'text-white');
+        mirrorBtn.classList.remove('text-gray-600', 'dark:text-gray-300');
+        diaryBtn.classList.remove('bg-spa-plum', 'text-white');
+        diaryBtn.classList.add('text-gray-600', 'dark:text-gray-300');
+      }
+    }
+
+    function switchLagoonTab(subtab) {
+      if ((subtab === 'sanctuary-flare' || subtab === 'tracker') && !requireVipAccess('The Sanctuary Suite Feather Care')) return;
+      const trackerView = document.getElementById('lagoon-tracker-view');
+      const flareView = document.getElementById('lagoon-flare-view');
+      const yinView = document.getElementById('lagoon-yin-view');
+      const breathView = document.getElementById('lagoon-breath-view');
+      const btnTracker = document.getElementById('subtab-tracker');
+      const btnFlare = document.getElementById('subtab-flare');
+      const btnYin = document.getElementById('subtab-yin');
+      const btnBreath = document.getElementById('subtab-breath');
+
+      [trackerView, flareView, yinView, breathView].forEach(v => v && v.classList.add('hidden'));
+      [btnTracker, btnFlare, btnYin, btnBreath].forEach(b => {
+        if (!b) return;
+        b.classList.remove('bg-spa-plum', 'text-white');
+        b.classList.add('text-gray-600', 'dark:text-gray-300');
+      });
+
+      const activate = (view, btn) => {
+        view.classList.remove('hidden');
+        btn.classList.add('bg-spa-plum', 'text-white');
+        btn.classList.remove('text-gray-600', 'dark:text-gray-300');
+      };
+
+      if (subtab === 'tracker') activate(trackerView, btnTracker);
+      else if (subtab === 'sanctuary-flare') activate(flareView, btnFlare);
+      else if (subtab === 'yin') activate(yinView, btnYin);
+      else activate(breathView, btnBreath);
+    }
+
+    function switchGlamourTab(subtab) {
+      stopSelfieCamera(false);
+      const wardrobeView = document.getElementById('glamour-wardrobe-view');
+      const hairmakeupView = document.getElementById('glamour-hairmakeup-view');
+      const btnWardrobe = document.getElementById('subtab-wardrobe');
+      const btnHair = document.getElementById('subtab-hairmakeup');
+
+      const setActive = (btn, on) => {
+        if (on) {
+          btn.classList.add('bg-spa-plum', 'text-white', 'shadow-sm');
+          btn.classList.remove('text-purple-900/70', 'dark:text-pink-100/80');
+        } else {
+          btn.classList.remove('bg-spa-plum', 'text-white', 'shadow-sm');
+          btn.classList.add('text-purple-900/70', 'dark:text-pink-100/80');
+        }
+      };
+
+      if (subtab === 'wardrobe') {
+        wardrobeView.classList.remove('hidden');
+        hairmakeupView.classList.add('hidden');
+        setActive(btnWardrobe, true);
+        setActive(btnHair, false);
+      } else {
+        hairmakeupView.classList.remove('hidden');
+        wardrobeView.classList.add('hidden');
+        setActive(btnHair, true);
+        setActive(btnWardrobe, false);
+      }
+    }
+
+    function initDailyAffirmation() {
+      const now = new Date();
+      const start = new Date(now.getFullYear(), 0, 0);
+      const diff = now - start;
+      const oneDay = 1000 * 60 * 60 * 24;
+      const dayOfYear = Math.floor(diff / oneDay);
+      
+      const badge = document.getElementById('day-number-badge');
+      if (badge) badge.innerText = `(Day ${dayOfYear} of 365)`;
+      
+      const textElem = document.getElementById('daily-affirmation-text');
+      if (textElem) {
+        textElem.innerText = `"${AFFIRMATIONS_DECK[dayOfYear % AFFIRMATIONS_DECK.length]}"`;
+      }
+    }
+
+    function shuffleAffirmation() {
+      if (!requireVipAccess('The Affirmation Vault')) return;
+      const randomIndex = Math.floor(Math.random() * AFFIRMATIONS_DECK.length);
+      const textElem = document.getElementById('daily-affirmation-text');
+      textElem.style.opacity = '0';
+      setTimeout(() => {
+        textElem.innerText = `"${AFFIRMATIONS_DECK[randomIndex]}"`;
+        textElem.style.opacity = '1';
+      }, 150);
+    }
+
+    function copyAffirmation() {
+      const text = document.getElementById('daily-affirmation-text').innerText;
+      copyText(text);
+      showToast("Affirmation copied to share ✨");
+    }
+
+    /* ================================================================= */
+    /* FIONA VOICE — sassy + confident + supportive (wingwoman mode)     */
+    /* ================================================================= */
+    function detectSentiment(text) {
+      const t = (text || '').toLowerCase();
+      const positive = (t.match(/\b(awesome|amazing|proud|happy|great|good|love|grateful|thankful|win|winning|confident|strong|beautiful|gorgeous|feeling better|excited|joy|celebrate|crushed it|nailed|success|blessed|peaceful|calm|better|hopeful|ready)\b/g) || []).length;
+      const negative = (t.match(/\b(sad|anxious|anxiety|panic|worried|tired|exhaust|guilt|guilty|fail|failed|hate|angry|overwhelm|lonely|hurt|pain|flare|scared|stress|stressed|depressed|hopeless|awful|terrible|spiral|can't|cannot|broken|mess)\b/g) || []).length;
+      if (positive > negative && negative === 0) return 'up';
+      if (positive > negative) return 'mixed_up';
+      if (negative > positive) return 'down';
+      if (positive === 0 && negative === 0) return 'neutral';
+      return 'mixed';
+    }
+
+    function detectThemes(text) {
+      const t = (text || '').toLowerCase();
+      const themes = [];
+      const rules = [
+        ['exhaustion', /(exhaust|tired|drained|burnout|burned out|low battery|can't get up|fatigue|worn out|wiped)/],
+        ['anxiety', /(anxi|panic|worried|spiral|overthink|nervous|racing|overwhelm|catastrophi|what if)/],
+        ['guilt', /(guilt|should have|shouldn't|selfish|lazy|failed|failure|not enough|behind)/],
+        ['pain', /(pain|flare|achy|ache|migraine|joint|chronic|body hurt|sore|inflammation)/],
+        ['work', /(work|boss|deadline|email|meeting|coworker|job|inbox|client|promotion)/],
+        ['relationship', /(he said|she said|they said|partner|friend|family|texted|left on read|ghost|argument|relationship)/],
+        ['loneliness', /(alone|lonely|nobody|isolated|left out|no one)/],
+        ['boundary', /(said no|boundary|people-pleas|people pleas|can't say no|overcommitted)/],
+        ['body_image', /(weight|mirror|ugly|fat|skinny|body|looks|outfit|makeup)/],
+        ['rest', /(rest|nap|sleep|cancel|stay home|slow day|do nothing)/],
+        ['food', /(ate|eat|food|cookie|meal|hungry|dessert|diet)/],
+        ['progress', /(shower|teeth|water|got up|walked|brushed|dressed|showed up)/],
+        ['confidence', /(awesome|amazing|proud|confident|strong|beautiful|gorgeous|crushed it|nailed|i'?m (great|good|enough))/]
+      ];
+      rules.forEach(([name, re]) => { if (re.test(t)) themes.push(name); });
+      return themes;
+    }
+
+    function snippetEcho(text, maxLen = 90) {
+      const clean = (text || '').replace(/\s+/g, ' ').trim();
+      if (!clean) return '';
+      if (clean.length <= maxLen) return clean;
+      return clean.slice(0, maxLen).replace(/\s+\S*$/, '') + '…';
+    }
+
+    function pick(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function fionaReflect(text) {
+      const themes = detectThemes(text);
+      const sentiment = detectSentiment(text);
+      const echo = snippetEcho(text).replace(/[.!?]+$/, '');
+      const short = text.trim().split(/\s+/).length <= 6;
+
+      // UP energy — match her swagger
+      if (sentiment === 'up' || themes.includes('confidence')) {
+        if (short) {
+          return pick([
+            `"${echo}." Correct. Say it like you mean it — the room adjusts when you already know who you are.`,
+            `"${echo}." That's not a vibe, that's a fact. Keep walking like the crown is non-negotiable.`,
+            `"${echo}." Love that for you. Confidence looks expensive on you — don't put it on clearance for anybody.`
+          ]);
+        }
+        return pick([
+          `I heard you: "${echo}." That's you telling the truth out loud. Stay in that lane — protect the mood that made you write this, gorgeous.`,
+          `"${echo}." Yes. Hold that chin up. You don't need permission to take up space — you already paid for the seat.`
+        ]);
+      }
+
+      if (sentiment === 'mixed_up') {
+        return `"${echo}." I see the sparkle and the static. Keep the part that feels strong in the driver's seat — the hard stuff can ride shotgun without stealing the wheel.`;
+      }
+
+      // DOWN / themed — sassy support (warm, not mushy)
+      let body = '';
+      if (themes.includes('pain')) {
+        body = pick([
+          `Your body called in sick and that is not a personality flaw. Flare days get Plumage Down treatment — rest is strategy, not surrender.`,
+          `Pain is data, not drama. Cancel the productivity Olympics. Soft nest, slow breath, zero apology for existing at half-speed.`
+        ]);
+      } else if (themes.includes('exhaustion') || themes.includes('rest')) {
+        body = pick([
+          `You're not lazy — you're low battery. Rest is maintenance for a high-end vehicle. Lie down like the queen you are and recharge.`,
+          `Exhaustion is not a moral failure. One soft next step. Then you stop auditioning for the role of "woman who never needs anything."`
+        ]);
+      } else if (themes.includes('anxiety')) {
+        body = pick([
+          `Your brain is directing a disaster movie again. Cute hobby, terrible life plan. Camera facts only — then we park the plot twist you invented in the shower.`,
+          `Spiral detected. We're not solving the whole galaxy today. Name what's real, breathe longer on the exhale, and tell anxiety it doesn't get the Wi-Fi password.`
+        ]);
+      } else if (themes.includes('guilt')) {
+        body = pick([
+          `That "should" voice can sit down. You are a woman, not a bowl of warm queso for everybody else's comfort. Drop one obligation that was never yours.`,
+          `Guilt loves overtime. Fire it. Keep the kindness you'd give a best friend — and stop prosecuting yourself for being human.`
+        ]);
+      } else if (themes.includes('work') && sentiment === 'down') {
+        body = pick([
+          `Work can rent space in your head — it does not get the deed. One next move, then you clock out of the mental overtime.`,
+          `Your worth is not your inbox reply rate. Do the next smart thing, unclench your jaw, and remember: you are not the company's emotional support animal.`
+        ]);
+      } else if (themes.includes('relationship') && sentiment !== 'up') {
+        body = pick([
+          `Someone else's timing is not your report card. You can care without carrying their entire suitcase. Soften those shoulders — their chapter isn't your whole book.`,
+          `If they're giving breadcrumbs, stop setting a five-course table. You deserve full meals and full respect.`
+        ]);
+      } else if (themes.includes('loneliness')) {
+        body = pick([
+          `Alone right now ≠ unlovable forever. Pull up a chair — I'm here, no performance required. Your company is already good enough.`,
+          `Lonely hits different, I know. Still: you are not invisible to me. Stay. Soft landing. No audition.`
+        ]);
+      } else if (themes.includes('boundary')) {
+        body = pick([
+          `No is a complete sentence, period. Boundaries aren't rude — they're prime real estate fencing. Keep the fence; skip the apology essay.`,
+          `You said no? Icon behavior. Protect that energy like it's limited-edition — because it is.`
+        ]);
+      } else if (themes.includes('body_image') && sentiment === 'down') {
+        body = `Your body is not a group project for strangers' opinions. Plumage over punishment. If you want a lift, we glam for joy — never for shame.`;
+      } else if (sentiment === 'down') {
+        body = pick([
+          `That sounds heavy — and writing it was brave. You don't have to sparkle-fix it. I'm in your corner while it feels messy.`,
+          `Hard day noted. You still showed up here, which means the fire isn't out. We go soft, not small.`
+        ]);
+      } else {
+        body = short
+          ? pick([
+              `Okay, I'm listening — give me the rest of the tea. What's actually going on under that?`,
+              `Noted. Now tell me what you need: a cheer, a reality check, or just someone fabulous in your corner.`
+            ])
+          : pick([
+              `I got you. What do you want from me right now — hype, a reframe, or quiet company? Your call, gorgeous.`,
+              `Thank you for trusting me with that. Say the word: pep talk, perspective, or pillow fort. I'm fluent in all three.`
+            ]);
+      }
+
+      return `You said "${echo}." ${body}`;
+    }
+
+    function fionaCheckin(feeling) {
+      const map = {
+        'Tense': `Wired, not broken. Unclench that jaw, drop those shoulders two inches, and exhale like you mean it. You don't have to solve the whole plot tonight — just come back to your body.`,
+        'Overwhelmed': `Too many tabs open is a nervous system problem, not a character flaw. Close one mental browser window. Water, snack, or five soft minutes in the Lagoon counts as progress.`,
+        'Irritable': `Prickly means your boundaries are waving a red flag. You're not "mean" — you're over capacity. Name one friction, then one tiny kindness for you.`
+      };
+      return map[feeling] || `Feeling ${feeling} — noted. We don't shame it, we don't fake-fix it. One breath, then one kind move. I'm right here.`;
+    }
+
+    function fionaTinyWin(input) {
+      const themes = detectThemes(input);
+      const echo = snippetEcho(input, 70);
+      if (themes.includes('food')) {
+        return `"${echo}" — elite. Food has no moral value. Enjoy every crumb like the main character you are.`;
+      }
+      if (themes.includes('boundary') || themes.includes('rest')) {
+        return `"${echo}" is luxury behavior. Rest and "no" without a dissertation? That's you guarding the velvet rope. Keep going.`;
+      }
+      if (/(yell|scream|snap|freak|patience|calm|didn't|held back|bit my tongue)/i.test(input)) {
+        return `You could've flipped a table and you didn't. Olympic-level composure, honey. "${echo}" absolutely counts — pour the metaphorical bubbly.`;
+      }
+      if (themes.includes('progress') || themes.includes('pain') || themes.includes('exhaustion')) {
+        return `Heavy days make basics legendary. "${echo}" means you showed up for yourself. That's not small — that's backbone.`;
+      }
+      if (themes.includes('work')) {
+        return `Work win without torching your nervous system? I'll toast to that. "${echo}" — take the credit before someone else does.`;
+      }
+      if (themes.includes('confidence') || detectSentiment(input) === 'up') {
+        return `"${echo}" — yes ma'am. Front-row applause from Fiona. Don't you dare shrink now.`;
+      }
+      return `"${echo}" is a real win. Take full credit for your plumage today — I insist.`;
+    }
+
+    function fionaMirror(story, fact) {
+      const storyThemes = detectThemes(story);
+
+      let gap = '';
+      if (/fail|terrible|hate me|don't like|ruined|disaster|always|never|everyone/i.test(story) && fact) {
+        gap = `Plot twist: your mind cast you as the villain with zero evidence. The camera recorded facts — not a character assassination. We keep the footage; we fire the screenwriter.`;
+      } else if (storyThemes.includes('work')) {
+        gap = `Silence from work is usually logistics, not a verdict on your talent. Busy people move slow. That is not proof you flopped.`;
+      } else if (storyThemes.includes('relationship')) {
+        gap = `Their reply speed is not your lovability score. The camera didn't film a rejection letter — your brain drafted fanfiction. Delete draft.`;
+      } else if (storyThemes.includes('anxiety')) {
+        gap = `Anxiety time-travels into worst-case futures like it's paid overtime. Anchor to this minute. Invented endings don't get a seat at the table.`;
+      } else if (detectSentiment(story) === 'up') {
+        gap = `Even the shiny stories get a camera check — keep what's true, ditch the pressure dressed up as hope.`;
+      } else {
+        gap = `Camera = facts. Mind = bonus fiction, motives, and doom. Meaning is optional. Doom is unpaid rent — evict it.`;
+      }
+
+      return `${gap} Now: unclench your jaw, drop your shoulders, and stop paying rent on shower problems. Fact stays. Fiction gets the boot. You've got this — and I've got you.`;
+    }
+
+    /* Spot a Tiny Win Category Evaluator */
+    function evaluateTinyWin() {
+      const input = document.getElementById('win-input').value.trim();
+      if (!input) {
+        showToast("Tell Fiona what you did today, darling!");
+        return;
+      }
+
+      const card = document.getElementById('win-response-card');
+      const echo = document.getElementById('win-echo-text');
+      const reaction = document.getElementById('win-fiona-reaction');
+
+      echo.innerText = `Celebrating: "${snippetEcho(input, 80)}"`;
+      reaction.innerText = fionaTinyWin(input);
+      card.classList.remove('hidden');
+    }
+
+    /* Check-in Emotion Handler */
+    let selectedCheckinFeeling = null;
+
+    function selectCheckinCard(btn) {
+      selectedCheckinFeeling = btn.getAttribute('data-feeling');
+      document.querySelectorAll('#checkin-options .checkin-option-card').forEach((card) => {
+        card.classList.remove('border-spa-plum', 'bg-pink-50', 'dark:bg-purple-950/50', 'ring-2', 'ring-spa-plum/30');
+        card.classList.add('border-pink-100', 'dark:border-purple-900', 'bg-white', 'dark:bg-spa-darkcard');
+      });
+      btn.classList.remove('border-pink-100', 'dark:border-purple-900', 'bg-white', 'dark:bg-spa-darkcard');
+      btn.classList.add('border-spa-plum', 'bg-pink-50', 'dark:bg-purple-950/50', 'ring-2', 'ring-spa-plum/30');
+      const continueBtn = document.getElementById('checkin-continue-btn');
+      if (continueBtn) continueBtn.disabled = false;
+      const adviceBox = document.getElementById('checkin-fiona-advice');
+      if (adviceBox) adviceBox.classList.add('hidden');
+    }
+
+    function continueCheckin() {
+      if (!selectedCheckinFeeling) return;
+      submitCheckinEmotion(selectedCheckinFeeling);
+    }
+
+    function submitCheckinEmotion(feeling) {
+      const adviceBox = document.getElementById('checkin-fiona-advice');
+      adviceBox.classList.remove('hidden');
+      adviceBox.innerHTML = `
+        <div class="flex items-center gap-2 mb-2">
+          <img src="assets/fiona-avatar.jpg" alt="" class="w-6 h-6 rounded-full object-cover object-top">
+          <p class="font-bold text-spa-plum dark:text-pink-300">Fiona sees you — ${feeling}</p>
+        </div>
+        <p>${fionaCheckin(feeling)}</p>
+      `;
+    }
+
+    function sparkDiaryPrompt() {
+      const prompts = [
+        "What feeling is asking for your gentle attention right now—not your judgment?",
+        "What is one standard you are holding yourself to that you would never demand of a best friend?",
+        "Where in your body are you holding the day's stress, and what would it look like to soften it 5%?",
+        "If you let go of trying to be productive today, what would your soul actually choose to do?",
+        "What would 'enough for today' look like if guilt were not in the room?",
+        "Whose voice is criticizing you right now — and does it deserve the microphone?"
+      ];
+      const randomPrompt = prompts[Math.floor(Math.random() * prompts.length)];
+      document.getElementById('diary-prompt-text').innerText = `"${randomPrompt}"`;
+    }
+
+    function reflectWithFiona() {
+      if (!requireVipAccess('Talk It Out with Fiona')) return;
+      const text = document.getElementById('journal-input').value.trim();
+      const box = document.getElementById('fiona-reflection-box');
+      const btn = document.getElementById('reflect-btn');
+
+      if (!text) {
+        showToast("Spill a few thoughts first so Fiona can reflect!");
+        return;
+      }
+
+      const moods = getSelectedDiaryMoods();
+      btn.disabled = true;
+      btn.querySelector('span').innerText = 'Fiona is fluffing…';
+      box.classList.add('hidden');
+
+      fetch('https://fiona-your-wingwoman.polsia.io/api/fiona/roost/reflect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ journalEntry: text, moods })
+      })
+        .then(r => r.json().then(data => ({ ok: r.ok, data })))
+        .then(({ ok, data }) => {
+          if (!ok || !data.clarityRefocus) throw new Error('bad response');
+          showStructuredReflection(data);
+          showToast("Fiona finished your reflection ✨");
+        })
+        .catch(() => {
+          // Offline / API hiccup — still give the same 3-part shape locally
+          showStructuredReflection(fionaReflectStructured(text, moods));
+          showToast("Fiona reflected locally — still got you ✨");
+        })
+        .finally(() => {
+          btn.disabled = false;
+          btn.querySelector('span').innerText = 'Reflect with Fiona';
+        });
+    }
+
+    function showStructuredReflection(data) {
+      document.getElementById('reflect-clarity').innerText = data.clarityRefocus || '';
+      document.getElementById('reflect-anchor').innerText = data.confidenceAnchor || '';
+      document.getElementById('reflect-quip').innerText = data.wingwomanQuip || '';
+      document.getElementById('fiona-reflection-box').classList.remove('hidden');
+      window.lastFionaReflection = data;
+    }
+
+    let selectedDiaryMoods = [];
+    function toggleDiaryMood(btn) {
+      const mood = btn.getAttribute('data-mood');
+      const idx = selectedDiaryMoods.indexOf(mood);
+      if (idx >= 0) {
+        selectedDiaryMoods.splice(idx, 1);
+        btn.classList.remove('bg-spa-plum', 'text-white', 'border-spa-plum');
+        btn.classList.add('border-gray-200', 'text-gray-700', 'dark:text-gray-300');
+      } else {
+        if (selectedDiaryMoods.length >= 2) {
+          showToast("Pick up to 2 moods, gorgeous — quality over clutter.");
+          return;
+        }
+        selectedDiaryMoods.push(mood);
+        btn.classList.add('bg-spa-plum', 'text-white', 'border-spa-plum');
+        btn.classList.remove('border-gray-200', 'text-gray-700', 'dark:text-gray-300');
+      }
+    }
+    function getSelectedDiaryMoods() {
+      return selectedDiaryMoods.slice();
+    }
+
+    /** Local 3-part fallback matching live Fiona product shape */
+    function fionaReflectStructured(text, moods) {
+      const sentiment = detectSentiment(text);
+      const themes = detectThemes(text);
+      const moodHint = (moods && moods[0]) || '';
+      const echo = snippetEcho(text, 60).replace(/[.!?]+$/, '');
+
+      let clarity, anchor, quip;
+
+      if (moodHint === 'Proud of Myself' || sentiment === 'up' || themes.includes('confidence')) {
+        clarity = `You're standing in a moment of self-recognition — letting your strengths take center stage without a "but" or "maybe."`;
+        anchor = `Own this without shrinking. Name one specific choice today that reflects this version of you, and keep it in your pocket for heavier days.`;
+        quip = pick([
+          `Well, it's about time the internal memo went out! You're absolutely right — and honestly? It's a great look on you.`,
+          `The secret's out. I'd tell you to stay humble, but you're pulling off legendary way too well to stop now.`
+        ]);
+      } else if (moodHint === 'Drained' || themes.includes('exhaustion') || themes.includes('pain')) {
+        clarity = `Your body and battery are telling the truth about capacity. Pushing through isn't strength here — honesty is.`;
+        anchor = `You have the right to prioritize comfort without apology. One step: Do Not Disturb, nest up, and let rest count as care.`;
+        quip = pick([
+          `Real friends want the version of you that isn't in pain — not a forced RSVP. Go get cozy and let the guilt evaporate.`,
+          `Low battery isn't lazy. Lie down like the queen you are and recharge. The world can wait.`
+        ]);
+      } else if (moodHint === 'Overwhelmed' || moodHint === 'Second-Guessing' || themes.includes('anxiety') || themes.includes('work')) {
+        clarity = `When things feel loud, your mind fills the silence with worst-case scripts — though delay and doubt are often logistics, not a verdict on you.`;
+        anchor = `You have agency to step away from the spiral. Set a short no-check window and give your nervous system a break.`;
+        quip = pick([
+          `If silence is golden, that inbox is trying to be a billionaire. Let them be rich while you go be fabulous and unbothered.`,
+          `Spiral detected. Anxiety doesn't get the Wi-Fi password today — camera facts only, gorgeous.`
+        ]);
+      } else if (moodHint === 'People-Pleasing' || themes.includes('guilt') || themes.includes('boundary')) {
+        clarity = `It sounds like you're carrying other people's comfort as if it were your job description. It isn't.`;
+        anchor = `No is a complete sentence. Drop one obligation that was never yours and keep the kindness you'd give a best friend.`;
+        quip = pick([
+          `You are a woman, not a bowl of warm queso. Stop plating yourself for everyone else's appetite.`,
+          `Boundaries aren't rude — they're velvet-rope energy. Keep the fence; skip the apology essay.`
+        ]);
+      } else if (moodHint === 'Fired Up') {
+        clarity = `There's fire in what you wrote — momentum wanting somewhere useful to land.`;
+        anchor = `Aim that heat at one bold next move: a boundary, a send, or a celebration. Don't scatter it.`;
+        quip = `THERE she is. Sass is proof the fire's still lit — spend it like it's limited edition, because it is.`;
+      } else if (moodHint === 'Imposter Syndrome') {
+        clarity = `Imposter thoughts love to edit your resume mid-sentence. The doubt is loud; the evidence of you showing up is louder.`;
+        anchor = `List two receipts of competence from this week — then read them like a contract you already signed.`;
+        quip = `You're not an impostor. You're a woman mid-upgrade. Act like the role already fits — because it does.`;
+      } else {
+        clarity = `I hear you in "${echo}." You're naming what's real, and that alone shifts the room.`;
+        anchor = `You don't have to tidy this into a perfect lesson. Choose what you need: a cheer, a reframe, or quiet company — then take one kind next step.`;
+        quip = `I've got you either way. Soft landing, high standards, zero guilt. That's the wingwoman deal.`;
+      }
+
+      return { clarityRefocus: clarity, confidenceAnchor: anchor, wingwomanQuip: quip };
+    }
+
+    function saveDiaryEntry() {
+      const text = document.getElementById('journal-input').value.trim();
+      if (!text) return;
+
+      const reflection = window.lastFionaReflection;
+      diaryEntries.unshift({
+        date: "Just now",
+        text: text,
+        moods: getSelectedDiaryMoods(),
+        reflection: reflection || null
+      });
+      renderPastEntries();
+      document.getElementById('journal-input').value = "";
+      document.getElementById('fiona-reflection-box').classList.add('hidden');
+      window.lastFionaReflection = null;
+      showToast("Reflection saved to your Private Suite ✨");
+    }
+
+    function renderPastEntries() {
+      const list = document.getElementById('past-entries-list');
+      const badge = document.getElementById('entries-count-badge');
+      if (!list) return;
+
+      badge.innerText = `${diaryEntries.length} entries saved`;
+      list.innerHTML = diaryEntries.map(e => `
+        <div class="p-4 rounded-xl bg-white dark:bg-spa-darkcard border border-pink-100 dark:border-purple-900/40 space-y-2">
+          <span class="text-[10px] font-bold uppercase tracking-wider text-spa-plum/70 dark:text-pink-300/70">${e.date}${e.moods && e.moods.length ? ' · ' + e.moods.join(', ') : ''}</span>
+          <p class="text-xs sm:text-sm text-gray-700 dark:text-gray-200 leading-relaxed">${e.text}</p>
+          ${e.reflection ? `<p class="text-xs italic text-spa-plum dark:text-pink-300">🪶 ${e.reflection.wingwomanQuip || ''}</p>` : ''}
+        </div>
+      `).join('');
+    }
+
+    /* Perspective Mirror Logic */
+    function unpackPerspectiveMirror() {
+      if (!requireVipAccess('Talk It Out with Fiona')) return;
+      const story = document.getElementById('mirror-story-input').value.trim();
+      const fact = document.getElementById('mirror-fact-input').value.trim();
+
+      if (!story && !fact) {
+        showToast("Please write your story and camera fact first.");
+        return;
+      }
+
+      document.getElementById('reframe-echo-fact').innerText = fact || "No neutral facts entered yet.";
+      document.getElementById('reframe-echo-story').innerText = story || "Your mind's narrative.";
+
+      const coaching = document.getElementById('reframe-coaching-body');
+      coaching.innerText = fionaMirror(story, fact);
+
+      document.getElementById('mirror-result-card').classList.remove('hidden');
+    }
+
+    function clearPerspectiveMirror() {
+      document.getElementById('mirror-story-input').value = "";
+      document.getElementById('mirror-fact-input').value = "";
+      document.getElementById('mirror-result-card').classList.add('hidden');
+    }
+
+    /* ================================================================= */
+    /* THE RITUAL SUITE — guilt-free daily gentle rituals                */
+    /* ================================================================= */
+    const RITUAL_STORAGE_KEY = 'fiona:gentle-rituals:v1';
+    const RITUAL_TOASTS = [
+      'Feather fluffed! Look at you treating yourself like top-tier royalty.',
+      'Checked and iconic. We love a woman who tends to her peace.',
+      "That's another feather in your cap, gorgeous."
+    ];
+    const RITUAL_CATEGORY_ICONS = {
+      Hydration: 'droplets',
+      Somatic: 'wind',
+      Mind: 'sparkles',
+      Boundaries: 'shield'
+    };
+    const DEFAULT_RITUALS = [
+      { id: 'r-hydrate', text: 'Hydrate like the queen you are (Water before coffee)', category: 'Hydration', custom: false },
+      { id: 'r-jaw', text: '60 seconds of zero-effort jaw & shoulder softening', category: 'Somatic', custom: false },
+      { id: 'r-light', text: '5-minute step into fresh air or natural light', category: 'Somatic', custom: false },
+      { id: 'r-rest', text: 'Unapologetic rest window (no screens, no errands)', category: 'Boundaries', custom: false },
+      { id: 'r-mirror', text: 'One kind compliment spoken in the mirror', category: 'Mind', custom: false }
+    ];
+
+    function todayKey() {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+
+    function loadRitualState() {
+      try {
+        const raw = localStorage.getItem(RITUAL_STORAGE_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (!parsed || !Array.isArray(parsed.rituals)) return null;
+        return parsed;
+      } catch {
+        return null;
+      }
+    }
+
+    function saveRitualState(state) {
+      try {
+        localStorage.setItem(RITUAL_STORAGE_KEY, JSON.stringify(state));
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    function getRitualState() {
+      let state = loadRitualState();
+      const today = todayKey();
+      if (!state) {
+        state = {
+          rituals: DEFAULT_RITUALS.map(r => ({ ...r })),
+          completed: {},
+          day: today,
+          celebratedToday: false
+        };
+        saveRitualState(state);
+        return state;
+      }
+
+      // New calendar day = clean slate (anti-guilt, no broken streaks)
+      if (state.day !== today) {
+        state.day = today;
+        state.completed = {};
+        state.celebratedToday = false;
+        state._showRestNote = true;
+        saveRitualState(state);
+      }
+      return state;
+    }
+
+    function initRituals() {
+      const state = getRitualState();
+      const restNote = document.getElementById('ritual-rest-note');
+      if (restNote) {
+        // Show clean-slate note when day rolled over or no completions yet this morning vibe
+        const show = !!state._showRestNote && !Object.values(state.completed || {}).some(Boolean);
+        restNote.classList.toggle('hidden', !show);
+        if (state._showRestNote) {
+          delete state._showRestNote;
+          saveRitualState(state);
+        }
+      }
+      renderRituals();
+    }
+
+    function renderRituals() {
+      const state = getRitualState();
+      const list = document.getElementById('ritual-list');
+      if (!list) return;
+
+      list.innerHTML = state.rituals.map(r => {
+        const done = !!state.completed[r.id];
+        const icon = RITUAL_CATEGORY_ICONS[r.category] || 'sparkles';
+        return `
+          <li class="ritual-item group flex items-start gap-3 p-3.5 rounded-2xl bg-white/75 dark:bg-spa-darkbg/50 border border-pink-100/80 dark:border-purple-900/40 transition hover:border-pink-200 dark:hover:border-purple-700 ${done ? 'ritual-check-pop' : ''}" data-id="${r.id}">
+            <button type="button" onclick="toggleRitual('${r.id}')" aria-pressed="${done}"
+              class="mt-0.5 w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition
+                ${done ? 'bg-gradient-to-br from-[#E8B4B8] to-[#D4AF37] border-transparent text-white' : 'border-pink-300 dark:border-purple-700 bg-white dark:bg-spa-darkcard'}">
+              ${done ? '<i data-lucide="check" class="w-3.5 h-3.5"></i>' : ''}
+            </button>
+            <div class="flex-1 min-w-0 space-y-1">
+              <p class="text-sm font-medium leading-snug ${done ? 'text-gray-500 dark:text-gray-400 line-through decoration-pink-300/70' : 'text-gray-800 dark:text-gray-100'}">${r.text}</p>
+              <span class="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-spa-plum/70 dark:text-pink-300/70">
+                <i data-lucide="${icon}" class="w-3 h-3"></i> ${r.category}
+              </span>
+            </div>
+            <div class="ritual-actions flex items-center gap-1 shrink-0 sm:opacity-0">
+              <button type="button" onclick="editRitual('${r.id}')" class="p-1.5 rounded-lg text-gray-400 hover:text-spa-plum hover:bg-pink-50 dark:hover:bg-purple-900/40" aria-label="Edit ritual"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
+              ${r.custom ? `<button type="button" onclick="deleteRitual('${r.id}')" class="p-1.5 rounded-lg text-gray-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40" aria-label="Delete ritual"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>` : ''}
+            </div>
+          </li>
+        `;
+      }).join('');
+
+      updateRitualProgress();
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function updateRitualProgress() {
+      const state = getRitualState();
+      const total = state.rituals.length || 1;
+      const done = state.rituals.filter(r => state.completed[r.id]).length;
+      const pct = Math.round((done / total) * 100);
+      const label = document.getElementById('ritual-progress-label');
+      const bar = document.getElementById('ritual-progress-bar');
+      const pctEl = document.getElementById('ritual-progress-pct');
+      if (label) label.textContent = `Nourishment Gauge: ${done} of ${total} gentle intentions honored today.`;
+      if (bar) bar.style.width = `${pct}%`;
+      if (pctEl) pctEl.textContent = `${pct}%`;
+    }
+
+    function sparkleRitual(anchorEl) {
+      const host = document.getElementById('ritual-sparkle-host');
+      const suite = document.getElementById('ritual-suite');
+      if (!host || !suite) return;
+      const suiteRect = suite.getBoundingClientRect();
+      let x = suiteRect.width * 0.5;
+      let y = 80;
+      if (anchorEl) {
+        const r = anchorEl.getBoundingClientRect();
+        x = r.left - suiteRect.left + r.width / 2;
+        y = r.top - suiteRect.top + r.height / 2;
+      }
+      for (let i = 0; i < 10; i++) {
+        const spark = document.createElement('span');
+        spark.className = 'ritual-spark';
+        const angle = (Math.PI * 2 * i) / 10;
+        const dist = 18 + Math.random() * 28;
+        spark.style.left = `${x}px`;
+        spark.style.top = `${y}px`;
+        spark.style.setProperty('--sx', `${Math.cos(angle) * dist}px`);
+        spark.style.setProperty('--sy', `${Math.sin(angle) * dist - 12}px`);
+        host.appendChild(spark);
+        setTimeout(() => spark.remove(), 950);
+      }
+    }
+
+    function toggleRitual(id) {
+      const state = getRitualState();
+      const turningOn = !state.completed[id];
+      state.completed[id] = turningOn;
+      saveRitualState(state);
+
+      const restNote = document.getElementById('ritual-rest-note');
+      if (restNote) restNote.classList.add('hidden');
+
+      renderRituals();
+
+      if (turningOn) {
+        const row = document.querySelector(`.ritual-item[data-id="${id}"]`);
+        sparkleRitual(row);
+        showToast(RITUAL_TOASTS[Math.floor(Math.random() * RITUAL_TOASTS.length)]);
+
+        const total = state.rituals.length;
+        const done = state.rituals.filter(r => state.completed[r.id]).length;
+        if (done === total && total > 0 && !state.celebratedToday) {
+          state.celebratedToday = true;
+          saveRitualState(state);
+          setTimeout(() => {
+            showToast('All plumage fluffed. Pour something sparkling and close the suite door.');
+          }, 900);
+        }
+      }
+    }
+
+    function addCustomRitual() {
+      const input = document.getElementById('ritual-new-input');
+      const cat = document.getElementById('ritual-new-category');
+      const text = (input?.value || '').trim();
+      if (!text) {
+        showToast('Tell Fiona what ritual you want to add, darling.');
+        return;
+      }
+      const state = getRitualState();
+      const ritual = {
+        id: `r-custom-${Date.now()}`,
+        text,
+        category: cat?.value || 'Mind',
+        custom: true
+      };
+      state.rituals.push(ritual);
+      saveRitualState(state);
+      input.value = '';
+      renderRituals();
+      showToast('Ritual added to your suite. Soft and intentional — we love that.');
+    }
+
+    function deleteRitual(id) {
+      const state = getRitualState();
+      const ritual = state.rituals.find(r => r.id === id);
+      if (!ritual || !ritual.custom) return;
+      state.rituals = state.rituals.filter(r => r.id !== id);
+      delete state.completed[id];
+      saveRitualState(state);
+      renderRituals();
+      showToast('Ritual released. Your suite stays light.');
+    }
+
+    function editRitual(id) {
+      const state = getRitualState();
+      const ritual = state.rituals.find(r => r.id === id);
+      if (!ritual) return;
+      const next = prompt('Edit this ritual, gorgeous:', ritual.text);
+      if (next === null) return;
+      const trimmed = next.trim();
+      if (!trimmed) {
+        showToast('A ritual needs a little text to live in the suite.');
+        return;
+      }
+      ritual.text = trimmed.slice(0, 120);
+      saveRitualState(state);
+      renderRituals();
+      showToast('Ritual refreshed. Soft upgrades only.');
+    }
+    const FLARE_STORAGE_KEY = 'fiona:care-flare-tracker:v1';
+    const FLARE_BATTERY_LEVELS = [
+      '1/5 Critically Low / Horizontal Day',
+      '2/5 Low / Low Demand Only',
+      '3/5 Moderate / Pacing Needed',
+      '4/5 Steady / Manageable',
+      '5/5 Good Reserve / Feeling Light'
+    ];
+    const FLARE_STATUSES = [
+      'Baseline / Calm',
+      'Simmering / Warning Signs',
+      'Active Flare',
+      'Severe Flare / Full Rest'
+    ];
+    const FLARE_SYMPTOMS = [
+      'Joint Pain', 'Muscle Ache', 'Brain Fog', 'Extreme Fatigue', 'Nausea',
+      'Sensory Overload', 'Migraine', 'Gut Flare', 'Neuropathy', 'Inflammation'
+    ];
+    const FLARE_TRIGGERS = [
+      'Weather Shift', 'Stress Spike', 'Poor Sleep', 'Overexertion', 'Unknown'
+    ];
+    const FLARE_SOFT_CARE = [
+      { id: 'warm-drink', label: 'Warm tea or water within reach' },
+      { id: 'temperature-support', label: 'Heat pad / cold pack positioned' },
+      { id: 'sensory-rest', label: 'Lights dimmed and notifications silenced' }
+    ];
+    const FLARE_STATUS_STYLES = {
+      'Baseline / Calm': 'border-emerald-300 bg-emerald-50 text-emerald-950 dark:bg-emerald-950/40 dark:text-emerald-100 dark:border-emerald-800',
+      'Simmering / Warning Signs': 'border-yellow-300 bg-yellow-50 text-yellow-950 dark:bg-yellow-950/40 dark:text-yellow-100 dark:border-yellow-800',
+      'Active Flare': 'border-orange-300 bg-orange-50 text-orange-950 dark:bg-orange-950/40 dark:text-orange-100 dark:border-orange-800',
+      'Severe Flare / Full Rest': 'border-rose-300 bg-rose-50 text-rose-950 dark:bg-rose-950/40 dark:text-rose-100 dark:border-rose-800'
+    };
+
+    let flareForm = {
+      batteryLevel: null,
+      flareStatus: null,
+      symptoms: [],
+      triggers: [],
+      softCare: {}
+    };
+
+    function loadFlareHistory() {
+      try {
+        const raw = localStorage.getItem(FLARE_STORAGE_KEY);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) return [];
+        return parsed
+          .filter(e => e && e.batteryLevel && e.flareStatus && e.date)
+          .sort((a, b) => Date.parse(b.date) - Date.parse(a.date))
+          .slice(0, 7);
+      } catch {
+        return [];
+      }
+    }
+
+    function saveFlareHistory(history) {
+      try {
+        localStorage.setItem(FLARE_STORAGE_KEY, JSON.stringify(history.slice(0, 7)));
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    function chipClass(selected) {
+      return selected
+        ? 'border-spa-plum bg-spa-plum text-white shadow-sm'
+        : 'border-gray-200 dark:border-purple-900 bg-white dark:bg-spa-darkbg text-gray-700 dark:text-gray-300 hover:border-spa-plum/40';
+    }
+
+    function renderFlareTrackerForm() {
+      const batteryBox = document.getElementById('flare-battery-options');
+      const statusBox = document.getElementById('flare-status-options');
+      const symptomBox = document.getElementById('flare-symptom-options');
+      const triggerBox = document.getElementById('flare-trigger-options');
+      const softList = document.getElementById('flare-soft-care-list');
+      if (!batteryBox) return;
+
+      batteryBox.innerHTML = FLARE_BATTERY_LEVELS.map(level => `
+        <button type="button" onclick="selectFlareBattery(${JSON.stringify(level)})"
+          class="text-left px-3 py-2.5 rounded-xl border text-xs font-semibold transition ${chipClass(flareForm.batteryLevel === level)}">
+          ${level}
+        </button>
+      `).join('');
+
+      statusBox.innerHTML = FLARE_STATUSES.map(status => `
+        <button type="button" onclick="selectFlareStatus(${JSON.stringify(status)})"
+          class="text-left px-3 py-2.5 rounded-xl border text-xs font-semibold transition ${flareForm.flareStatus === status ? (FLARE_STATUS_STYLES[status] + ' ring-2 ring-spa-plum/40') : (FLARE_STATUS_STYLES[status] + ' opacity-80')}">
+          ${status}
+        </button>
+      `).join('');
+
+      symptomBox.innerHTML = FLARE_SYMPTOMS.map(s => `
+        <button type="button" onclick="toggleFlareSymptom(${JSON.stringify(s)})"
+          class="px-3 py-1.5 rounded-full border text-xs font-semibold transition ${chipClass(flareForm.symptoms.includes(s))}">
+          ${s}
+        </button>
+      `).join('');
+
+      triggerBox.innerHTML = FLARE_TRIGGERS.map(t => `
+        <button type="button" onclick="toggleFlareTrigger(${JSON.stringify(t)})"
+          class="px-3 py-1.5 rounded-full border text-xs font-semibold transition ${chipClass(flareForm.triggers.includes(t))}">
+          ${t}
+        </button>
+      `).join('');
+
+      softList.innerHTML = FLARE_SOFT_CARE.map(item => `
+        <label class="flex items-start gap-2 text-xs text-gray-800 dark:text-gray-200 cursor-pointer">
+          <input type="checkbox" class="mt-0.5 rounded border-pink-300 text-spa-plum focus:ring-spa-plum"
+            ${flareForm.softCare[item.id] ? 'checked' : ''}
+            onchange="toggleFlareSoftCare('${item.id}', this.checked)">
+          <span>${item.label}</span>
+        </label>
+      `).join('');
+
+      const soft = document.getElementById('flare-soft-care');
+      const showSoft = flareForm.flareStatus === 'Active Flare' || flareForm.flareStatus === 'Severe Flare / Full Rest';
+      soft.classList.toggle('hidden', !showSoft);
+
+      renderFlareHistory();
+    }
+
+    function selectFlareBattery(level) {
+      flareForm.batteryLevel = level;
+      document.getElementById('flare-form-error').classList.add('hidden');
+      renderFlareTrackerForm();
+    }
+
+    function selectFlareStatus(status) {
+      flareForm.flareStatus = status;
+      document.getElementById('flare-form-error').classList.add('hidden');
+      renderFlareTrackerForm();
+    }
+
+    function toggleFlareSymptom(symptom) {
+      const i = flareForm.symptoms.indexOf(symptom);
+      if (i >= 0) flareForm.symptoms.splice(i, 1);
+      else flareForm.symptoms.push(symptom);
+      renderFlareTrackerForm();
+    }
+
+    function toggleFlareTrigger(trigger) {
+      const i = flareForm.triggers.indexOf(trigger);
+      if (i >= 0) flareForm.triggers.splice(i, 1);
+      else flareForm.triggers.push(trigger);
+      renderFlareTrackerForm();
+    }
+
+    function toggleFlareSoftCare(id, checked) {
+      flareForm.softCare[id] = !!checked;
+    }
+
+    function formatFlareDate(iso) {
+      try {
+        const d = new Date(iso);
+        return d.toLocaleString(undefined, {
+          weekday: 'short', month: 'short', day: 'numeric',
+          hour: 'numeric', minute: '2-digit'
+        });
+      } catch {
+        return iso;
+      }
+    }
+
+    function renderFlareHistory() {
+      const list = document.getElementById('flare-history-list');
+      const empty = document.getElementById('flare-history-empty');
+      if (!list) return;
+      const history = loadFlareHistory();
+      empty.classList.toggle('hidden', history.length > 0);
+      list.innerHTML = history.map(e => `
+        <article class="p-4 rounded-xl border border-pink-100 dark:border-purple-900/40 bg-white dark:bg-spa-darkcard space-y-2">
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <p class="text-[10px] font-bold uppercase tracking-wider text-spa-plum/70 dark:text-pink-300/70">${formatFlareDate(e.date)}</p>
+              <p class="text-sm font-semibold text-gray-900 dark:text-white mt-0.5">${e.flareStatus}</p>
+            </div>
+            <span class="text-[10px] font-semibold px-2 py-1 rounded-full ${FLARE_STATUS_STYLES[e.flareStatus] || 'bg-pink-50'}">${(e.batteryLevel || '').split(' / ')[0]}</span>
+          </div>
+          <p class="text-xs text-gray-600 dark:text-gray-300"><span class="font-semibold text-gray-800 dark:text-gray-200">Battery:</span> ${e.batteryLevel}</p>
+          <p class="text-xs text-gray-600 dark:text-gray-300"><span class="font-semibold text-gray-800 dark:text-gray-200">Symptoms:</span> ${(e.symptoms && e.symptoms.length) ? e.symptoms.join(' · ') : 'None noted'}</p>
+          <p class="text-xs text-gray-600 dark:text-gray-300"><span class="font-semibold text-gray-800 dark:text-gray-200">Triggers:</span> ${(e.triggers && e.triggers.length) ? e.triggers.join(' · ') : 'None noted'}</p>
+        </article>
+      `).join('');
+    }
+
+    function logFlareCheckin() {
+      const err = document.getElementById('flare-form-error');
+      if (!flareForm.batteryLevel || !flareForm.flareStatus) {
+        err.textContent = 'Choose a battery level and flare status before logging today’s status.';
+        err.classList.remove('hidden');
+        return;
+      }
+      err.classList.add('hidden');
+
+      const entry = {
+        id: `care-flare-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        date: new Date().toISOString(),
+        batteryLevel: flareForm.batteryLevel,
+        flareStatus: flareForm.flareStatus,
+        symptoms: [...flareForm.symptoms],
+        triggers: [...flareForm.triggers]
+      };
+
+      const history = [entry, ...loadFlareHistory()].slice(0, 7);
+      if (!saveFlareHistory(history)) {
+        err.textContent = 'This browser could not save your check-in. Please allow local storage and try again; your selections are still here.';
+        err.classList.remove('hidden');
+        return;
+      }
+
+      flareForm = { batteryLevel: null, flareStatus: null, symptoms: [], triggers: [], softCare: {} };
+      renderFlareTrackerForm();
+      showToast('Status recorded. Now go rest, gorgeous.');
+
+      // On active/severe, gently point to Feather Tiers
+      if (entry.flareStatus === 'Active Flare' || entry.flareStatus === 'Severe Flare / Full Rest') {
+        setTimeout(() => {
+          showToast('Feather Tiers are ready when you want bed-supported rest 🪶');
+        }, 1600);
+      }
+    }
+    function filterFeatherTier(tier, btnEl) {
+      const cards = document.querySelectorAll('.feather-card');
+      const buttons = document.querySelectorAll('.feather-filter-btn');
+
+      cards.forEach(c => {
+        if (tier === 'all' || c.getAttribute('data-tier') === tier) {
+          c.classList.remove('hidden');
+        } else {
+          c.classList.add('hidden');
+        }
+      });
+
+      buttons.forEach(b => {
+        b.classList.remove('bg-white', 'text-spa-plum', 'dark:bg-purple-800', 'dark:text-white', 'shadow-xs');
+        b.classList.add('text-gray-600', 'dark:text-gray-300');
+      });
+      const active = btnEl || (typeof event !== 'undefined' ? event.target : null);
+      if (active) active.classList.add('bg-white', 'text-spa-plum', 'dark:bg-purple-800', 'dark:text-white', 'shadow-xs');
+    }
+
+    function renderMobilityDeck(category = 'all') {
+      const grid = document.getElementById('mobility-cards-grid');
+      if (!grid) return;
+
+      const filtered = category === 'all' 
+        ? MOBILITY_DECK 
+        : MOBILITY_DECK.filter(m => m.category === category);
+
+      grid.innerHTML = filtered.map(item => `
+        <div onclick="openMobilityModal('${item.id}')" class="p-5 rounded-2xl bg-white dark:bg-spa-darkcard border border-pink-100 dark:border-purple-900/40 hover:border-spa-plum/40 hover:shadow-md transition cursor-pointer flex flex-col justify-between space-y-3">
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-purple-100 dark:bg-purple-950 text-spa-plum dark:text-pink-300">
+                ${item.target}
+              </span>
+              <span class="text-xs font-mono font-semibold text-gray-500">${item.time}</span>
+            </div>
+            <h4 class="font-serif font-bold text-lg text-gray-900 dark:text-white">${item.title}</h4>
+            <p class="text-xs text-gray-600 dark:text-gray-300 line-clamp-2">${item.cue}</p>
+          </div>
+          <div class="pt-2 flex items-center justify-between border-t border-pink-50 dark:border-purple-950 text-xs font-semibold text-spa-plum dark:text-pink-300">
+            <span>View cues & hold timer</span>
+            <i data-lucide="play-circle" class="w-4 h-4"></i>
+          </div>
+        </div>
+      `).join('');
+
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function filterMobility(cat, btnEl) {
+      const buttons = document.querySelectorAll('.mobility-filter');
+      buttons.forEach(b => {
+        b.classList.remove('bg-spa-plum', 'text-white');
+        b.classList.add('text-gray-600', 'dark:text-gray-300');
+      });
+      const active = btnEl || (typeof event !== 'undefined' ? event.target : null);
+      if (active) active.classList.add('bg-spa-plum', 'text-white');
+      renderMobilityDeck(cat);
+    }
+
+    let activeMobilityTimer = null;
+    function openMobilityModal(id) {
+      const item = MOBILITY_DECK.find(m => m.id === id);
+      if (!item) return;
+
+      document.getElementById('mob-modal-title').innerText = item.title;
+      document.getElementById('mob-modal-target').innerText = item.target;
+      document.getElementById('mob-modal-cue').innerText = item.cue;
+      document.getElementById('mob-modal-benefit').innerText = item.benefit;
+      document.getElementById('mob-modal-nudge').innerText = `"${item.nudge}" — Fiona`;
+      document.getElementById('mob-active-timer-display').innerText = item.time.includes('Cycle') ? '6 Reps' : '20s';
+
+      openModal('modal-mobility');
+    }
+
+    function startMobilityTimer(seconds) {
+      clearInterval(activeMobilityTimer);
+      let remain = seconds;
+      const display = document.getElementById('mob-active-timer-display');
+      display.innerText = `${remain}s`;
+
+      activeMobilityTimer = setInterval(() => {
+        remain--;
+        if (remain <= 0) {
+          clearInterval(activeMobilityTimer);
+          display.innerText = "Done! ✨";
+          showToast("Stretch complete! High feathers 🦩");
+        } else {
+          display.innerText = `${remain}s`;
+        }
+      }, 1000);
+    }
+
+    function logMobilityStretch() {
+      clearInterval(activeMobilityTimer);
+      closeModal('modal-mobility');
+      showToast("Stretch logged into your Daily Strut ✨");
+    }
+
+    /* ===== Shared photo canvas: wardrobe + glam (iOS-safe) ===== */
+    const canvasPhotos = {
+      wardrobe: { url: null, hasPhoto: false },
+      glam: { url: null, hasPhoto: false }
+    };
+    let selfieMediaStream = null;
+    let activeCameraTarget = 'glam';
+
+    const CANVAS_PLACEHOLDERS = {
+      wardrobe: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150'%3E%3Crect fill='%23FCEFEF' width='150' height='150'/%3E%3Ctext x='50%25' y='52%25' dominant-baseline='middle' text-anchor='middle' fill='%235E2750' font-family='serif' font-size='13'%3EYour Look%3C/text%3E%3C/svg%3E",
+      glam: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150'%3E%3Crect fill='%23FCEFEF' width='150' height='150'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%235E2750' font-family='serif' font-size='14'%3EYour Face%3C/text%3E%3C/svg%3E"
+    };
+
+    function canvasIds(target) {
+      const t = target === 'wardrobe' ? 'wardrobe' : 'glam';
+      return {
+        target: t,
+        preview: `${t}-preview`,
+        status: `${t}-status`,
+        error: `${t}-error`,
+        clear: `clear-${t}-btn`,
+        upload: `${t}-upload-input`,
+        camera: `${t}-camera-input`
+      };
+    }
+
+    function setCanvasError(target, msg) {
+      const { error } = canvasIds(target);
+      const el = document.getElementById(error);
+      if (!el) return;
+      if (msg) {
+        el.textContent = msg;
+        el.classList.remove('hidden');
+      } else {
+        el.textContent = '';
+        el.classList.add('hidden');
+      }
+    }
+
+    function applyCanvasFile(target, file) {
+      const ids = canvasIds(target);
+      if (!file || !file.type.startsWith('image/')) {
+        setCanvasError(ids.target, 'Please choose an image file (JPG, PNG, or HEIC).');
+        return;
+      }
+      if (canvasPhotos[ids.target].url) URL.revokeObjectURL(canvasPhotos[ids.target].url);
+      const url = URL.createObjectURL(file);
+      canvasPhotos[ids.target] = { url, hasPhoto: true };
+      document.getElementById(ids.preview).src = url;
+      document.getElementById(ids.clear).classList.remove('hidden');
+      document.getElementById(ids.status).textContent = `Ready: ${file.name || 'photo'}`;
+      setCanvasError(ids.target, '');
+      showToast(ids.target === 'wardrobe' ? 'Look canvas updated ✨' : 'Canvas selfie updated beautifully 📸');
+    }
+
+    function triggerPhotoUpload(target) {
+      const ids = canvasIds(target || 'glam');
+      setCanvasError(ids.target, '');
+      const input = document.getElementById(ids.upload);
+      input.value = '';
+      input.click();
+    }
+
+    function handleCanvasUpload(event, target) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      applyCanvasFile(target, file);
+      event.target.value = '';
+    }
+
+    // Back-compat aliases
+    function handleSelfieUpload(event) { handleCanvasUpload(event, 'glam'); }
+    function clearSelfie() { clearCanvasPhoto('glam'); }
+
+    async function startSelfieCamera(target) {
+      const ids = canvasIds(target || 'glam');
+      activeCameraTarget = ids.target;
+      setCanvasError(ids.target, '');
+      stopSelfieCamera(false);
+
+      const hint = document.getElementById('camera-capture-hint');
+      if (hint) hint.textContent = ids.target === 'wardrobe'
+        ? 'Line up your outfit or full look, then capture'
+        : 'Line up your face, then capture';
+
+      // Prefer live getUserMedia
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        try {
+          const facingMode = ids.target === 'wardrobe' ? { ideal: 'environment' } : 'user';
+          selfieMediaStream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode },
+            audio: false
+          });
+          const video = document.getElementById('selfie-video');
+          const panel = document.getElementById('camera-capture-panel');
+          video.srcObject = selfieMediaStream;
+          panel.classList.remove('hidden');
+          try { await video.play(); } catch (_) {}
+          document.getElementById(ids.status).textContent = 'Camera live — capture when ready.';
+          return;
+        } catch (err) {
+          const name = err && err.name;
+          if (name === 'NotAllowedError' || name === 'SecurityError') {
+            setCanvasError(ids.target, 'Camera access was denied. Allow camera access, or upload a photo instead.');
+          } else if (name === 'NotFoundError') {
+            setCanvasError(ids.target, 'No camera found. You can still upload a photo.');
+          }
+        }
+      }
+
+      // Fallback: native camera / picker
+      const camInput = document.getElementById(ids.camera);
+      camInput.value = '';
+      camInput.click();
+    }
+
+    function captureSelfieFrame() {
+      const target = activeCameraTarget || 'glam';
+      const ids = canvasIds(target);
+      const video = document.getElementById('selfie-video');
+      const canvas = document.getElementById('selfie-canvas');
+      if (!video || !video.videoWidth) {
+        setCanvasError(ids.target, 'Camera is still warming up — try Capture again in a second.');
+        return;
+      }
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      if (target === 'glam') {
+        ctx.translate(canvas.width, 0);
+        ctx.scale(-1, 1);
+      }
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          setCanvasError(ids.target, 'Could not capture that frame. Please upload a photo instead.');
+          return;
+        }
+        const file = new File([blob], target === 'wardrobe' ? 'wardrobe-capture.jpg' : 'selfie-capture.jpg', {
+          type: 'image/jpeg',
+          lastModified: Date.now()
+        });
+        applyCanvasFile(target, file);
+        stopSelfieCamera(false);
+      }, 'image/jpeg', 0.92);
+    }
+
+    function stopSelfieCamera(updateStatus = true) {
+      if (selfieMediaStream) {
+        selfieMediaStream.getTracks().forEach(t => t.stop());
+        selfieMediaStream = null;
+      }
+      const video = document.getElementById('selfie-video');
+      if (video) video.srcObject = null;
+      const panel = document.getElementById('camera-capture-panel');
+      if (panel) panel.classList.add('hidden');
+    }
+
+    function clearCanvasPhoto(target) {
+      const ids = canvasIds(target);
+      stopSelfieCamera(false);
+      if (canvasPhotos[ids.target].url) {
+        URL.revokeObjectURL(canvasPhotos[ids.target].url);
+      }
+      canvasPhotos[ids.target] = { url: null, hasPhoto: false };
+      document.getElementById(ids.preview).src = CANVAS_PLACEHOLDERS[ids.target];
+      document.getElementById(ids.clear).classList.add('hidden');
+      document.getElementById(ids.status).textContent = 'Photos stay in your browser only — never uploaded to a server.';
+      setCanvasError(ids.target, '');
+      showToast('Canvas cleared');
+    }
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) stopSelfieCamera(false);
+    });
+
+    let selectedOccasion = 'Desk to Dinner';
+    let selectedUndertone = 'Cool';
+
+    function selectOccasion(btn, occasion) {
+      selectedOccasion = occasion;
+      document.querySelectorAll('.occasion-chip').forEach(c => {
+        c.classList.remove('bg-pink-50', 'dark:bg-purple-950', 'text-spa-plum', 'border-purple-200', 'dark:border-purple-800', 'dark:text-pink-200');
+        c.classList.add('border-gray-200', 'dark:border-purple-900', 'text-gray-700', 'dark:text-gray-300');
+      });
+      btn.classList.add('bg-pink-50', 'dark:bg-purple-950', 'text-spa-plum', 'border-purple-200', 'dark:border-purple-800', 'dark:text-pink-200');
+      btn.classList.remove('border-gray-200', 'text-gray-700', 'dark:text-gray-300');
+    }
+
+    const WARDROBE_LOOKS = {
+      'Desk to Dinner': {
+        title: 'The Effortless Boss Silhouette',
+        desc: 'Tailored wide-leg trousers in rich plum with a tucked silk cami and an unstructured soft blazer. Polished, completely comfortable around the waist, and commands respect.',
+        quote: 'When you feel comfortable in your clothes, you stop thinking about your clothes and start owning the room.'
+      },
+      'Casual Comfort Chic': {
+        title: 'Soft Street Royalty',
+        desc: 'Elevated knit set in dusty rose, clean white sneakers, and a structured tote. Add a silk scarf at the neck for that quiet Fiona polish.',
+        quote: 'Casual does not mean careless, darling. Soft fabrics, sharp intention.'
+      },
+      'Power Meeting': {
+        title: 'Boardroom Plumage',
+        desc: 'Column dress or sharp trousers with a jewel-tone blouse, structured shoulders, and a single bold accessory. Keep jewelry minimal and intentional.',
+        quote: 'Walk in like the agenda already belongs to you.'
+      },
+      'Soft Evening Out': {
+        title: 'Candlelight Curve',
+        desc: 'Bias-cut midi or satin slip layered under a cropped jacket, strappy heels or polished flats, and a berry lip that does half the talking.',
+        quote: 'You are the main course, not the appetizer. Dress like you know it.'
+      },
+      'Cozy Home Luxe': {
+        title: 'Private Suite Loungewear',
+        desc: 'Cashmere-feel joggers, a buttery tank, and an oversized robe or wrap cardigan. Slippers optional; dignity mandatory.',
+        quote: 'Resting at home is still a red-carpet event when you are the guest of honor.'
+      }
+    };
+
+    function generateWardrobeAdvice() {
+      const vibe = (document.getElementById('wardrobe-vibe')?.value || '').trim();
+      let look = WARDROBE_LOOKS[selectedOccasion] || WARDROBE_LOOKS['Desk to Dinner'];
+
+      // Light vibe overrides when user typed a custom event
+      if (vibe) {
+        const v = vibe.toLowerCase();
+        if (/brunch|coffee|casual|weekend|errand/.test(v)) look = WARDROBE_LOOKS['Casual Comfort Chic'];
+        else if (/meeting|interview|pitch|board|office|work/.test(v)) look = WARDROBE_LOOKS['Power Meeting'];
+        else if (/date|dinner|evening|gallery|cocktail|night/.test(v)) look = WARDROBE_LOOKS['Soft Evening Out'];
+        else if (/home|cozy|lounge|netflix|rest/.test(v)) look = WARDROBE_LOOKS['Cozy Home Luxe'];
+      }
+
+      document.getElementById('wardrobe-look-title').innerText = look.title;
+      let desc = look.desc;
+      if (vibe) desc += ` Styled for your vibe: “${vibe}.”`;
+      document.getElementById('wardrobe-look-desc').innerText = desc;
+      document.getElementById('wardrobe-look-quote').innerText = `"${look.quote}"`;
+
+      const note = document.getElementById('wardrobe-photo-note');
+      if (canvasPhotos.wardrobe.hasPhoto) {
+        note.classList.remove('hidden');
+        note.innerText = '📸 Spotted your look canvas — Fiona styled from what you already have in the frame. Keep the pieces that feel like you; elevate with one polished layer.';
+      } else {
+        note.classList.add('hidden');
+        note.innerText = '';
+      }
+
+      document.getElementById('wardrobe-recommendation-box').classList.remove('hidden');
+      showToast("Fiona tailored an effortless look ✨");
+    }
+
+    function selectUndertone(btn, tone) {
+      selectedUndertone = tone;
+      document.querySelectorAll('.undertone-chip').forEach(c => {
+        c.classList.remove('bg-pink-50', 'dark:bg-purple-950', 'text-spa-plum', 'border-purple-200', 'dark:border-purple-800', 'dark:text-pink-200');
+        c.classList.add('border-gray-200', 'dark:border-purple-900', 'text-gray-700', 'dark:text-gray-300');
+      });
+      btn.classList.add('bg-pink-50', 'dark:bg-purple-950', 'text-spa-plum', 'border-purple-200', 'dark:border-purple-800', 'dark:text-pink-200');
+      btn.classList.remove('border-gray-200', 'text-gray-700', 'dark:text-gray-300');
+    }
+
+    const GLAM_PALETTES = {
+      'Cool': {
+        lip: ['#9E2A2B', 'Velvet Currant'],
+        cheek: ['#E07A5F', 'Rose Radiance'],
+        eye: ['#5E2750', 'Champagne Plum'],
+        hair: ['#3D405B', 'Soft French Twist'],
+        quote: 'A bold lip is just high-fashion armor for days when you have zero patience for foolishness.'
+      },
+      'Warm': {
+        lip: ['#C45C26', 'Spiced Coral'],
+        cheek: ['#E8A87C', 'Honey Flush'],
+        eye: ['#8B5E3C', 'Toasted Bronze'],
+        hair: ['#6B3E26', 'Warm Soft Waves'],
+        quote: 'Golden light loves warm undertones—lean into peach, caramel, and soft copper.'
+      },
+      'Neutral': {
+        lip: ['#B76E79', 'Muted Rosewood'],
+        cheek: ['#D4A5A5', 'Quiet Bloom'],
+        eye: ['#6B5B7A', 'Soft Taupe Plum'],
+        hair: ['#4A4A4A', 'Polished Low Bun'],
+        quote: 'Neutral undertones get to play both sides—cool berries and warm golds are both fair game.'
+      },
+      'Deep Olive': {
+        lip: ['#7A1F2B', 'Deep Merlot'],
+        cheek: ['#C45C4A', 'Terracotta Glow'],
+        eye: ['#3F2A1E', 'Smoked Espresso'],
+        hair: ['#1A120B', 'Sleek Crown Twist'],
+        quote: 'Rich olive skin was made for jewel tones—wear them like you invented drama.'
+      }
+    };
+
+    function generateGlamPalette() {
+      if (!requireVipAccess('The Glamour Vanity')) return;
+      const p = GLAM_PALETTES[selectedUndertone] || GLAM_PALETTES['Cool'];
+      document.getElementById('swatch-lip').style.backgroundColor = p.lip[0];
+      document.getElementById('swatch-lip-name').innerText = p.lip[1];
+      document.getElementById('swatch-cheek').style.backgroundColor = p.cheek[0];
+      document.getElementById('swatch-cheek-name').innerText = p.cheek[1];
+      document.getElementById('swatch-eye').style.backgroundColor = p.eye[0];
+      document.getElementById('swatch-eye-name').innerText = p.eye[1];
+      document.getElementById('swatch-hair').style.backgroundColor = p.hair[0];
+      document.getElementById('swatch-hair-name').innerText = p.hair[1];
+      document.getElementById('glam-palette-quote').innerText = `"${p.quote}"`;
+      showToast("Glam palette refreshed for your complexion ✨");
+    }
+
+    /* Vagus Ocean Tide Breath Pacer */
+    let breathInterval = null;
+    let breathState = 'inhale'; // inhale, hold, exhale
+    let breathCount = 4;
+
+    function toggleBreathPacer() {
+      const btn = document.getElementById('pacer-toggle-btn');
+      const circle = document.getElementById('breath-circle');
+      const instr = document.getElementById('breath-instruction');
+      const secs = document.getElementById('breath-seconds');
+
+      if (breathInterval) {
+        clearInterval(breathInterval);
+        breathInterval = null;
+        btn.innerText = "Start Gentle Pacing";
+        circle.style.transform = "scale(1)";
+        return;
+      }
+
+      btn.innerText = "Pause Pacing";
+      breathState = 'inhale';
+      breathCount = 4;
+      circle.style.transform = "scale(1.15)";
+      instr.innerText = "Breathe In";
+      secs.innerText = "4";
+
+      breathInterval = setInterval(() => {
+        breathCount--;
+        if (breathCount <= 0) {
+          if (breathState === 'inhale') {
+            breathState = 'hold';
+            breathCount = 4;
+            instr.innerText = "Soft Hold";
+          } else if (breathState === 'hold') {
+            breathState = 'exhale';
+            breathCount = 6;
+            circle.style.transform = "scale(0.9)";
+            instr.innerText = "Slow Exhale";
+          } else {
+            breathState = 'inhale';
+            breathCount = 4;
+            circle.style.transform = "scale(1.15)";
+            instr.innerText = "Breathe In";
+          }
+        }
+        secs.innerText = breathCount;
+      }, 1000);
+    }
+
+    function triggerSomaticSigh() {
+      showToast("Take two quick sips of air through nose, one long sigh out mouth 💨");
+    }
+
+    /* Yin Hold Timer */
+    let yinTimerInterval = null;
+    let yinSecondsRemaining = 120;
+
+    function toggleYinTimer() {
+      const btn = document.getElementById('yin-timer-toggle-btn');
+      if (yinTimerInterval) {
+        clearInterval(yinTimerInterval);
+        yinTimerInterval = null;
+        btn.innerText = "Resume";
+      } else {
+        btn.innerText = "Pause";
+        yinTimerInterval = setInterval(() => {
+          yinSecondsRemaining--;
+          updateYinTimerDisplay();
+          if (yinSecondsRemaining <= 0) {
+            clearInterval(yinTimerInterval);
+            yinTimerInterval = null;
+            btn.innerText = "Start";
+            showToast("Gentle chime: release the posture softly 🧘");
+          }
+        }, 1000);
+      }
+    }
+
+    function resetYinTimer() {
+      clearInterval(yinTimerInterval);
+      yinTimerInterval = null;
+      yinSecondsRemaining = 120;
+      updateYinTimerDisplay();
+      document.getElementById('yin-timer-toggle-btn').innerText = "Start";
+    }
+
+    function updateYinTimerDisplay() {
+      const mins = Math.floor(yinSecondsRemaining / 60);
+      const secs = yinSecondsRemaining % 60;
+      document.getElementById('yin-timer-display').innerText = 
+        `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    }
+
+    /* SOS 60s Breath Timer */
+    let sosInterval = null;
+    function startSOSTimer() {
+      let remain = 60;
+      const text = document.getElementById('sos-timer-text');
+      const btn = document.getElementById('sos-start-btn');
+      btn.disabled = true;
+      btn.innerText = "Breathing in progress...";
+
+      clearInterval(sosInterval);
+      sosInterval = setInterval(() => {
+        remain--;
+        text.innerText = remain;
+        if (remain <= 0) {
+          clearInterval(sosInterval);
+          text.innerText = "Done";
+          btn.disabled = false;
+          btn.innerText = "Restart 60s";
+          showToast("You made it through the minute. Soft feathers, gorgeous.");
+        }
+      }, 1000);
+    }
+
+    /* ================================================================= */
+    /* VIP SUITE KEY — trial / membership mock entitlement               */
+    /* ================================================================= */
+    const VIP_STATUS_KEY = 'fiona_vip_status';
+    const VIP_META_KEY = 'fiona_vip_meta';
+    let selectedVipPlan = 'annual';
+
+    function getVipStatus() {
+      try {
+        const status = localStorage.getItem(VIP_STATUS_KEY) || 'free';
+        if (!['free', 'trial', 'vip'].includes(status)) return 'free';
+        // Expire trial after 7 days (mock)
+        if (status === 'trial') {
+          const meta = getVipMeta();
+          if (meta.trialStartedAt) {
+            const started = Date.parse(meta.trialStartedAt);
+            const days = (Date.now() - started) / (1000 * 60 * 60 * 24);
+            if (days >= 7) {
+              // Soft expire back to free unless they "converted"
+              if (!meta.converted) {
+                localStorage.setItem(VIP_STATUS_KEY, 'free');
+                return 'free';
+              }
+            }
+          }
+        }
+        return status;
+      } catch {
+        return 'free';
+      }
+    }
+
+    function getVipMeta() {
+      try {
+        return JSON.parse(localStorage.getItem(VIP_META_KEY) || '{}') || {};
+      } catch {
+        return {};
+      }
+    }
+
+    function setVipMeta(patch) {
+      const next = { ...getVipMeta(), ...patch };
+      try { localStorage.setItem(VIP_META_KEY, JSON.stringify(next)); } catch (_) {}
+      return next;
+    }
+
+    function hasVipAccess() {
+      const s = getVipStatus();
+      return s === 'trial' || s === 'vip';
+    }
+
+    function updateVipStatusPill() {
+      const label = document.getElementById('vip-status-label');
+      const dot = document.getElementById('vip-status-dot');
+      const pill = document.getElementById('vip-status-pill');
+      if (!label || !dot) return;
+      const status = getVipStatus();
+      if (status === 'vip') {
+        label.textContent = 'VIP Suite';
+        dot.className = 'w-2 h-2 rounded-full bg-amber-400 animate-pulse';
+        pill?.classList.add('border-amber-200');
+      } else if (status === 'trial') {
+        const meta = getVipMeta();
+        const started = meta.trialStartedAt ? Date.parse(meta.trialStartedAt) : Date.now();
+        const daysLeft = Math.max(0, Math.ceil(7 - (Date.now() - started) / (1000 * 60 * 60 * 24)));
+        label.textContent = `VIP Trial · ${daysLeft}d left`;
+        dot.className = 'w-2 h-2 rounded-full bg-pink-400 animate-pulse';
+      } else {
+        label.textContent = 'Guest Suite';
+        dot.className = 'w-2 h-2 rounded-full bg-emerald-400';
+      }
+    }
+
+    function openVipModal() {
+      selectVipPlan(selectedVipPlan || 'annual');
+      openModal('modal-vip');
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function selectVipPlan(plan) {
+      selectedVipPlan = plan === 'monthly' ? 'monthly' : 'annual';
+      const annual = document.getElementById('vip-plan-annual');
+      const monthly = document.getElementById('vip-plan-monthly');
+      const cta = document.getElementById('vip-cta-btn');
+      if (!annual || !monthly) return;
+
+      const select = (el, on) => {
+        const radio = el.querySelector('span.w-4');
+        const kn = radio?.querySelector('span');
+        if (on) {
+          el.classList.add('border-spa-plum', 'bg-gradient-to-r', 'from-pink-50', 'to-purple-50', 'dark:from-purple-950/40', 'dark:to-spa-darkcard', 'shadow-sm');
+          el.classList.remove('border-pink-100', 'dark:border-purple-900', 'bg-white/70', 'dark:bg-spa-darkbg/40');
+          radio?.classList.add('border-spa-plum', 'bg-spa-plum');
+          radio?.classList.remove('border-pink-300', 'dark:border-purple-700', 'bg-white', 'dark:bg-spa-darkcard');
+          if (kn) kn.className = 'w-1.5 h-1.5 rounded-full bg-white';
+        } else {
+          el.classList.remove('border-spa-plum', 'bg-gradient-to-r', 'from-pink-50', 'to-purple-50', 'dark:from-purple-950/40', 'dark:to-spa-darkcard', 'shadow-sm');
+          el.classList.add('border-pink-100', 'dark:border-purple-900', 'bg-white/70', 'dark:bg-spa-darkbg/40');
+          radio?.classList.remove('border-spa-plum', 'bg-spa-plum');
+          radio?.classList.add('border-pink-300', 'dark:border-purple-700', 'bg-white', 'dark:bg-spa-darkcard');
+          if (kn) kn.className = 'w-1.5 h-1.5 rounded-full bg-transparent';
+        }
+      };
+      select(annual, selectedVipPlan === 'annual');
+      select(monthly, selectedVipPlan === 'monthly');
+
+      if (cta) {
+        cta.textContent = hasVipAccess()
+          ? (getVipStatus() === 'vip' ? 'You already hold the VIP Key ✨' : 'Trial active — enjoy the penthouse')
+          : (selectedVipPlan === 'annual'
+            ? 'Start My 7-Day Free Pass'
+            : 'Start Monthly VIP Key');
+      }
+    }
+
+    function startVipTrial() {
+      if (hasVipAccess()) {
+        closeModal('modal-vip');
+        showToast(getVipStatus() === 'vip'
+          ? 'Your VIP Suite Key is already glowing, gorgeous.'
+          : 'Your free pass is already active. Go fluff those feathers.');
+        return;
+      }
+
+      const plan = selectedVipPlan;
+      if (plan === 'monthly') {
+        // Monthly can also offer trial per product feel — start trial then mark plan
+        localStorage.setItem(VIP_STATUS_KEY, 'trial');
+        setVipMeta({
+          plan: 'monthly',
+          trialStartedAt: new Date().toISOString(),
+          converted: false
+        });
+        showToast('Monthly VIP Key unlocked with a soft landing. Welcome to the penthouse ✨');
+      } else {
+        localStorage.setItem(VIP_STATUS_KEY, 'trial');
+        setVipMeta({
+          plan: 'annual',
+          trialStartedAt: new Date().toISOString(),
+          converted: false
+        });
+        showToast('7-day VIP Free Pass activated. No sneaky charges, darling ✨');
+      }
+
+      updateVipStatusPill();
+      closeModal('modal-vip');
+    }
+
+    function continueFreeSuite() {
+      closeModal('modal-vip');
+      showToast('Free Suite it is — still soft, still yours. Upgrade whenever you want.');
+    }
+
+    /** Mock gate: returns true if allowed; otherwise opens VIP modal */
+    function requireVipAccess(featureLabel) {
+      if (hasVipAccess()) return true;
+      openVipModal();
+      showToast(featureLabel
+        ? `${featureLabel} lives in the VIP Suite, gorgeous.`
+        : 'That jewel is behind the VIP Suite Key.');
+      return false;
+    }
+
+    // Demo helper: convert trial → vip (for testing / future billing mock)
+    function convertVipMembership() {
+      localStorage.setItem(VIP_STATUS_KEY, 'vip');
+      setVipMeta({ converted: true, convertedAt: new Date().toISOString() });
+      updateVipStatusPill();
+      showToast('VIP membership locked in. Penthouse treatment engaged.');
+    }
+
+    /* Modal System */
+    function openModal(id) {
+      document.getElementById(id).classList.remove('hidden');
+      if (id === 'modal-checkin') resetCheckinModal();
+    }
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
+    }
+
+    function resetCheckinModal() {
+      selectedCheckinFeeling = null;
+      document.querySelectorAll('#checkin-options .checkin-option-card').forEach((card) => {
+        card.classList.remove('border-spa-plum', 'bg-pink-50', 'dark:bg-purple-950/50', 'ring-2', 'ring-spa-plum/30');
+        card.classList.add('border-pink-100', 'dark:border-purple-900', 'bg-white', 'dark:bg-spa-darkcard');
+      });
+      const continueBtn = document.getElementById('checkin-continue-btn');
+      if (continueBtn) continueBtn.disabled = true;
+      const adviceBox = document.getElementById('checkin-fiona-advice');
+      if (adviceBox) {
+        adviceBox.classList.add('hidden');
+        adviceBox.innerHTML = '';
+      }
+    }
+
+    /* Clipboard Copy (Safe iframe fallback) */
+    function copyText(str) {
+      const temp = document.createElement('textarea');
+      temp.value = str;
+      document.body.appendChild(temp);
+      temp.select();
+      document.execCommand('copy');
+      document.body.removeChild(temp);
+    }
+
+    /* Toast Helper */
+    function showToast(msg) {
+      const toast = document.getElementById('toast-message');
+      toast.innerText = msg;
+      toast.classList.remove('hidden');
+      setTimeout(() => {
+        toast.classList.add('hidden');
+      }, 3000);
+    }
+
+    /* Dark Mode Toggle */
+    function toggleTheme() {
+      document.documentElement.classList.toggle('dark');
+    }
+
+    /* Journal Char Counter Listener */
+    document.addEventListener('DOMContentLoaded', () => {
+      const jInput = document.getElementById('journal-input');
+      const charCounter = document.getElementById('journal-char-count');
+      if (jInput && charCounter) {
+        jInput.addEventListener('input', (e) => {
+          charCounter.innerText = `${e.target.value.length} characters`;
+        });
+      }
+
+      initDailyAffirmation();
+      renderMobilityDeck();
+      renderPastEntries();
+      renderFlareTrackerForm();
+      initRituals();
+      updateVipStatusPill();
+      navigateTo('lounge');
+      if (window.lucide) lucide.createIcons();
+
+      // Backdrop click closes VIP modal
+      document.getElementById('modal-vip')?.addEventListener('click', (e) => {
+        if (e.target.id === 'modal-vip') closeModal('modal-vip');
+      });
+
+      const ritualInput = document.getElementById('ritual-new-input');
+      if (ritualInput) {
+        ritualInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            addCustomRitual();
+          }
+        });
+      }
+
+      document.querySelectorAll('[id^="modal-"]').forEach(modal => {
+        modal.addEventListener('click', (e) => {
+          if (e.target === modal) closeModal(modal.id);
+        });
+      });
+    });
+  </script>
+</body>
+</html>
