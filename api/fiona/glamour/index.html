@@ -4007,7 +4007,7 @@
       const combined = [errText, detailText].filter(Boolean).join(' — ') || `(HTTP ${status || 'unknown'})`;
 
       let toast;
-      } else if (status === 404 || status === 501) {
+      if (status === 404 || status === 501) {
         const modelHint = /model/i.test(combined)
           ? ` Anthropic model issue: ${combined}.`
           : ` Live API missing or model not found (HTTP ${status}).`;
