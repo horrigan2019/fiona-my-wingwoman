@@ -4539,6 +4539,8 @@
     const FREE_DAILY_CHAT_LIMIT = 30;
     const FREE_PHOTO_ANALYSIS_LIMIT = 5;
     const CHAT_LIMIT_MESSAGE = "Fiona needs a quick beauty rest! You've reached your daily free chat limit. Upgrade to Annual for unlimited 24/7 access, or come back tomorrow.";
+    /** Private beta invite — share as ?beta=wingwoman-beta (no card required). */
+    const BETA_INVITE_CODE = 'wingwoman-beta';
     let selectedVipPlan = 'annual';
 
     /** Live entitlement mirror — paid Annual/Monthly VIP only (not free trial). */
@@ -4679,7 +4681,11 @@
       const status = getVipStatus();
       const meta = getVipMeta();
       if (status === 'vip') {
-        if (meta.stripeTrialing) {
+        if (meta.beta) {
+          label.textContent = 'VIP Beta';
+          dot.className = 'w-2 h-2 rounded-full bg-teal-400 animate-pulse';
+          pill?.classList.add('border-teal-200');
+        } else if (meta.stripeTrialing) {
           label.textContent = 'VIP Trial · Stripe';
           dot.className = 'w-2 h-2 rounded-full bg-pink-400 animate-pulse';
         } else {
@@ -4906,6 +4912,47 @@
       showToast('VIP membership locked in. Penthouse treatment engaged.');
     }
 
+    /** Unlock full VIP for beta testers via ?beta=wingwoman-beta — no card needed. */
+    function unlockBetaVipAccess() {
+      localStorage.setItem(VIP_STATUS_KEY, 'vip');
+      setVipMeta({
+        plan: 'beta',
+        beta: true,
+        converted: true,
+        convertedAt: new Date().toISOString(),
+        betaUnlockedAt: new Date().toISOString()
+      });
+      updateVipStatusPill();
+    }
+
+    function applyBetaInviteFromUrl() {
+      let params;
+      try {
+        params = new URLSearchParams(window.location.search || '');
+      } catch (_) {
+        return false;
+      }
+      const code = (params.get('beta') || params.get('invite') || '').trim().toLowerCase();
+      if (!code) return false;
+      if (code !== BETA_INVITE_CODE.toLowerCase()) {
+        showToast('That beta invite code isn’t recognized. Double-check the link from Fiona.');
+        return false;
+      }
+      const already = hasVipAccess() && getVipMeta().beta === true;
+      unlockBetaVipAccess();
+      // Clean the invite code out of the URL so it isn’t reshared from the address bar accidentally
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('beta');
+        url.searchParams.delete('invite');
+        window.history.replaceState({}, '', url.pathname + url.search + url.hash);
+      } catch (_) {}
+      showToast(already
+        ? 'Beta access is already on this device — full VIP unlocked.'
+        : 'Beta access unlocked — full VIP, no card needed. Go play.');
+      return true;
+    }
+
     /* Modal System */
     function openModal(id) {
       document.getElementById(id).classList.remove('hidden');
@@ -4970,6 +5017,7 @@
       renderPastEntries();
       renderFlareTrackerForm();
       initRituals();
+      applyBetaInviteFromUrl();
       updateVipStatusPill();
       hydrateDailyEnergyUi();
       finalizeStripeVipReturn();
