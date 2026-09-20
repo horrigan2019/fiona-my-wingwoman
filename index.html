@@ -4724,14 +4724,17 @@
     };
 
     async function loadStripePriceConfig() {
-      try {
-        const res = await fetch('/api/stripe/config');
-        const data = await res.json().catch(() => ({}));
-        if (res.ok && data) {
-          if (data.monthlyPriceId) stripePriceConfig.monthlyPriceId = data.monthlyPriceId;
-          if (data.annualPriceId) stripePriceConfig.annualPriceId = data.annualPriceId;
-        }
-      } catch (_) {}
+      for (const url of ['/api/fiona/glamour/style', '/api/fiona/stripe-config', '/api/stripe/config']) {
+        try {
+          const res = await fetch(url);
+          const data = await res.json().catch(() => ({}));
+          if (res.ok && data) {
+            if (data.monthlyPriceId) stripePriceConfig.monthlyPriceId = data.monthlyPriceId;
+            if (data.annualPriceId) stripePriceConfig.annualPriceId = data.annualPriceId;
+            break;
+          }
+        } catch (_) {}
+      }
       return stripePriceConfig;
     }
 
@@ -4747,14 +4750,20 @@
         const priceId = plan === 'monthly'
           ? stripePriceConfig.monthlyPriceId
           : stripePriceConfig.annualPriceId;
-        const res = await fetch('/api/checkout', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ priceId })
-        });
-        const payload = await res.json().catch(() => ({}));
-        if (!res.ok || !payload.url) {
-          const detail = payload.detail || payload.error || `HTTP ${res.status}`;
+        let payload = {};
+        let res = null;
+        for (const url of ['/api/fiona/glamour/style', '/api/fiona/checkout', '/api/checkout']) {
+          res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ priceId })
+          });
+          payload = await res.json().catch(() => ({}));
+          if (res.ok && payload.url) break;
+          if (res.status !== 404) break;
+        }
+        if (!res || !res.ok || !payload.url) {
+          const detail = payload.detail || payload.error || `HTTP ${res && res.status}`;
           console.error('[Stripe Checkout]', payload);
           throw new Error(typeof detail === 'string' ? detail : 'Checkout unavailable');
         }
