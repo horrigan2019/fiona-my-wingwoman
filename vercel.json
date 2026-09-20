@@ -3,6 +3,11 @@
   "name": "fiona-my-wingwoman",
   "cleanUrls": true,
   "trailingSlash": false,
+  "rewrites": [
+    { "source": "/privacy", "destination": "/privacy.html" },
+    { "source": "/pricing", "destination": "/pricing.html" },
+    { "source": "/dashboard", "destination": "/dashboard.html" }
+  ],
   "functions": {
     "api/**/*.js": {
       "memory": 1024,
