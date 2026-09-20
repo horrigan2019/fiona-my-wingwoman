@@ -3011,31 +3011,32 @@
       const triggerBox = document.getElementById('flare-trigger-options');
       const softList = document.getElementById('flare-soft-care-list');
       if (!batteryBox) return;
+      ensureFlareTrackerListeners();
 
       batteryBox.innerHTML = FLARE_BATTERY_LEVELS.map(level => `
-        <button type="button" onclick="selectFlareBattery(${JSON.stringify(level)})"
-          class="text-left px-3 py-2.5 rounded-xl border text-xs font-semibold transition ${chipClass(flareForm.batteryLevel === level)}">
+        <button type="button" data-flare-action="battery" data-flare-value="${encodeURIComponent(level)}"
+          class="flare-option text-left px-3 py-2.5 rounded-xl border text-xs font-semibold transition ${chipClass(flareForm.batteryLevel === level)}">
           ${level}
         </button>
       `).join('');
 
       statusBox.innerHTML = FLARE_STATUSES.map(status => `
-        <button type="button" onclick="selectFlareStatus(${JSON.stringify(status)})"
-          class="text-left px-3 py-2.5 rounded-xl border text-xs font-semibold transition ${flareForm.flareStatus === status ? (FLARE_STATUS_STYLES[status] + ' ring-2 ring-spa-plum/40') : (FLARE_STATUS_STYLES[status] + ' opacity-80')}">
+        <button type="button" data-flare-action="status" data-flare-value="${encodeURIComponent(status)}"
+          class="flare-option text-left px-3 py-2.5 rounded-xl border text-xs font-semibold transition ${flareForm.flareStatus === status ? (FLARE_STATUS_STYLES[status] + ' ring-2 ring-spa-plum/40') : (FLARE_STATUS_STYLES[status] + ' opacity-80')}">
           ${status}
         </button>
       `).join('');
 
       symptomBox.innerHTML = FLARE_SYMPTOMS.map(s => `
-        <button type="button" onclick="toggleFlareSymptom(${JSON.stringify(s)})"
-          class="px-3 py-1.5 rounded-full border text-xs font-semibold transition ${chipClass(flareForm.symptoms.includes(s))}">
+        <button type="button" data-flare-action="symptom" data-flare-value="${encodeURIComponent(s)}"
+          class="flare-option px-3 py-1.5 rounded-full border text-xs font-semibold transition ${chipClass(flareForm.symptoms.includes(s))}">
           ${s}
         </button>
       `).join('');
 
       triggerBox.innerHTML = FLARE_TRIGGERS.map(t => `
-        <button type="button" onclick="toggleFlareTrigger(${JSON.stringify(t)})"
-          class="px-3 py-1.5 rounded-full border text-xs font-semibold transition ${chipClass(flareForm.triggers.includes(t))}">
+        <button type="button" data-flare-action="trigger" data-flare-value="${encodeURIComponent(t)}"
+          class="flare-option px-3 py-1.5 rounded-full border text-xs font-semibold transition ${chipClass(flareForm.triggers.includes(t))}">
           ${t}
         </button>
       `).join('');
@@ -3043,8 +3044,8 @@
       softList.innerHTML = FLARE_SOFT_CARE.map(item => `
         <label class="flex items-start gap-2 text-xs text-gray-800 dark:text-gray-200 cursor-pointer">
           <input type="checkbox" class="mt-0.5 rounded border-pink-300 text-spa-plum focus:ring-spa-plum"
-            ${flareForm.softCare[item.id] ? 'checked' : ''}
-            onchange="toggleFlareSoftCare('${item.id}', this.checked)">
+            data-flare-soft="${item.id}"
+            ${flareForm.softCare[item.id] ? 'checked' : ''}>
           <span>${item.label}</span>
         </label>
       `).join('');
@@ -3054,6 +3055,31 @@
       soft.classList.toggle('hidden', !showSoft);
 
       renderFlareHistory();
+    }
+
+    function onFlareTrackerClick(event) {
+      const softInput = event.target.closest('input[data-flare-soft]');
+      if (softInput) {
+        toggleFlareSoftCare(softInput.getAttribute('data-flare-soft'), softInput.checked);
+        return;
+      }
+      const btn = event.target.closest('[data-flare-action]');
+      if (!btn) return;
+      const action = btn.getAttribute('data-flare-action');
+      const value = decodeURIComponent(btn.getAttribute('data-flare-value') || '');
+      if (!action || !value) return;
+      if (action === 'battery') selectFlareBattery(value);
+      else if (action === 'status') selectFlareStatus(value);
+      else if (action === 'symptom') toggleFlareSymptom(value);
+      else if (action === 'trigger') toggleFlareTrigger(value);
+    }
+
+    function ensureFlareTrackerListeners() {
+      const root = document.getElementById('lagoon-tracker-view');
+      if (!root || root.dataset.flareBound === '1') return;
+      root.dataset.flareBound = '1';
+      root.addEventListener('click', onFlareTrackerClick);
+      root.addEventListener('change', onFlareTrackerClick);
     }
 
     function selectFlareBattery(level) {
