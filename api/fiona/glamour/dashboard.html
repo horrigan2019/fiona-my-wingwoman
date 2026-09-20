@@ -46,9 +46,18 @@
         return;
       }
       try {
-        const res = await fetch('/api/fiona/stripe/session?session_id=' + encodeURIComponent(sessionId));
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok || !data.paid) {
+        let data = {};
+        let res = null;
+        for (const path of [
+          '/api/fiona/session?session_id=',
+          '/api/fiona/stripe/session?session_id='
+        ]) {
+          res = await fetch(path + encodeURIComponent(sessionId));
+          data = await res.json().catch(() => ({}));
+          if (res.ok && data.paid) break;
+          if (res.status !== 404) break;
+        }
+        if (!res || !res.ok || !data.paid) {
           throw new Error(data.error || 'Payment not confirmed yet');
         }
         const plan = data.plan === 'monthly' ? 'monthly' : 'annual';

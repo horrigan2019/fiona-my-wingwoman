@@ -1,6 +1,6 @@
 /**
- * Fiona VIP — verify Stripe Checkout Session after return
- * GET /api/fiona/stripe/session?session_id=cs_...
+ * GET /api/fiona/session?session_id=cs_...
+ * Verify Stripe Checkout Session after return from Stripe.
  */
 
 function cors(res) {
@@ -81,7 +81,7 @@ module.exports = async function handler(req, res) {
         : null
     }));
   } catch (err) {
-    console.error('[fiona/stripe/session] failure', err);
+    console.error('[api/fiona/session] failure', err);
     res.statusCode = 500;
     res.setHeader('Content-Type', 'application/json');
     return res.end(JSON.stringify({

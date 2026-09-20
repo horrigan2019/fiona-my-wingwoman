@@ -1,12 +1,11 @@
 /**
- * POST /api/checkout
+ * POST /api/fiona/checkout
  * Body: { priceId: string }
  *
  * Creates a Stripe Checkout subscription session with a 7-day free trial.
+ * Uses Stripe HTTP API directly (no stripe npm package required).
  * Requires STRIPE_SECRET_KEY in Vercel env.
  */
-
-const Stripe = require('stripe');
 
 function cors(res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -48,6 +47,24 @@ function siteOrigin(req) {
     .split(',')[0]
     .trim();
   return `${proto}://${host}`;
+}
+
+async function stripeForm(secret, path, params) {
+  const body = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value == null || value === '') continue;
+    body.append(key, String(value));
+  }
+  const res = await fetch(`https://api.stripe.com/v1/${path}`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${secret}`,
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    body
+  });
+  const json = await res.json().catch(() => ({}));
+  return { ok: res.ok, status: res.status, json };
 }
 
 module.exports = async function handler(req, res) {
@@ -104,31 +121,41 @@ module.exports = async function handler(req, res) {
 
   const plan = priceId === monthlyId ? 'monthly' : 'annual';
   const origin = siteOrigin(req);
-  const stripe = new Stripe(secret);
 
   try {
-    const session = await stripe.checkout.sessions.create({
+    const { ok, status, json } = await stripeForm(secret, 'checkout/sessions', {
       mode: 'subscription',
-      line_items: [{ price: priceId, quantity: 1 }],
-      subscription_data: {
-        trial_period_days: 7,
-        metadata: { product: 'fiona_vip', plan }
-      },
-      metadata: { product: 'fiona_vip', plan },
-      allow_promotion_codes: true,
       success_url: `${origin}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/pricing`
+      cancel_url: `${origin}/pricing`,
+      'line_items[0][price]': priceId,
+      'line_items[0][quantity]': '1',
+      allow_promotion_codes: 'true',
+      'metadata[product]': 'fiona_vip',
+      'metadata[plan]': plan,
+      'subscription_data[metadata][product]': 'fiona_vip',
+      'subscription_data[metadata][plan]': plan,
+      'subscription_data[trial_period_days]': '7'
     });
+
+    if (!ok || !json.url) {
+      console.error('[api/fiona/checkout] Stripe error', status, json);
+      res.statusCode = status || 502;
+      res.setHeader('Content-Type', 'application/json');
+      return res.end(JSON.stringify({
+        error: 'Stripe Checkout could not start',
+        detail: (json && json.error && json.error.message) || json
+      }));
+    }
 
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
-    return res.end(JSON.stringify({ url: session.url }));
+    return res.end(JSON.stringify({ url: json.url }));
   } catch (err) {
-    console.error('[api/checkout] Stripe error', err);
-    res.statusCode = 502;
+    console.error('[api/fiona/checkout] failure', err);
+    res.statusCode = 500;
     res.setHeader('Content-Type', 'application/json');
     return res.end(JSON.stringify({
-      error: 'Stripe Checkout could not start',
+      error: 'Checkout failed',
       detail: err && err.message ? err.message : String(err)
     }));
   }

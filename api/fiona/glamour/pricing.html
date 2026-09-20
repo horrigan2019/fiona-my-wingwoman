@@ -117,14 +117,18 @@
     let selectedPlan = 'annual';
 
     async function loadConfig() {
-      try {
-        const res = await fetch('/api/stripe/config');
-        const data = await res.json();
-        if (res.ok && data) {
-          config.monthlyPriceId = data.monthlyPriceId || FALLBACK.monthlyPriceId;
-          config.annualPriceId = data.annualPriceId || FALLBACK.annualPriceId;
-        }
-      } catch (_) {}
+      const endpoints = ['/api/fiona/stripe-config', '/api/stripe/config'];
+      for (const url of endpoints) {
+        try {
+          const res = await fetch(url);
+          const data = await res.json();
+          if (res.ok && data) {
+            config.monthlyPriceId = data.monthlyPriceId || FALLBACK.monthlyPriceId;
+            config.annualPriceId = data.annualPriceId || FALLBACK.annualPriceId;
+            return;
+          }
+        } catch (_) {}
+      }
     }
 
     function paintSelection() {
@@ -165,14 +169,20 @@
       btn.innerText = 'Opening secure checkout…';
       status.textContent = '';
       try {
-        const res = await fetch('/api/checkout', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ priceId })
-        });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok || !data.url) {
-          throw new Error(data.detail || data.error || `Checkout failed (${res.status})`);
+        let data = {};
+        let res = null;
+        for (const url of ['/api/fiona/checkout', '/api/checkout']) {
+          res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ priceId })
+          });
+          data = await res.json().catch(() => ({}));
+          if (res.ok && data.url) break;
+          if (res.status !== 404) break;
+        }
+        if (!res || !res.ok || !data.url) {
+          throw new Error(data.detail || data.error || `Checkout failed (${res && res.status})`);
         }
         window.location.href = data.url;
       } catch (err) {
