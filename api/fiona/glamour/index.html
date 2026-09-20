@@ -1405,13 +1405,13 @@
                   <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
                 </span>
                 <div>
-                  <p class="text-sm font-bold text-gray-900 dark:text-white">Annual VIP Pass</p>
-                  <p class="text-xs text-gray-600 dark:text-gray-300 mt-0.5">7 Days Free, then $79/year</p>
+                  <p class="text-sm font-bold text-gray-900 dark:text-white">Fiona: Your Wingwoman (Annual)</p>
+                  <p class="text-xs text-gray-600 dark:text-gray-300 mt-0.5">7-day free trial, cancel anytime. $0.00 due today.</p>
                 </div>
               </div>
               <div class="text-right shrink-0">
-                <p class="text-sm font-bold text-spa-plum dark:text-pink-200">$79.00<span class="text-[10px] font-semibold text-gray-500">/yr</span></p>
-                <span class="inline-block mt-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wide bg-gradient-to-r from-amber-100 to-pink-100 text-spa-plumdark border border-amber-200/80">Save 34% • Just $6.58/mo</span>
+                <p class="text-sm font-bold text-spa-plum dark:text-pink-200">$79<span class="text-[10px] font-semibold text-gray-500">/yr</span></p>
+                <span class="inline-block mt-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wide bg-gradient-to-r from-amber-100 to-pink-100 text-spa-plumdark border border-amber-200/80">Best Value · Save 34%</span>
               </div>
             </div>
           </button>
@@ -1423,8 +1423,8 @@
                   <span class="w-1.5 h-1.5 rounded-full bg-transparent"></span>
                 </span>
                 <div>
-                  <p class="text-sm font-bold text-gray-900 dark:text-white">Monthly VIP Key</p>
-                  <p class="text-xs text-gray-600 dark:text-gray-300 mt-0.5">Billed monthly, cancel anytime in one click</p>
+                  <p class="text-sm font-bold text-gray-900 dark:text-white">Fiona: Your Wingwoman (Monthly)</p>
+                  <p class="text-xs text-gray-600 dark:text-gray-300 mt-0.5">7-day free trial, cancel anytime. $0.00 due today.</p>
                 </div>
               </div>
               <p class="text-sm font-bold text-gray-800 dark:text-pink-100 shrink-0">$9.99<span class="text-[10px] font-semibold text-gray-500">/mo</span></p>
@@ -1454,13 +1454,16 @@
       </ul>
 
       <p class="relative text-[11px] leading-relaxed text-gray-600 dark:text-gray-300 bg-pink-50/80 dark:bg-purple-950/40 border border-pink-100 dark:border-purple-900 rounded-xl px-3.5 py-3">
-        🔒 No sneaky charges. Try it free for 7 days. We'll send a heads-up before your trial ends, and you can cancel anytime with zero guilt.
+        🔒 7-day free trial on Monthly and Annual. Cancel anytime. <strong>$0.00 due today.</strong>
       </p>
 
       <div class="relative space-y-2">
         <button type="button" id="vip-cta-btn" onclick="startVipTrial()" class="w-full bg-purple-800 hover:bg-purple-900 text-white rounded-xl py-3.5 font-semibold text-sm shadow-md transition active:scale-[0.99]">
-          Start My 7-Day Free Pass
+          Start 7-Day Free Trial
         </button>
+        <a href="/pricing" class="block w-full text-center text-xs font-semibold text-spa-plum dark:text-pink-200 hover:underline underline-offset-2 py-1">
+          Compare plans on Pricing
+        </a>
         <button type="button" onclick="continueFreeSuite()" class="w-full text-center text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-spa-plum dark:hover:text-pink-200 py-1.5 transition">
           Continue with the Free Suite (Basic Access)
         </button>
@@ -4648,10 +4651,16 @@
       const pill = document.getElementById('vip-status-pill');
       if (!label || !dot) return;
       const status = getVipStatus();
+      const meta = getVipMeta();
       if (status === 'vip') {
-        label.textContent = 'VIP Suite';
-        dot.className = 'w-2 h-2 rounded-full bg-amber-400 animate-pulse';
-        pill?.classList.add('border-amber-200');
+        if (meta.stripeTrialing) {
+          label.textContent = 'VIP Trial · Stripe';
+          dot.className = 'w-2 h-2 rounded-full bg-pink-400 animate-pulse';
+        } else {
+          label.textContent = 'VIP Suite';
+          dot.className = 'w-2 h-2 rounded-full bg-amber-400 animate-pulse';
+          pill?.classList.add('border-amber-200');
+        }
       } else if (status === 'trial') {
         const meta = getVipMeta();
         const started = meta.trialStartedAt ? Date.parse(meta.trialStartedAt) : Date.now();
@@ -4704,9 +4713,57 @@
         } else {
           cta.textContent = hasVipAccess()
             ? (getVipStatus() === 'vip' ? 'You already hold the VIP Key ✨' : 'Trial active — enjoy the penthouse')
-            : (selectedVipPlan === 'annual'
-              ? 'Start My 7-Day Free Pass'
-              : 'Start Monthly VIP Key');
+            : 'Start 7-Day Free Trial';
+        }
+      }
+    }
+
+    let stripePriceConfig = {
+      monthlyPriceId: 'price_1UHfCx8MURYuyfuQfX02FkDg',
+      annualPriceId: 'price_1UHfGR8MURYuyfuQroMfVfKq'
+    };
+
+    async function loadStripePriceConfig() {
+      try {
+        const res = await fetch('/api/stripe/config');
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data) {
+          if (data.monthlyPriceId) stripePriceConfig.monthlyPriceId = data.monthlyPriceId;
+          if (data.annualPriceId) stripePriceConfig.annualPriceId = data.annualPriceId;
+        }
+      } catch (_) {}
+      return stripePriceConfig;
+    }
+
+    async function startStripeCheckout(plan) {
+      const cta = document.getElementById('vip-cta-btn');
+      const previous = cta ? cta.innerText : '';
+      if (cta) {
+        cta.disabled = true;
+        cta.innerText = 'Opening secure checkout…';
+      }
+      try {
+        await loadStripePriceConfig();
+        const priceId = plan === 'monthly'
+          ? stripePriceConfig.monthlyPriceId
+          : stripePriceConfig.annualPriceId;
+        const res = await fetch('/api/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ priceId })
+        });
+        const payload = await res.json().catch(() => ({}));
+        if (!res.ok || !payload.url) {
+          const detail = payload.detail || payload.error || `HTTP ${res.status}`;
+          console.error('[Stripe Checkout]', payload);
+          throw new Error(typeof detail === 'string' ? detail : 'Checkout unavailable');
+        }
+        window.location.href = payload.url;
+      } catch (err) {
+        showToast(`Checkout couldn’t start: ${err.message || err}. Add Stripe keys on Vercel if needed.`);
+        if (cta) {
+          cta.disabled = false;
+          cta.innerText = previous || 'Start 7-Day Free Trial';
         }
       }
     }
@@ -4719,10 +4776,9 @@
         return;
       }
 
+      // Annual paywall / upgrade CTA → Stripe Annual Checkout
       if (vipCtaMode === 'annual-upgrade') {
-        convertVipMembership();
-        vipCtaMode = 'default';
-        closeModal('modal-vip');
+        startStripeCheckout('annual');
         return;
       }
 
@@ -4734,28 +4790,62 @@
         return;
       }
 
-      const plan = selectedVipPlan;
-      if (plan === 'monthly') {
-        // Monthly can also offer trial per product feel — start trial then mark plan
-        localStorage.setItem(VIP_STATUS_KEY, 'trial');
-        setVipMeta({
-          plan: 'monthly',
-          trialStartedAt: new Date().toISOString(),
-          converted: false
-        });
-        showToast('Monthly VIP Key unlocked with a soft landing. Welcome to the penthouse ✨');
-      } else {
-        localStorage.setItem(VIP_STATUS_KEY, 'trial');
-        setVipMeta({
-          plan: 'annual',
-          trialStartedAt: new Date().toISOString(),
-          converted: false
-        });
-        showToast('7-day VIP Free Pass activated. No sneaky charges, darling ✨');
+      // Paid path: Stripe Checkout — 7-day trial on Monthly and Annual
+      startStripeCheckout(selectedVipPlan || 'annual');
+    }
+
+    async function finalizeStripeVipReturn() {
+      let params;
+      try {
+        params = new URLSearchParams(window.location.search || '');
+      } catch (_) {
+        return;
+      }
+      const vipFlag = params.get('vip');
+      const sessionId = params.get('session_id');
+      if (!vipFlag) return;
+
+      // Clean query params from the address bar without reloading
+      try {
+        const clean = window.location.pathname + (window.location.hash || '');
+        window.history.replaceState({}, document.title, clean || '/');
+      } catch (_) {}
+
+      if (vipFlag === 'cancel') {
+        showToast('Checkout canceled — your Free Suite is still here whenever you’re ready.');
+        return;
       }
 
-      updateVipStatusPill();
-      closeModal('modal-vip');
+      if (vipFlag !== 'success' || !sessionId) return;
+
+      try {
+        const res = await fetch(`/api/fiona/stripe/session?session_id=${encodeURIComponent(sessionId)}`);
+        const payload = await res.json().catch(() => ({}));
+        if (!res.ok || !payload.paid) {
+          throw new Error(payload.error || 'Payment not confirmed yet');
+        }
+        const plan = payload.plan === 'monthly' ? 'monthly' : 'annual';
+        const isTrialing = payload.subscriptionStatus === 'trialing';
+        // Stripe checkout (active or trialing with card on file) unlocks the VIP Suite.
+        localStorage.setItem(VIP_STATUS_KEY, 'vip');
+        setVipMeta({
+          plan,
+          trialStartedAt: isTrialing ? new Date().toISOString() : (getVipMeta().trialStartedAt || null),
+          converted: true,
+          convertedAt: new Date().toISOString(),
+          stripeSessionId: sessionId,
+          stripeSubscriptionStatus: payload.subscriptionStatus || payload.status,
+          stripeTrialing: isTrialing,
+          customerEmail: payload.customerEmail || null
+        });
+        updateVipStatusPill();
+        showToast(isTrialing
+          ? '7-day VIP Free Pass activated via Stripe. Welcome to the penthouse ✨'
+          : 'VIP membership locked in. Penthouse treatment engaged ✨');
+      } catch (err) {
+        console.error('[Stripe return]', err);
+        showToast(`VIP confirmation pending: ${err.message || err}. Refresh in a moment.`);
+      }
     }
 
     function continueFreeSuite() {
@@ -4847,6 +4937,7 @@
       initRituals();
       updateVipStatusPill();
       hydrateDailyEnergyUi();
+      finalizeStripeVipReturn();
       navigateTo('lounge');
       if (window.lucide) lucide.createIcons();
       const footerYear = document.getElementById('site-footer-year');

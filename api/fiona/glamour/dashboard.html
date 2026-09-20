@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Welcome — Fiona VIP</title>
+  <meta name="theme-color" content="#5E2750">
+  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Plus+Jakarta+Sans:wght@500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: { spa: { cream: '#FAF7F5', plum: '#5E2750', blush: '#FCEFEF' } },
+          fontFamily: { serif: ['"Playfair Display"', 'serif'], sans: ['"Plus Jakarta Sans"', 'sans-serif'] }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-spa-cream min-h-screen flex items-center justify-center p-6 font-sans">
+  <div class="w-full max-w-md rounded-2xl border border-pink-100 bg-white/90 p-6 sm:p-8 shadow-md text-center space-y-4">
+    <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-spa-plum">VIP Suite</p>
+    <h1 class="font-serif text-2xl font-bold text-spa-plum">Confirming your key…</h1>
+    <p id="dash-status" class="text-sm text-gray-600 leading-relaxed">One moment while Fiona unlocks the penthouse.</p>
+    <a href="/" class="inline-block mt-2 text-xs font-semibold text-spa-plum hover:underline underline-offset-2">Go to the Suite</a>
+  </div>
+  <script>
+    const VIP_STATUS_KEY = 'fiona_vip_status';
+    const VIP_META_KEY = 'fiona_vip_meta';
+
+    function setMeta(patch) {
+      let cur = {};
+      try { cur = JSON.parse(localStorage.getItem(VIP_META_KEY) || '{}') || {}; } catch (_) {}
+      const next = { ...cur, ...patch };
+      try { localStorage.setItem(VIP_META_KEY, JSON.stringify(next)); } catch (_) {}
+    }
+
+    async function run() {
+      const statusEl = document.getElementById('dash-status');
+      const params = new URLSearchParams(window.location.search || '');
+      const sessionId = params.get('session_id');
+      if (!sessionId) {
+        statusEl.textContent = 'No checkout session found. Head back to Pricing to start your trial.';
+        return;
+      }
+      try {
+        const res = await fetch('/api/fiona/stripe/session?session_id=' + encodeURIComponent(sessionId));
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.paid) {
+          throw new Error(data.error || 'Payment not confirmed yet');
+        }
+        const plan = data.plan === 'monthly' ? 'monthly' : 'annual';
+        const isTrialing = data.subscriptionStatus === 'trialing';
+        localStorage.setItem(VIP_STATUS_KEY, 'vip');
+        setMeta({
+          plan,
+          trialStartedAt: isTrialing ? new Date().toISOString() : null,
+          converted: true,
+          convertedAt: new Date().toISOString(),
+          stripeSessionId: sessionId,
+          stripeSubscriptionStatus: data.subscriptionStatus || data.status,
+          stripeTrialing: isTrialing,
+          customerEmail: data.customerEmail || null
+        });
+        statusEl.textContent = isTrialing
+          ? '7-day free trial is active. Welcome to the penthouse — taking you in…'
+          : 'VIP membership confirmed. Taking you into the suite…';
+        setTimeout(() => { window.location.href = '/'; }, 1200);
+      } catch (err) {
+        statusEl.textContent = (err && err.message ? err.message : String(err)) + ' — you can refresh, or open the Suite and try again in a moment.';
+      }
+    }
+    run();
+  </script>
+</body>
+</html>
