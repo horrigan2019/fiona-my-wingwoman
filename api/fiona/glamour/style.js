@@ -1,12 +1,12 @@
 /**
  * Fiona Glamour Suite — live Anthropic style analysis
- * POST /api/fiona/glamour/style
+ * ALSO handles Stripe Checkout when body includes { priceId }
+ * and session verify on GET ?session_id=cs_...
  *
- * Body: {
- *   mode?: "wardrobe" | "palette",
- *   occasion, vibe, silhouette, harmony, undertone,
- *   images: [{ mediaType: "image/jpeg", data: "<base64>" }, ...]  // max 10
- * }
+ * POST /api/fiona/glamour/style
+ *   - { priceId } → Stripe Checkout (7-day trial)
+ *   - style body → Anthropic wardrobe/palette
+ * GET /api/fiona/glamour/style?session_id=cs_... → verify checkout session
  */
 
 const FIONA_STYLE_SYSTEM = `You are Fiona, an impeccably dressed, emotionally untouchable wingwoman sipping an espresso.
@@ -25,12 +25,11 @@ CRITICAL STYLING RULES:
 
 function cors(res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 }
 
 function readJson(req) {
-  // Vercel often pre-parses JSON into req.body; stream may already be consumed.
   if (req.body != null) {
     if (typeof req.body === 'object' && !Buffer.isBuffer(req.body)) {
       return Promise.resolve(req.body);
@@ -56,6 +55,152 @@ function readJson(req) {
     });
     req.on('error', reject);
   });
+}
+
+function siteOrigin(req) {
+  const proto = (req.headers['x-forwarded-proto'] || 'https').toString().split(',')[0].trim();
+  const host = (req.headers['x-forwarded-host'] || req.headers.host || 'www.fionamywingwoman.com')
+    .toString()
+    .split(',')[0]
+    .trim();
+  return `${proto}://${host}`;
+}
+
+async function stripeForm(secret, path, params) {
+  const body = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value == null || value === '') continue;
+    body.append(key, String(value));
+  }
+  const res = await fetch(`https://api.stripe.com/v1/${path}`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${secret}`,
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    body
+  });
+  const json = await res.json().catch(() => ({}));
+  return { ok: res.ok, status: res.status, json };
+}
+
+async function handleStripeCheckout(req, res, body) {
+  const secret = process.env.STRIPE_SECRET_KEY;
+  if (!secret) {
+    res.statusCode = 503;
+    res.setHeader('Content-Type', 'application/json');
+    return res.end(JSON.stringify({
+      error: 'STRIPE_SECRET_KEY is not configured',
+      code: 'missing_stripe_secret'
+    }));
+  }
+
+  const priceId = body && body.priceId ? String(body.priceId).trim() : '';
+  if (!priceId || !/^price_/.test(priceId)) {
+    res.statusCode = 400;
+    res.setHeader('Content-Type', 'application/json');
+    return res.end(JSON.stringify({ error: 'Missing or invalid priceId' }));
+  }
+
+  const monthlyId = process.env.STRIPE_MONTHLY_PRICE_ID
+    || process.env.NEXT_PUBLIC_STRIPE_MONTHLY_PRICE_ID
+    || 'price_1UHfCx8MURYuyfuQfX02FkDg';
+  const annualId = process.env.STRIPE_ANNUAL_PRICE_ID
+    || process.env.NEXT_PUBLIC_STRIPE_ANNUAL_PRICE_ID
+    || 'price_1UHfGR8MURYuyfuQroMfVfKq';
+
+  if (priceId !== monthlyId && priceId !== annualId) {
+    res.statusCode = 400;
+    res.setHeader('Content-Type', 'application/json');
+    return res.end(JSON.stringify({ error: 'Unrecognized priceId for Fiona VIP plans' }));
+  }
+
+  const plan = priceId === monthlyId ? 'monthly' : 'annual';
+  const origin = siteOrigin(req);
+
+  const { ok, status, json } = await stripeForm(secret, 'checkout/sessions', {
+    mode: 'subscription',
+    success_url: `${origin}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${origin}/pricing`,
+    'line_items[0][price]': priceId,
+    'line_items[0][quantity]': '1',
+    allow_promotion_codes: 'true',
+    'metadata[product]': 'fiona_vip',
+    'metadata[plan]': plan,
+    'subscription_data[metadata][product]': 'fiona_vip',
+    'subscription_data[metadata][plan]': plan,
+    'subscription_data[trial_period_days]': '7'
+  });
+
+  if (!ok || !json.url) {
+    console.error('[fiona/glamour/style] Stripe checkout error', status, json);
+    res.statusCode = status || 502;
+    res.setHeader('Content-Type', 'application/json');
+    return res.end(JSON.stringify({
+      error: 'Stripe Checkout could not start',
+      detail: (json && json.error && json.error.message) || json
+    }));
+  }
+
+  res.statusCode = 200;
+  res.setHeader('Content-Type', 'application/json');
+  return res.end(JSON.stringify({ url: json.url }));
+}
+
+async function handleStripeSession(req, res, sessionId) {
+  const secret = process.env.STRIPE_SECRET_KEY;
+  if (!secret) {
+    res.statusCode = 503;
+    res.setHeader('Content-Type', 'application/json');
+    return res.end(JSON.stringify({
+      error: 'STRIPE_SECRET_KEY is not configured',
+      code: 'missing_stripe_secret'
+    }));
+  }
+  if (!sessionId || !/^cs_[a-zA-Z0-9]+/.test(sessionId)) {
+    res.statusCode = 400;
+    res.setHeader('Content-Type', 'application/json');
+    return res.end(JSON.stringify({ error: 'Missing or invalid session_id' }));
+  }
+
+  const stripeRes = await fetch(
+    `https://api.stripe.com/v1/checkout/sessions/${encodeURIComponent(sessionId)}?expand[]=subscription`,
+    { headers: { Authorization: `Bearer ${secret}` } }
+  );
+  const session = await stripeRes.json().catch(() => ({}));
+  if (!stripeRes.ok) {
+    res.statusCode = stripeRes.status || 502;
+    res.setHeader('Content-Type', 'application/json');
+    return res.end(JSON.stringify({
+      error: 'Could not load Checkout Session',
+      detail: (session && session.error && session.error.message) || session
+    }));
+  }
+
+  const plan = (session.metadata && session.metadata.plan)
+    || (session.subscription && session.subscription.metadata && session.subscription.metadata.plan)
+    || 'annual';
+  const subStatus = typeof session.subscription === 'object' && session.subscription
+    ? session.subscription.status
+    : null;
+  const paid = session.payment_status === 'paid'
+    || session.status === 'complete'
+    || subStatus === 'active'
+    || subStatus === 'trialing';
+
+  res.statusCode = 200;
+  res.setHeader('Content-Type', 'application/json');
+  return res.end(JSON.stringify({
+    ok: true,
+    paid: Boolean(paid),
+    plan,
+    status: session.status,
+    paymentStatus: session.payment_status,
+    subscriptionStatus: subStatus,
+    customerEmail: session.customer_details && session.customer_details.email
+      ? session.customer_details.email
+      : null
+  }));
 }
 
 function buildUserContent(body) {
@@ -168,21 +313,70 @@ module.exports = async function handler(req, res) {
     res.statusCode = 204;
     return res.end();
   }
-  // Lightweight probe — never exposes the key, only whether it is present.
+
   if (req.method === 'GET') {
+    const url = new URL(req.url, 'https://www.fionamywingwoman.com');
+    const sessionId = url.searchParams.get('session_id') || '';
+    if (sessionId) {
+      try {
+        return await handleStripeSession(req, res, sessionId);
+      } catch (err) {
+        console.error('[fiona/glamour/style] session failure', err);
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json');
+        return res.end(JSON.stringify({
+          error: 'Session lookup failed',
+          detail: err && err.message ? err.message : String(err)
+        }));
+      }
+    }
+    // Lightweight probe — never exposes keys.
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
     return res.end(JSON.stringify({
       ok: true,
       route: '/api/fiona/glamour/style',
       hasAnthropicKey: Boolean(process.env.ANTHROPIC_API_KEY),
+      hasStripeKey: Boolean(process.env.STRIPE_SECRET_KEY),
+      monthlyPriceId: process.env.STRIPE_MONTHLY_PRICE_ID
+        || process.env.NEXT_PUBLIC_STRIPE_MONTHLY_PRICE_ID
+        || 'price_1UHfCx8MURYuyfuQfX02FkDg',
+      annualPriceId: process.env.STRIPE_ANNUAL_PRICE_ID
+        || process.env.NEXT_PUBLIC_STRIPE_ANNUAL_PRICE_ID
+        || 'price_1UHfGR8MURYuyfuQroMfVfKq',
+      trialDays: 7,
       model: process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-6'
     }));
   }
+
   if (req.method !== 'POST') {
     res.statusCode = 405;
     res.setHeader('Content-Type', 'application/json');
     return res.end(JSON.stringify({ error: 'Method not allowed' }));
+  }
+
+  let body;
+  try {
+    body = await readJson(req);
+  } catch {
+    res.statusCode = 400;
+    res.setHeader('Content-Type', 'application/json');
+    return res.end(JSON.stringify({ error: 'Invalid JSON body', code: 'invalid_json' }));
+  }
+
+  // Stripe Checkout path — same URL, body has priceId
+  if (body && body.priceId) {
+    try {
+      return await handleStripeCheckout(req, res, body);
+    } catch (err) {
+      console.error('[fiona/glamour/style] checkout failure', err);
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json');
+      return res.end(JSON.stringify({
+        error: 'Checkout failed',
+        detail: err && err.message ? err.message : String(err)
+      }));
+    }
   }
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
@@ -194,15 +388,6 @@ module.exports = async function handler(req, res) {
       code: 'missing_api_key',
       hint: 'Add ANTHROPIC_API_KEY in Vercel project Environment Variables, then redeploy.'
     }));
-  }
-
-  let body;
-  try {
-    body = await readJson(req);
-  } catch {
-    res.statusCode = 400;
-    res.setHeader('Content-Type', 'application/json');
-    return res.end(JSON.stringify({ error: 'Invalid JSON body', code: 'invalid_json' }));
   }
 
   const content = buildUserContent(body || {});
