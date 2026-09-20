@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Pricing — Fiona: Your Wingwoman</title>
+  <meta name="description" content="Choose Monthly or Annual VIP access to Fiona: Your Wingwoman. 7-day free trial on both plans — $0.00 due today.">
+  <meta name="theme-color" content="#5E2750">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            spa: { cream: '#FAF7F5', blush: '#FCEFEF', rose: '#E8B4B8', plum: '#5E2750', plumdark: '#3F1836', gold: '#D4AF37' }
+          },
+          fontFamily: {
+            serif: ['"Playfair Display"', 'serif'],
+            sans: ['"Plus Jakarta Sans"', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+  <style>body { font-family: 'Plus Jakarta Sans', sans-serif; }</style>
+</head>
+<body class="bg-spa-cream text-gray-800 min-h-screen antialiased">
+  <div class="min-h-screen flex flex-col bg-gradient-to-b from-spa-blush/50 via-spa-cream to-spa-cream">
+    <header class="border-b border-pink-100/80 bg-spa-cream/90 backdrop-blur-md sticky top-0 z-20">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between gap-4">
+        <a href="/" class="flex items-center gap-3 min-w-0">
+          <span class="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-sm bg-white shrink-0">
+            <img src="/assets/fiona-avatar.jpg" alt="Fiona" class="w-full h-full object-cover object-top scale-110" onerror="this.src='/icon-192.png'">
+          </span>
+          <span class="font-serif text-lg sm:text-xl font-bold text-spa-plum truncate">Fiona: Your Wingwoman</span>
+        </a>
+        <a href="/" class="text-xs font-semibold text-spa-plum hover:underline underline-offset-2">Back to Suite</a>
+      </div>
+    </header>
+
+    <main class="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 py-10 sm:py-14">
+      <div class="text-center space-y-3 mb-8 sm:mb-10">
+        <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-spa-plum/10 border border-spa-plum/15 text-[10px] font-bold uppercase tracking-[0.18em] text-spa-plum">VIP Suite Key</span>
+        <h1 class="font-serif text-3xl sm:text-4xl font-bold text-spa-plum tracking-tight">Choose your key</h1>
+        <p class="text-sm sm:text-base text-spa-plumdark/75 max-w-xl mx-auto leading-relaxed">
+          7-day free trial on both plans. Cancel anytime. <strong class="text-spa-plum">$0.00 due today.</strong>
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 mb-8">
+        <!-- Monthly -->
+        <button type="button" id="plan-monthly" class="plan-card text-left rounded-2xl border-2 border-spa-rose/70 bg-white/90 p-5 sm:p-6 shadow-sm hover:border-spa-plum/50 transition space-y-3" data-plan="monthly" aria-pressed="false">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <p class="text-[10px] font-bold uppercase tracking-[0.16em] text-spa-plum/70">Monthly</p>
+              <h2 class="font-serif text-xl font-bold text-spa-plum mt-1">Fiona: Your Wingwoman (Monthly)</h2>
+            </div>
+            <span class="plan-radio mt-1 w-5 h-5 rounded-full border-2 border-spa-rose flex items-center justify-center shrink-0">
+              <span class="w-2 h-2 rounded-full bg-transparent"></span>
+            </span>
+          </div>
+          <p class="text-2xl font-bold text-spa-plumdark">$9.99<span class="text-sm font-semibold text-gray-500">/mo</span></p>
+          <p class="text-xs text-gray-600 leading-relaxed">7-day free trial, cancel anytime. <span class="font-semibold text-spa-plum">$0.00 due today.</span></p>
+        </button>
+
+        <!-- Annual — Best Value -->
+        <button type="button" id="plan-annual" class="plan-card text-left rounded-2xl border-2 border-spa-plum bg-gradient-to-br from-spa-blush via-white to-[#F7E7CE]/60 p-5 sm:p-6 shadow-md space-y-3 ring-2 ring-spa-plum/15" data-plan="annual" aria-pressed="true">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wide bg-gradient-to-r from-amber-100 to-pink-100 text-spa-plumdark border border-amber-200/80 mb-1.5">Best Value · Save 34%</span>
+              <p class="text-[10px] font-bold uppercase tracking-[0.16em] text-spa-plum/70">Annual</p>
+              <h2 class="font-serif text-xl font-bold text-spa-plum mt-1">Fiona: Your Wingwoman (Annual)</h2>
+            </div>
+            <span class="plan-radio mt-1 w-5 h-5 rounded-full border-2 border-spa-plum bg-spa-plum flex items-center justify-center shrink-0">
+              <span class="w-2 h-2 rounded-full bg-white"></span>
+            </span>
+          </div>
+          <p class="text-2xl font-bold text-spa-plumdark">$79<span class="text-sm font-semibold text-gray-500">/yr</span></p>
+          <p class="text-xs text-gray-600 leading-relaxed">7-day free trial, cancel anytime. <span class="font-semibold text-spa-plum">$0.00 due today.</span> Just $6.58/mo.</p>
+        </button>
+      </div>
+
+      <div class="max-w-md mx-auto space-y-3">
+        <button type="button" id="start-trial-btn" class="w-full py-3.5 rounded-xl bg-spa-plum hover:bg-spa-plumdark text-white text-sm font-bold shadow-md transition active:scale-[0.99]">
+          Start 7-Day Free Trial
+        </button>
+        <p id="checkout-status" class="text-center text-xs text-spa-plum/70 min-h-[1.25rem]" aria-live="polite"></p>
+        <p class="text-center text-[11px] text-gray-500">
+          Secure checkout by Stripe. Or
+          <a href="/" class="font-semibold text-spa-plum hover:underline underline-offset-2">continue with the Free Suite</a>.
+        </p>
+      </div>
+    </main>
+
+    <footer class="border-t border-pink-100/80 py-5 text-center text-[11px] text-spa-plum/55">
+      <a href="/privacy" class="font-semibold hover:underline underline-offset-2">Privacy Policy</a>
+      <span class="mx-2">·</span>
+      © <span id="y">2026</span> Horrigan Media LLC
+    </footer>
+  </div>
+
+  <script type="module">
+    document.getElementById('y').textContent = String(new Date().getFullYear());
+
+    const FALLBACK = {
+      monthlyPriceId: 'price_1UHfCx8MURYuyfuQfX02FkDg',
+      annualPriceId: 'price_1UHfGR8MURYuyfuQroMfVfKq'
+    };
+
+    let config = { ...FALLBACK };
+    let selectedPlan = 'annual';
+
+    async function loadConfig() {
+      const endpoints = ['/api/fiona/stripe-config', '/api/stripe/config'];
+      for (const url of endpoints) {
+        try {
+          const res = await fetch(url);
+          const data = await res.json();
+          if (res.ok && data) {
+            config.monthlyPriceId = data.monthlyPriceId || FALLBACK.monthlyPriceId;
+            config.annualPriceId = data.annualPriceId || FALLBACK.annualPriceId;
+            return;
+          }
+        } catch (_) {}
+      }
+    }
+
+    function paintSelection() {
+      document.querySelectorAll('.plan-card').forEach((card) => {
+        const on = card.getAttribute('data-plan') === selectedPlan;
+        card.setAttribute('aria-pressed', on ? 'true' : 'false');
+        const radio = card.querySelector('.plan-radio');
+        const kn = radio?.querySelector('span');
+        if (on) {
+          card.classList.add('border-spa-plum', 'shadow-md');
+          card.classList.remove('border-spa-rose/70');
+          radio?.classList.add('border-spa-plum', 'bg-spa-plum');
+          radio?.classList.remove('border-spa-rose');
+          if (kn) kn.className = 'w-2 h-2 rounded-full bg-white';
+        } else {
+          card.classList.remove('border-spa-plum', 'shadow-md', 'ring-2', 'ring-spa-plum/15');
+          card.classList.add('border-spa-rose/70');
+          radio?.classList.remove('border-spa-plum', 'bg-spa-plum');
+          radio?.classList.add('border-spa-rose');
+          if (kn) kn.className = 'w-2 h-2 rounded-full bg-transparent';
+        }
+      });
+    }
+
+    document.querySelectorAll('.plan-card').forEach((card) => {
+      card.addEventListener('click', () => {
+        selectedPlan = card.getAttribute('data-plan') === 'monthly' ? 'monthly' : 'annual';
+        paintSelection();
+      });
+    });
+
+    async function startCheckout() {
+      const btn = document.getElementById('start-trial-btn');
+      const status = document.getElementById('checkout-status');
+      const priceId = selectedPlan === 'monthly' ? config.monthlyPriceId : config.annualPriceId;
+      const previous = btn.innerText;
+      btn.disabled = true;
+      btn.innerText = 'Opening secure checkout…';
+      status.textContent = '';
+      try {
+        let data = {};
+        let res = null;
+        for (const url of ['/api/fiona/checkout', '/api/checkout']) {
+          res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ priceId })
+          });
+          data = await res.json().catch(() => ({}));
+          if (res.ok && data.url) break;
+          if (res.status !== 404) break;
+        }
+        if (!res || !res.ok || !data.url) {
+          throw new Error(data.detail || data.error || `Checkout failed (${res && res.status})`);
+        }
+        window.location.href = data.url;
+      } catch (err) {
+        status.textContent = err.message || String(err);
+        btn.disabled = false;
+        btn.innerText = previous;
+      }
+    }
+
+    document.getElementById('start-trial-btn').addEventListener('click', startCheckout);
+    paintSelection();
+    loadConfig();
+  </script>
+</body>
+</html>
