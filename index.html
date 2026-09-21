@@ -1050,7 +1050,7 @@
             <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
               <div>
                 <h4 class="font-serif text-base font-bold text-gray-900 dark:text-white">Your Look Canvas</h4>
-                <p class="text-xs text-gray-600 dark:text-gray-300">Upload or snap a photo of you / your outfit so Fiona can style from what’s real.</p>
+                <p class="text-xs text-gray-600 dark:text-gray-300">Upload or snap up to 10 photos of you / your outfit so Fiona can style from what’s real. Shared with Hair & Makeup.</p>
               </div>
               <span class="text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-1 rounded-full shrink-0">🔒 Local Only</span>
             </div>
@@ -3753,12 +3753,67 @@
         { hex: '#F7F1E8', label: 'Ivory' }
       ],
       'Olive / Neutral': [
-        { hex: '#6B7F5E', label: 'Sage' },
-        { hex: '#B76E79', label: 'Rosewood' },
         { hex: '#8B5E3C', label: 'Bronze' },
+        { hex: '#B76E79', label: 'Rosewood' },
+        { hex: '#6B7F5E', label: 'Muted olive' },
         { hex: '#F4EFE8', label: 'Warm cream' }
       ]
     };
+
+    /** Wearable face colors — NEVER reuse clothing greens as lipstick. */
+    const FACE_HARMONY_PALETTES = {
+      'Warm & Golden': {
+        lip: ['#C45C26', 'Spiced Coral'],
+        cheek: ['#E8A87C', 'Honey Flush']
+      },
+      'Cool & Rosy': {
+        lip: ['#9E2A2B', 'Velvet Currant'],
+        cheek: ['#E07A9A', 'Rose Radiance']
+      },
+      'Deep & Rich': {
+        lip: ['#7A1F2B', 'Deep Merlot'],
+        cheek: ['#C45C4A', 'Terracotta Glow']
+      },
+      'Olive / Neutral': {
+        lip: ['#B76E79', 'Muted Rosewood'],
+        cheek: ['#D4A5A5', 'Quiet Bloom']
+      }
+    };
+
+    function hexToRgb(hex) {
+      const h = String(hex || '').replace('#', '').trim();
+      if (h.length !== 6) return null;
+      const n = parseInt(h, 16);
+      if (Number.isNaN(n)) return null;
+      return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+    }
+
+    function isWearableLipColor(hex, label) {
+      const name = String(label || '').toLowerCase();
+      if (/sage|olive|moss|forest|kelly|chartreuse|lime|mint|emerald|teal|green/.test(name)) return false;
+      const rgb = hexToRgb(hex);
+      if (!rgb) return true;
+      // Reject green-dominant lip swatches (fashion greens ≠ lipstick)
+      if (rgb.g > rgb.r + 12 && rgb.g > rgb.b + 8) return false;
+      return true;
+    }
+
+    function getFacePaletteForHarmony(harmony) {
+      return FACE_HARMONY_PALETTES[harmony] || FACE_HARMONY_PALETTES['Warm & Golden'];
+    }
+
+    function sanitizeFacePalette(facePalette, harmony) {
+      const fallback = getFacePaletteForHarmony(harmony);
+      const lip = Array.isArray(facePalette?.lip) ? facePalette.lip : fallback.lip;
+      const cheek = Array.isArray(facePalette?.cheek) ? facePalette.cheek : fallback.cheek;
+      const safeLip = isWearableLipColor(lip[0], lip[1]) ? lip : fallback.lip;
+      const safeCheek = cheek[0] ? cheek : fallback.cheek;
+      return {
+        lip: [safeLip[0], safeLip[1] || fallback.lip[1]],
+        cheek: [safeCheek[0], safeCheek[1] || fallback.cheek[1]],
+        note: (facePalette && facePalette.note) || `${harmony} harmony — keep color near the face soft, flattering, and wearable.`
+      };
+    }
 
     const HARMONY_TO_UNDERTONE = {
       'Warm & Golden': 'Warm',
@@ -3925,20 +3980,15 @@
       let cheek = null;
       let noteText = '';
       if (look && look.facePalette && look.facePalette.lip) {
-        lip = look.facePalette.lip;
-        cheek = look.facePalette.cheek;
-        noteText = look.facePalette.note || '';
+        const safeFace = sanitizeFacePalette(look.facePalette, harmony);
+        lip = safeFace.lip;
+        cheek = safeFace.cheek;
+        noteText = safeFace.note;
       } else {
-        const undertoneKey = selectedUndertone || HARMONY_TO_UNDERTONE[harmony] || 'Cool';
-        const glam = (typeof GLAM_PALETTES !== 'undefined' && GLAM_PALETTES[undertoneKey])
-          ? GLAM_PALETTES[undertoneKey]
-          : {
-              lip: ['#9E2A2B', 'Velvet Currant'],
-              cheek: ['#E07A5F', 'Rose Radiance']
-            };
-        lip = glam.lip;
-        cheek = glam.cheek;
-        noteText = `Undertone-matched for ${undertoneKey} skin: keep lip and cheek in the same temperature family so the wardrobe palette and your glow read as one editorial story.`;
+        const face = getFacePaletteForHarmony(harmony);
+        lip = face.lip;
+        cheek = face.cheek;
+        noteText = `Undertone-matched for ${harmony}: soft wearable lip and cheek — never fashion greens as lipstick.`;
       }
 
       const lipSwatch = document.getElementById('wardrobe-face-lip-swatch');
@@ -4097,6 +4147,28 @@
       return payload;
     }
 
+    async function compressImageBlobForApi(blob, maxDim = 1280, quality = 0.72) {
+      if (!blob) return null;
+      const bitmap = await createImageBitmap(blob);
+      const scale = Math.min(1, maxDim / Math.max(bitmap.width, bitmap.height));
+      const width = Math.max(1, Math.round(bitmap.width * scale));
+      const height = Math.max(1, Math.round(bitmap.height * scale));
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        bitmap.close?.();
+        return null;
+      }
+      ctx.drawImage(bitmap, 0, 0, width, height);
+      bitmap.close?.();
+      const compressed = await new Promise((resolve) => {
+        canvas.toBlob((b) => resolve(b), 'image/jpeg', quality);
+      });
+      return compressed || null;
+    }
+
     function blobToBase64(blob) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -4110,34 +4182,51 @@
       });
     }
 
-    async function canvasImageToApiPayload(img) {
+    async function canvasImageToApiPayload(img, options = {}) {
       if (!img) return null;
+      const maxDim = options.maxDim || 1280;
+      const quality = options.quality || 0.72;
       try {
-        if (img.file instanceof Blob) {
-          const data = await blobToBase64(img.file);
-          return {
-            mediaType: img.file.type || 'image/jpeg',
-            data
-          };
-        }
-        if (img.url && String(img.url).startsWith('blob:')) {
+        let blob = null;
+        if (img.file instanceof Blob) blob = img.file;
+        else if (img.url && String(img.url).startsWith('blob:')) {
           const res = await fetch(img.url);
-          const blob = await res.blob();
-          const data = await blobToBase64(blob);
-          return {
-            mediaType: blob.type || 'image/jpeg',
-            data
-          };
+          blob = await res.blob();
         }
+        if (!blob) return null;
+        // Compress before upload — phone photos blow past Vercel payload limits.
+        let sendBlob = blob;
+        try {
+          const compressed = await compressImageBlobForApi(blob, maxDim, quality);
+          if (compressed) sendBlob = compressed;
+        } catch (_) {}
+        // If still huge, compress harder
+        if (sendBlob.size > 280000) {
+          try {
+            const harder = await compressImageBlobForApi(sendBlob, Math.min(maxDim, 960), Math.min(quality, 0.55));
+            if (harder) sendBlob = harder;
+          } catch (_) {}
+        }
+        const data = await blobToBase64(sendBlob);
+        return {
+          mediaType: 'image/jpeg',
+          data
+        };
       } catch (_) {}
       return null;
     }
 
-    async function collectGlamourApiImages(limit = 10) {
+    async function collectGlamourApiImages(limit = MAX_CANVAS_PHOTOS) {
       const images = getCanvasImages('wardrobe');
+      const maxCount = Math.min(Math.max(1, limit || MAX_CANVAS_PHOTOS), MAX_CANVAS_PHOTOS);
+      const selected = images.slice(0, maxCount);
+      // More photos → tighter compression so all 10 can travel safely.
+      const count = selected.length;
+      const maxDim = count >= 7 ? 900 : count >= 4 ? 1100 : 1280;
+      const quality = count >= 7 ? 0.55 : count >= 4 ? 0.65 : 0.72;
       const out = [];
-      for (const img of images.slice(0, limit)) {
-        const payload = await canvasImageToApiPayload(img);
+      for (const img of selected) {
+        const payload = await canvasImageToApiPayload(img, { maxDim, quality });
         if (payload && payload.data) out.push(payload);
       }
       return out;
@@ -4231,11 +4320,14 @@
         quote: base.quote,
         pieces,
         palette: palette.map((p) => ({ hex: p.hex, label: p.label })),
-        facePalette: {
-          lip: [palette[0]?.hex || '#9E2A2B', palette[0]?.label || 'Berry'],
-          cheek: [palette[1]?.hex || '#E07A9A', palette[1]?.label || 'Rose'],
-          note: `${harmony} harmony — keep color near the face intentional and soft.`
-        }
+        facePalette: (() => {
+          const face = getFacePaletteForHarmony(harmony);
+          return {
+            lip: face.lip,
+            cheek: face.cheek,
+            note: `${harmony} harmony — lips stay rosy/berry/nude (never green). Soft color near the face only.`
+          };
+        })()
       };
     }
 
@@ -4253,7 +4345,7 @@
       }
 
       try {
-        const images = await collectGlamourApiImages(10);
+        const images = await collectGlamourApiImages(MAX_CANVAS_PHOTOS);
         const morningEnergy = getMorningEnergyState();
         const payload = await postGlamourStyle({
           mode: 'wardrobe',
@@ -4276,6 +4368,12 @@
           throw Object.assign(new Error('bad style response — missing look data'), {
             fionaToast: 'Live styling returned an incomplete look. Showing offline draft.'
           });
+        }
+
+        if (payload.data.facePalette) {
+          payload.data.facePalette = sanitizeFacePalette(payload.data.facePalette, harmony);
+        } else {
+          payload.data.facePalette = sanitizeFacePalette(null, harmony);
         }
 
         applyWardrobeLookToUi(
@@ -4360,7 +4458,7 @@
       }
 
       try {
-        const images = await collectGlamourApiImages(10);
+        const images = await collectGlamourApiImages(MAX_CANVAS_PHOTOS);
         const payload = await postGlamourStyle({
           mode: 'palette',
           undertone: selectedUndertone,
@@ -4371,11 +4469,21 @@
           images,
           temperature: 0.8
         });
-        const p = payload.data;
+        let p = payload.data;
         if (!p || !p.lip) {
           throw Object.assign(new Error('bad palette response'), {
             fionaToast: 'Live palette returned incomplete data. Showing undertone draft.'
           });
+        }
+        // Guard against unwearable lip colors (e.g. sage/olive greens)
+        if (!isWearableLipColor(p.lip[0], p.lip[1])) {
+          const face = getFacePaletteForHarmony(selectedWardrobeHarmony);
+          const glam = GLAM_PALETTES[selectedUndertone] || GLAM_PALETTES['Cool'];
+          p = {
+            ...p,
+            lip: face.lip || glam.lip,
+            cheek: p.cheek && p.cheek[0] ? p.cheek : (face.cheek || glam.cheek)
+          };
         }
 
         document.getElementById('swatch-lip').style.backgroundColor = p.lip[0];
