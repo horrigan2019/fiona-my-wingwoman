@@ -28,7 +28,12 @@ MAKEUP / LIP RULES (NON-NEGOTIABLE):
 - Lipstick MUST be wearable everyday-to-evening makeup: rose, berry, mauve, nude, coral, terracotta, plum, cherry, or classic red.
 - NEVER recommend green, sage, olive, moss, mint, teal, emerald, chartreuse, or any fashion-green lipstick. Greens may appear in clothing palettes only — never on lips.
 - Cheek colors stay soft and flattering (rose, peach, terracotta, soft berry) — never green.
-- Beauty products should sound like real lipstick/blush names a woman would buy, not runway costume colors.`;
+- Beauty products should sound like real lipstick/blush names a woman would buy, not runway costume colors.
+
+CALENDAR RULES:
+- When the user message includes Today's weekday, treat that as ground truth for the woman's local calendar.
+- If a quote/note mentions a day of the week, it MUST be today's weekday — never invent a random Monday/Tuesday/etc.
+- Prefer timeless wording when a weekday is not needed.`;
 
 function cors(res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -220,6 +225,23 @@ async function handleStripeSession(req, res, sessionId) {
   }));
 }
 
+const WEEKDAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+function resolveLocalWeekday(body) {
+  const raw = body && body.localWeekday != null ? String(body.localWeekday).trim() : '';
+  const match = WEEKDAY_NAMES.find((d) => d.toLowerCase() === raw.toLowerCase());
+  if (match) return match;
+  return WEEKDAY_NAMES[new Date().getDay()];
+}
+
+function alignTextToWeekday(text, weekday) {
+  if (text == null || text === '' || !weekday) return text;
+  return String(text).replace(
+    /\b(Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday)(s?)\b/gi,
+    (_, _day, plural) => weekday + (plural || '')
+  );
+}
+
 function buildUserContent(body) {
   const mode = body.mode === 'palette' ? 'palette' : 'wardrobe';
   const images = Array.isArray(body.images) ? body.images.slice(0, 10) : [];
@@ -228,6 +250,7 @@ function buildUserContent(body) {
   const autoSilhouette = !body.silhouette || /^auto/i.test(String(body.silhouette));
   const autoHarmony = !body.harmony || /^auto/i.test(String(body.harmony));
   const autoUndertone = !body.undertone || /^auto/i.test(String(body.undertone));
+  const localWeekday = resolveLocalWeekday(body);
 
   for (const img of images) {
     if (!img || !img.data) continue;
@@ -260,6 +283,7 @@ function buildUserContent(body) {
       text: `Create a customized hair & makeup palette for this woman.
 
 Filters:
+- Today's weekday (her local calendar): ${localWeekday}
 - Undertone hint: ${body.undertone || 'Auto from photos'}
 - Occasion context: ${body.occasion || 'Everyday'}
 - Vibe: ${body.vibe || '(none provided)'}
@@ -273,6 +297,7 @@ ${detectBlock}
 
 Lipstick MUST be a wearable real-world shade (rose, berry, mauve, nude, coral, terracotta, plum, cherry, red). NEVER sage, olive, green, mint, or teal lipstick.
 Build the palette from the DETECTED undertone/harmony when photos exist.
+If quote/note mentions a weekday, it MUST say ${localWeekday} (today) — never invent a different day.
 
 Return JSON only:
 {
@@ -294,6 +319,7 @@ Return JSON only:
       text: `Create a complete, distinct wardrobe + finishing look for THIS user.
 
 Filters:
+- Today's weekday (her local calendar): ${localWeekday}
 - Occasion: ${body.occasion || 'Desk to Dinner'}
 - Vibe / event: ${body.vibe || '(none provided)'}
 - Body silhouette hint: ${body.silhouette || 'Auto from photos'}
@@ -310,6 +336,7 @@ ${detectBlock}
 If morning energy is provided, weight the outfit toward that bias (fumes = soft/low-friction; conquer = structured/bold; move = polished athleisure).
 If photos are present, ground the look in her actual figure, coloring, and what she is wearing in frame.
 If no photos, still invent a fresh look from the filters — do not reuse a canned plum-cami-blazer default.
+If quote/note/desc mentions a weekday, it MUST say ${localWeekday} (today) — never invent a different day.
 
 Style the outfit for the DETECTED silhouette and DETECTED harmony when photos exist.
 facePalette.lip MUST be a wearable lipstick (rose/berry/mauve/nude/coral/plum/red) — NEVER green, sage, or olive lipstick. Clothing palette may include olive/sage for garments only.
@@ -382,6 +409,7 @@ function isWearableLipColor(hex, label) {
 function sanitizeBeautyData(data, body) {
   if (!data || typeof data !== 'object') return data;
   const harmony = body && body.harmony ? String(body.harmony) : '';
+  const weekday = resolveLocalWeekday(body);
   const fallbackLips = {
     'Warm & Golden': ['#C45C26', 'Spiced Coral'],
     'Cool & Rosy': ['#9E2A2B', 'Velvet Currant'],
@@ -397,6 +425,19 @@ function sanitizeBeautyData(data, body) {
     && !isWearableLipColor(data.facePalette.lip[0], data.facePalette.lip[1])) {
     data.facePalette.lip = lipFallback;
     data.facePalette.note = (data.facePalette.note || '') + ' Wearable lip only — never fashion greens.';
+  }
+
+  // Fiona sometimes invents a random weekday in quips — force today's local day.
+  for (const key of ['quote', 'note', 'desc', 'detectionNotes', 'neckline']) {
+    if (typeof data[key] === 'string') data[key] = alignTextToWeekday(data[key], weekday);
+  }
+  if (data.facePalette && typeof data.facePalette === 'object') {
+    if (typeof data.facePalette.note === 'string') {
+      data.facePalette.note = alignTextToWeekday(data.facePalette.note, weekday);
+    }
+  }
+  if (data.hairMove && typeof data.hairMove === 'object' && typeof data.hairMove.body === 'string') {
+    data.hairMove.body = alignTextToWeekday(data.hairMove.body, weekday);
   }
   return data;
 }

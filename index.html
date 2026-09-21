@@ -4383,7 +4383,7 @@
         const safeFace = sanitizeFacePalette(look.facePalette, harmony);
         lip = safeFace.lip;
         cheek = safeFace.cheek;
-        noteText = safeFace.note;
+        noteText = alignFionaTextToLocalWeekday(safeFace.note);
       } else {
         const face = getFacePaletteForHarmony(harmony);
         lip = face.lip;
@@ -4506,12 +4506,18 @@
     }
 
     async function postGlamourStyle(body) {
+      const weekdayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const localWeekday = weekdayNames[new Date().getDay()];
+      const requestBody = {
+        ...body,
+        localWeekday: body && body.localWeekday ? body.localWeekday : localWeekday
+      };
       let res;
       try {
         res = await fetch(GLAMOUR_STYLE_API, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body)
+          body: JSON.stringify(requestBody)
         });
       } catch (networkErr) {
         const formatted = formatGlamourApiError(null, null, networkErr);
@@ -4545,6 +4551,16 @@
         throw err;
       }
       return payload;
+    }
+
+    function alignFionaTextToLocalWeekday(text) {
+      if (text == null || text === '') return text;
+      const weekdayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const today = weekdayNames[new Date().getDay()];
+      return String(text).replace(
+        /\b(Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday)(s?)\b/gi,
+        (_, _day, plural) => today + (plural || '')
+      );
     }
 
     async function compressImageBlobForApi(blob, maxDim = 1280, quality = 0.72) {
@@ -4645,7 +4661,9 @@
         desc += ` ${silhouetteNote} ${harmonyNote}`;
       }
       document.getElementById('wardrobe-look-desc').innerText = desc.trim();
-      document.getElementById('wardrobe-look-quote').innerText = look.quote ? `"${look.quote.replace(/^"|"$/g, '')}"` : '';
+      document.getElementById('wardrobe-look-quote').innerText = look.quote
+        ? `"${alignFionaTextToLocalWeekday(look.quote).replace(/^"|"$/g, '')}"`
+        : '';
 
       renderWardrobeVisualLook(look, silhouette, harmony);
 
@@ -4963,7 +4981,7 @@
         document.getElementById('swatch-eye-name').innerText = p.eye[1];
         document.getElementById('swatch-hair').style.backgroundColor = p.hair[0];
         document.getElementById('swatch-hair-name').innerText = p.hair[1];
-        document.getElementById('glam-palette-quote').innerText = `"${String(p.quote || '').replace(/^"|"$/g, '')}"`;
+        document.getElementById('glam-palette-quote').innerText = `"${alignFionaTextToLocalWeekday(String(p.quote || '')).replace(/^"|"$/g, '')}"`;
         const status = document.getElementById('glam-status');
         if (status && images.length) {
           status.textContent = `${images.length}/${MAX_CANVAS_PHOTOS} photos ready · live palette · ${detectedUndertone} undertone`;
@@ -4985,7 +5003,7 @@
         document.getElementById('swatch-eye-name').innerText = p.eye[1];
         document.getElementById('swatch-hair').style.backgroundColor = p.hair[0];
         document.getElementById('swatch-hair-name').innerText = p.hair[1];
-        document.getElementById('glam-palette-quote').innerText = `"${p.quote}"`;
+        document.getElementById('glam-palette-quote').innerText = `"${alignFionaTextToLocalWeekday(p.quote)}"`;
         showToast((err && err.fionaToast) || `Live palette unavailable (${err && err.message ? err.message : 'unknown'}). Showing undertone draft.`);
       } finally {
         if (btn) {
