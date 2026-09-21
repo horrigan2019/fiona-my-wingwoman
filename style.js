@@ -20,6 +20,7 @@ CRITICAL STYLING RULES:
 - When morning energy is logged, let it drive the look: fumes → low-friction soft silhouettes and flats; conquer → structured tailoring and bold statements; on the move → polished athleisure and movement-friendly layers.
 - NEVER return a generic default like "Tailored wide-leg trousers in rich plum with a tucked silk cami" unless that literally matches what you see and the filters demand it.
 - Reference visible garments, colors, body proportions, lighting, or accessories from the photo when images are provided.
+- PHOTO ANALYSIS (when photos are attached): You MUST visually assess the woman's body silhouette/figure and skin-tone / undertone from the images. Prefer what you see over manual filter chips when filters say "Auto from photos" or when inferFromPhotos is true. Be kind, specific, and never body-shame.
 - Vary titles, fabrics, cues, and beauty notes across requests — creativity is required.
 - Return ONLY valid JSON matching the schema in the user message. No markdown fences.
 
@@ -223,6 +224,10 @@ function buildUserContent(body) {
   const mode = body.mode === 'palette' ? 'palette' : 'wardrobe';
   const images = Array.isArray(body.images) ? body.images.slice(0, 10) : [];
   const content = [];
+  const infer = body.inferFromPhotos === true || images.length > 0;
+  const autoSilhouette = !body.silhouette || /^auto/i.test(String(body.silhouette));
+  const autoHarmony = !body.harmony || /^auto/i.test(String(body.harmony));
+  const autoUndertone = !body.undertone || /^auto/i.test(String(body.undertone));
 
   for (const img of images) {
     if (!img || !img.data) continue;
@@ -238,23 +243,43 @@ function buildUserContent(body) {
     });
   }
 
+  const detectBlock = images.length
+    ? `PHOTO DETECTION REQUIRED (${images.length} photo(s)):
+- Study face, neck, and visible skin for undertone + overall skin-tone harmony.
+- Study proportions, shoulder-to-hip balance, height cues, and how clothes hang for body silhouette/figure.
+- Choose detectedSilhouette from ONLY: "Hourglass / Defined", "Petite", "Curvy / Soft Silhouette", "Tall / Long Lines", "Athletic / Straight".
+- Choose detectedHarmony from ONLY: "Warm & Golden", "Cool & Rosy", "Deep & Rich", "Olive / Neutral".
+- Choose detectedUndertone from ONLY: "Cool", "Warm", "Neutral", "Deep Olive".
+- If manual filters are NOT "Auto from photos", treat them as soft overrides; if they ARE auto (or blank), trust the photos.
+- Write a short detectionNotes sentence explaining what you saw (kind, factual, never shaming).`
+    : `No photos attached — use the provided silhouette/harmony/undertone filters (if Auto, pick sensible defaults).`;
+
   if (mode === 'palette') {
     content.push({
       type: 'text',
       text: `Create a customized hair & makeup palette for this woman.
 
 Filters:
-- Undertone: ${body.undertone || 'Cool'}
+- Undertone hint: ${body.undertone || 'Auto from photos'}
 - Occasion context: ${body.occasion || 'Everyday'}
 - Vibe: ${body.vibe || '(none provided)'}
-- Silhouette: ${body.silhouette || '(not specified)'}
-- Color harmony: ${body.harmony || '(not specified)'}
+- Silhouette hint: ${body.silhouette || 'Auto from photos'}
+- Color harmony hint: ${body.harmony || 'Auto from photos'}
+- inferFromPhotos: ${infer}
+- autoUndertone: ${autoUndertone}
 - Photos attached: ${images.length}
 
+${detectBlock}
+
 Lipstick MUST be a wearable real-world shade (rose, berry, mauve, nude, coral, terracotta, plum, cherry, red). NEVER sage, olive, green, mint, or teal lipstick.
+Build the palette from the DETECTED undertone/harmony when photos exist.
 
 Return JSON only:
 {
+  "detectedSilhouette": "one allowed silhouette or null",
+  "detectedHarmony": "one allowed harmony",
+  "detectedUndertone": "Cool|Warm|Neutral|Deep Olive",
+  "detectionNotes": "one kind sentence about what you observed",
   "lip": ["#HEX", "Shade Name"],
   "cheek": ["#HEX", "Shade Name"],
   "eye": ["#HEX", "Shade Name"],
@@ -271,22 +296,32 @@ Return JSON only:
 Filters:
 - Occasion: ${body.occasion || 'Desk to Dinner'}
 - Vibe / event: ${body.vibe || '(none provided)'}
-- Body silhouette: ${body.silhouette || 'Hourglass / Defined'}
-- Skin tone / color harmony: ${body.harmony || 'Warm & Golden'}
-- Undertone (if known): ${body.undertone || '(derive from harmony/photo)'}
+- Body silhouette hint: ${body.silhouette || 'Auto from photos'}
+- Skin tone / color harmony hint: ${body.harmony || 'Auto from photos'}
+- Undertone hint: ${body.undertone || 'Auto from photos'}
+- inferFromPhotos: ${infer}
+- autoSilhouette: ${autoSilhouette}
+- autoHarmony: ${autoHarmony}
 - Morning energy: ${body.morningEnergy ? `${body.morningEnergy.label} — ${body.morningEnergy.styleBias || ''}` : '(not logged yet)'}
 - Photos attached: ${images.length}
 
+${detectBlock}
+
 If morning energy is provided, weight the outfit toward that bias (fumes = soft/low-friction; conquer = structured/bold; move = polished athleisure).
-If photos are present, ground the look in what she is actually wearing or her coloring/proportions in frame.
+If photos are present, ground the look in her actual figure, coloring, and what she is wearing in frame.
 If no photos, still invent a fresh look from the filters — do not reuse a canned plum-cami-blazer default.
 
+Style the outfit for the DETECTED silhouette and DETECTED harmony when photos exist.
 facePalette.lip MUST be a wearable lipstick (rose/berry/mauve/nude/coral/plum/red) — NEVER green, sage, or olive lipstick. Clothing palette may include olive/sage for garments only.
 
 Return JSON only:
 {
+  "detectedSilhouette": "Hourglass / Defined|Petite|Curvy / Soft Silhouette|Tall / Long Lines|Athletic / Straight",
+  "detectedHarmony": "Warm & Golden|Cool & Rosy|Deep & Rich|Olive / Neutral",
+  "detectedUndertone": "Cool|Warm|Neutral|Deep Olive",
+  "detectionNotes": "one kind sentence about figure + skin tone observed",
   "title": "Look title (unique)",
-  "desc": "2-4 sentences describing the full look, tailored to filters and photo",
+  "desc": "2-4 sentences describing the full look, tailored to detected figure/skin tone and photo",
   "quote": "One Fiona-voice line",
   "neckline": "short neckline note",
   "pieces": [

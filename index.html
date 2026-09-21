@@ -1104,9 +1104,14 @@
 
           <!-- Figure & color harmony (wardrobe only) -->
           <div class="space-y-2">
-            <span class="text-xs font-semibold text-gray-700 dark:text-gray-300">Body silhouette / fit preference:</span>
+            <div class="flex flex-wrap items-end justify-between gap-2">
+              <span class="text-xs font-semibold text-gray-700 dark:text-gray-300">Body silhouette / fit:</span>
+              <span id="wardrobe-detect-silhouette-note" class="hidden text-[10px] font-semibold text-teal-700 dark:text-teal-300"></span>
+            </div>
+            <p class="text-[11px] text-gray-500 dark:text-gray-400">With photos, Fiona reads your figure from the canvas. Override only if you want.</p>
             <div id="wardrobe-silhouette-chips" class="flex flex-wrap gap-2">
-              <button type="button" onclick="selectWardrobeSilhouette(this, 'Hourglass / Defined')" class="wardrobe-silhouette-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-purple-200 dark:border-purple-800 bg-pink-50 dark:bg-purple-950 text-spa-plum dark:text-pink-200">Hourglass / Defined</button>
+              <button type="button" onclick="selectWardrobeSilhouette(this, 'Auto from photos')" class="wardrobe-silhouette-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-purple-200 dark:border-purple-800 bg-pink-50 dark:bg-purple-950 text-spa-plum dark:text-pink-200">✨ Auto from photos</button>
+              <button type="button" onclick="selectWardrobeSilhouette(this, 'Hourglass / Defined')" class="wardrobe-silhouette-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 dark:border-purple-900 text-gray-700 dark:text-gray-300">Hourglass / Defined</button>
               <button type="button" onclick="selectWardrobeSilhouette(this, 'Petite')" class="wardrobe-silhouette-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 dark:border-purple-900 text-gray-700 dark:text-gray-300">Petite</button>
               <button type="button" onclick="selectWardrobeSilhouette(this, 'Curvy / Soft Silhouette')" class="wardrobe-silhouette-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 dark:border-purple-900 text-gray-700 dark:text-gray-300">Curvy / Soft Silhouette</button>
               <button type="button" onclick="selectWardrobeSilhouette(this, 'Tall / Long Lines')" class="wardrobe-silhouette-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 dark:border-purple-900 text-gray-700 dark:text-gray-300">Tall / Long Lines</button>
@@ -1115,9 +1120,14 @@
           </div>
 
           <div class="space-y-2">
-            <span class="text-xs font-semibold text-gray-700 dark:text-gray-300">Skin tone / color harmony:</span>
+            <div class="flex flex-wrap items-end justify-between gap-2">
+              <span class="text-xs font-semibold text-gray-700 dark:text-gray-300">Skin tone / color harmony:</span>
+              <span id="wardrobe-detect-harmony-note" class="hidden text-[10px] font-semibold text-teal-700 dark:text-teal-300"></span>
+            </div>
+            <p class="text-[11px] text-gray-500 dark:text-gray-400">With photos, Fiona reads undertone from your face and skin. Override only if you want.</p>
             <div id="wardrobe-harmony-chips" class="flex flex-wrap gap-2">
-              <button type="button" onclick="selectWardrobeHarmony(this, 'Warm & Golden')" class="wardrobe-harmony-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-purple-200 dark:border-purple-800 bg-pink-50 dark:bg-purple-950 text-spa-plum dark:text-pink-200">Warm & Golden</button>
+              <button type="button" onclick="selectWardrobeHarmony(this, 'Auto from photos')" class="wardrobe-harmony-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-purple-200 dark:border-purple-800 bg-pink-50 dark:bg-purple-950 text-spa-plum dark:text-pink-200">✨ Auto from photos</button>
+              <button type="button" onclick="selectWardrobeHarmony(this, 'Warm & Golden')" class="wardrobe-harmony-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 dark:border-purple-900 text-gray-700 dark:text-gray-300">Warm & Golden</button>
               <button type="button" onclick="selectWardrobeHarmony(this, 'Cool & Rosy')" class="wardrobe-harmony-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 dark:border-purple-900 text-gray-700 dark:text-gray-300">Cool & Rosy</button>
               <button type="button" onclick="selectWardrobeHarmony(this, 'Deep & Rich')" class="wardrobe-harmony-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 dark:border-purple-900 text-gray-700 dark:text-gray-300">Deep & Rich</button>
               <button type="button" onclick="selectWardrobeHarmony(this, 'Olive / Neutral')" class="wardrobe-harmony-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 dark:border-purple-900 text-gray-700 dark:text-gray-300">Olive / Neutral</button>
@@ -1231,8 +1241,8 @@
           <div class="space-y-3">
             <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
               <div>
-                <h3 class="font-serif text-lg font-bold text-gray-900 dark:text-white">Your Canvas: Upload or Snap a Selfie</h3>
-                <p class="text-xs text-gray-600 dark:text-gray-300">Add a clear, well-lit photo so Fiona can frame your glam palette.</p>
+                <h3 class="font-serif text-lg font-bold text-gray-900 dark:text-white">Your Canvas: Upload or Snap Selfies</h3>
+                <p class="text-xs text-gray-600 dark:text-gray-300">Add up to 10 clear, well-lit photos so Fiona can read your skin tone and frame your glam palette. Shared with Wardrobe Style Me.</p>
               </div>
               <span class="text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-1 rounded-full shrink-0">🔒 100% Private (Local Only)</span>
             </div>
@@ -1275,7 +1285,8 @@
           <div class="space-y-2">
             <span class="text-xs font-semibold text-gray-700 dark:text-gray-300">Skin Undertone:</span>
             <div class="flex flex-wrap gap-2">
-              <button onclick="selectUndertone(this, 'Cool')" class="undertone-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-purple-200 dark:border-purple-800 bg-pink-50 dark:bg-purple-950 text-spa-plum dark:text-pink-200">❄️ Cool (Rosy / Berry)</button>
+              <button onclick="selectUndertone(this, 'Auto')" class="undertone-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-purple-200 dark:border-purple-800 bg-pink-50 dark:bg-purple-950 text-spa-plum dark:text-pink-200">✨ Auto from photos</button>
+              <button onclick="selectUndertone(this, 'Cool')" class="undertone-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 dark:border-purple-900 text-gray-700 dark:text-gray-300">❄️ Cool (Rosy / Berry)</button>
               <button onclick="selectUndertone(this, 'Warm')" class="undertone-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 dark:border-purple-900 text-gray-700 dark:text-gray-300">☀️ Warm (Golden / Peachy)</button>
               <button onclick="selectUndertone(this, 'Neutral')" class="undertone-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 dark:border-purple-900 text-gray-700 dark:text-gray-300">⚖️ Neutral (Balanced)</button>
               <button onclick="selectUndertone(this, 'Deep Olive')" class="undertone-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 dark:border-purple-900 text-gray-700 dark:text-gray-300">🫒 Olive / Rich</button>
@@ -3626,9 +3637,129 @@
     });
 
     let selectedOccasion = 'Desk to Dinner';
-    let selectedUndertone = 'Cool';
-    let selectedWardrobeSilhouette = 'Hourglass / Defined';
-    let selectedWardrobeHarmony = 'Warm & Golden';
+    let selectedUndertone = 'Auto';
+    let selectedWardrobeSilhouette = 'Auto from photos';
+    let selectedWardrobeHarmony = 'Auto from photos';
+    let lastDetectedSilhouette = null;
+    let lastDetectedHarmony = null;
+    let lastDetectedUndertone = null;
+
+    const VALID_SILHOUETTES = [
+      'Hourglass / Defined',
+      'Petite',
+      'Curvy / Soft Silhouette',
+      'Tall / Long Lines',
+      'Athletic / Straight'
+    ];
+    const VALID_HARMONIES = [
+      'Warm & Golden',
+      'Cool & Rosy',
+      'Deep & Rich',
+      'Olive / Neutral'
+    ];
+    const VALID_UNDERTONES = ['Cool', 'Warm', 'Neutral', 'Deep Olive'];
+
+    function isAutoSilhouette(value) {
+      return !value || /^auto/i.test(String(value));
+    }
+    function isAutoHarmony(value) {
+      return !value || /^auto/i.test(String(value));
+    }
+
+    function normalizeDetectedSilhouette(value) {
+      const raw = String(value || '').trim();
+      if (!raw) return null;
+      const hit = VALID_SILHOUETTES.find((s) => s.toLowerCase() === raw.toLowerCase());
+      if (hit) return hit;
+      if (/petite/i.test(raw)) return 'Petite';
+      if (/hourglass|defined waist|curvy waist/i.test(raw)) return 'Hourglass / Defined';
+      if (/curvy|soft silhouette|pear|fuller/i.test(raw)) return 'Curvy / Soft Silhouette';
+      if (/tall|long line|elongated/i.test(raw)) return 'Tall / Long Lines';
+      if (/athletic|straight|rectangle|column/i.test(raw)) return 'Athletic / Straight';
+      return null;
+    }
+
+    function normalizeDetectedHarmony(value) {
+      const raw = String(value || '').trim();
+      if (!raw) return null;
+      const hit = VALID_HARMONIES.find((h) => h.toLowerCase() === raw.toLowerCase());
+      if (hit) return hit;
+      if (/warm|golden|peach|caramel/i.test(raw)) return 'Warm & Golden';
+      if (/cool|rosy|pink|berry/i.test(raw)) return 'Cool & Rosy';
+      if (/deep|rich|deep olive|espresso/i.test(raw)) return 'Deep & Rich';
+      if (/olive|neutral|balanced/i.test(raw)) return 'Olive / Neutral';
+      return null;
+    }
+
+    function normalizeDetectedUndertone(value, harmony) {
+      const raw = String(value || '').trim();
+      if (raw) {
+        const hit = VALID_UNDERTONES.find((u) => u.toLowerCase() === raw.toLowerCase());
+        if (hit) return hit;
+        if (/warm/i.test(raw)) return 'Warm';
+        if (/cool/i.test(raw)) return 'Cool';
+        if (/deep|olive/i.test(raw)) return 'Deep Olive';
+        if (/neutral/i.test(raw)) return 'Neutral';
+      }
+      return HARMONY_TO_UNDERTONE[harmony] || null;
+    }
+
+    function paintChipSelection(selector, matchValue) {
+      document.querySelectorAll(selector).forEach((c) => {
+        const onclick = c.getAttribute('onclick') || '';
+        const fromOnclick = /,\s*'([^']+)'\)/.exec(onclick);
+        const value = fromOnclick ? fromOnclick[1] : (c.textContent || '').replace(/^✨\s*/, '').trim();
+        const isAutoChip = /^auto/i.test(value);
+        const on = value === matchValue || (isAutoChip && /^auto/i.test(String(matchValue || '')));
+        if (on) {
+          c.classList.add('bg-pink-50', 'dark:bg-purple-950', 'text-spa-plum', 'border-purple-200', 'dark:border-purple-800', 'dark:text-pink-200');
+          c.classList.remove('border-gray-200', 'dark:border-purple-900', 'text-gray-700', 'dark:text-gray-300');
+        } else {
+          c.classList.remove('bg-pink-50', 'dark:bg-purple-950', 'text-spa-plum', 'border-purple-200', 'dark:border-purple-800', 'dark:text-pink-200');
+          c.classList.add('border-gray-200', 'dark:border-purple-900', 'text-gray-700', 'dark:text-gray-300');
+        }
+      });
+    }
+
+    function applyDetectedWardrobeTraits({ silhouette, harmony, undertone, fromPhotos }) {
+      if (silhouette) {
+        lastDetectedSilhouette = silhouette;
+        selectedWardrobeSilhouette = silhouette;
+        paintChipSelection('.wardrobe-silhouette-chip', silhouette);
+        const note = document.getElementById('wardrobe-detect-silhouette-note');
+        if (note) {
+          note.textContent = fromPhotos ? `Detected: ${silhouette}` : '';
+          note.classList.toggle('hidden', !fromPhotos);
+        }
+      }
+      if (harmony) {
+        lastDetectedHarmony = harmony;
+        selectedWardrobeHarmony = harmony;
+        paintChipSelection('.wardrobe-harmony-chip', harmony);
+        const note = document.getElementById('wardrobe-detect-harmony-note');
+        if (note) {
+          note.textContent = fromPhotos ? `Detected: ${harmony}` : '';
+          note.classList.toggle('hidden', !fromPhotos);
+        }
+      }
+      if (undertone) {
+        lastDetectedUndertone = undertone;
+        selectedUndertone = undertone;
+        document.querySelectorAll('.undertone-chip').forEach((c) => {
+          const onclick = c.getAttribute('onclick') || '';
+          const m = /,\s*'([^']+)'\)/.exec(onclick);
+          const value = m ? m[1] : (c.textContent || '').trim();
+          const on = value === undertone;
+          if (on) {
+            c.classList.add('bg-pink-50', 'dark:bg-purple-950', 'text-spa-plum', 'border-purple-200', 'dark:border-purple-800', 'dark:text-pink-200');
+            c.classList.remove('border-gray-200', 'dark:border-purple-900', 'text-gray-700', 'dark:text-gray-300');
+          } else {
+            c.classList.remove('bg-pink-50', 'dark:bg-purple-950', 'text-spa-plum', 'border-purple-200', 'dark:border-purple-800', 'dark:text-pink-200');
+            c.classList.add('border-gray-200', 'dark:border-purple-900', 'text-gray-700', 'dark:text-gray-300');
+          }
+        });
+      }
+    }
 
     function selectOccasion(btn, occasion) {
       selectedOccasion = occasion;
@@ -3648,6 +3779,14 @@
       });
       btn.classList.add('bg-pink-50', 'dark:bg-purple-950', 'text-spa-plum', 'border-purple-200', 'dark:border-purple-800', 'dark:text-pink-200');
       btn.classList.remove('border-gray-200', 'text-gray-700', 'dark:text-gray-300');
+      const note = document.getElementById('wardrobe-detect-silhouette-note');
+      if (note && !isAutoSilhouette(value)) {
+        note.textContent = 'Manual override';
+        note.classList.remove('hidden');
+      } else if (note && isAutoSilhouette(value)) {
+        note.classList.add('hidden');
+        note.textContent = '';
+      }
     }
 
     function selectWardrobeHarmony(btn, value) {
@@ -3658,6 +3797,14 @@
       });
       btn.classList.add('bg-pink-50', 'dark:bg-purple-950', 'text-spa-plum', 'border-purple-200', 'dark:border-purple-800', 'dark:text-pink-200');
       btn.classList.remove('border-gray-200', 'text-gray-700', 'dark:text-gray-300');
+      const note = document.getElementById('wardrobe-detect-harmony-note');
+      if (note && !isAutoHarmony(value)) {
+        note.textContent = 'Manual override';
+        note.classList.remove('hidden');
+      } else if (note && isAutoHarmony(value)) {
+        note.classList.add('hidden');
+        note.textContent = '';
+      }
     }
 
     const WARDROBE_LOOKS = {
@@ -4335,25 +4482,39 @@
       if (!consumePhotoAnalysis()) return;
       const vibe = (document.getElementById('wardrobe-vibe')?.value || '').trim();
       const occasionLabel = selectedOccasion;
-      const silhouette = selectedWardrobeSilhouette;
-      const harmony = selectedWardrobeHarmony;
       const btn = document.querySelector('button[onclick="generateWardrobeAdvice()"]');
       const previousLabel = btn ? btn.innerText : '';
       if (btn) {
         btn.disabled = true;
-        btn.innerText = 'Fiona is styling…';
+        btn.innerText = 'Fiona is reading your photos…';
       }
 
       try {
         const images = await collectGlamourApiImages(MAX_CANVAS_PHOTOS);
+        const inferFromPhotos = images.length > 0;
+        const silhouetteHint = isAutoSilhouette(selectedWardrobeSilhouette)
+          ? (inferFromPhotos ? 'Auto from photos' : 'Hourglass / Defined')
+          : selectedWardrobeSilhouette;
+        const harmonyHint = isAutoHarmony(selectedWardrobeHarmony)
+          ? (inferFromPhotos ? 'Auto from photos' : 'Warm & Golden')
+          : selectedWardrobeHarmony;
+        const undertoneHint = (!selectedUndertone || /^auto/i.test(selectedUndertone))
+          ? (inferFromPhotos ? 'Auto from photos' : 'Cool')
+          : selectedUndertone;
+
+        if (!inferFromPhotos && (isAutoSilhouette(selectedWardrobeSilhouette) || isAutoHarmony(selectedWardrobeHarmony))) {
+          showToast('Add at least one photo for Auto detect — or pick silhouette and skin tone chips.');
+        }
+
         const morningEnergy = getMorningEnergyState();
         const payload = await postGlamourStyle({
           mode: 'wardrobe',
           occasion: occasionLabel,
           vibe,
-          silhouette,
-          harmony,
-          undertone: selectedUndertone,
+          silhouette: silhouetteHint,
+          harmony: harmonyHint,
+          undertone: undertoneHint,
+          inferFromPhotos,
           morningEnergy: morningEnergy ? {
             id: morningEnergy.id,
             label: morningEnergy.label,
@@ -4370,24 +4531,54 @@
           });
         }
 
+        const detectedSilhouette = normalizeDetectedSilhouette(
+          payload.data.detectedSilhouette || payload.data.silhouette
+        ) || (!isAutoSilhouette(selectedWardrobeSilhouette) ? selectedWardrobeSilhouette : null)
+          || 'Hourglass / Defined';
+        const detectedHarmony = normalizeDetectedHarmony(
+          payload.data.detectedHarmony || payload.data.harmony
+        ) || (!isAutoHarmony(selectedWardrobeHarmony) ? selectedWardrobeHarmony : null)
+          || 'Warm & Golden';
+        const detectedUndertone = normalizeDetectedUndertone(
+          payload.data.detectedUndertone || payload.data.undertone,
+          detectedHarmony
+        ) || 'Cool';
+
+        if (inferFromPhotos) {
+          applyDetectedWardrobeTraits({
+            silhouette: detectedSilhouette,
+            harmony: detectedHarmony,
+            undertone: detectedUndertone,
+            fromPhotos: true
+          });
+        }
+
         if (payload.data.facePalette) {
-          payload.data.facePalette = sanitizeFacePalette(payload.data.facePalette, harmony);
+          payload.data.facePalette = sanitizeFacePalette(payload.data.facePalette, detectedHarmony);
         } else {
-          payload.data.facePalette = sanitizeFacePalette(null, harmony);
+          payload.data.facePalette = sanitizeFacePalette(null, detectedHarmony);
         }
 
         applyWardrobeLookToUi(
           payload.data,
           occasionLabel,
           vibe,
-          silhouette,
-          harmony,
+          detectedSilhouette,
+          detectedHarmony,
           images.length,
-          'Live Fiona'
+          inferFromPhotos ? 'Live Fiona · photo-read figure & skin tone —' : 'Live Fiona —'
         );
-        showToast('Fiona tailored a live look from your canvas ✨');
+        showToast(inferFromPhotos
+          ? `Fiona read your photos → ${detectedSilhouette} · ${detectedHarmony} ✨`
+          : 'Fiona tailored a live look ✨');
       } catch (err) {
         console.error('[Glamour Style] wardrobe fallback', err && err.fionaMeta ? err.fionaMeta : err);
+        const silhouette = (!isAutoSilhouette(selectedWardrobeSilhouette) && selectedWardrobeSilhouette)
+          || lastDetectedSilhouette
+          || 'Hourglass / Defined';
+        const harmony = (!isAutoHarmony(selectedWardrobeHarmony) && selectedWardrobeHarmony)
+          || lastDetectedHarmony
+          || 'Warm & Golden';
         const offline = buildOfflineWardrobeLook(occasionLabel, vibe, silhouette, harmony);
         applyWardrobeLookToUi(
           offline,
@@ -4454,18 +4645,26 @@
       const previousLabel = btn ? btn.innerText : '';
       if (btn) {
         btn.disabled = true;
-        btn.innerText = 'Fiona is mixing…';
+        btn.innerText = 'Fiona is reading your glow…';
       }
 
       try {
         const images = await collectGlamourApiImages(MAX_CANVAS_PHOTOS);
+        const inferFromPhotos = images.length > 0;
         const payload = await postGlamourStyle({
           mode: 'palette',
-          undertone: selectedUndertone,
+          undertone: (!selectedUndertone || /^auto/i.test(selectedUndertone))
+            ? (inferFromPhotos ? 'Auto from photos' : 'Cool')
+            : selectedUndertone,
           occasion: selectedOccasion,
           vibe: (document.getElementById('wardrobe-vibe')?.value || '').trim(),
-          silhouette: selectedWardrobeSilhouette,
-          harmony: selectedWardrobeHarmony,
+          silhouette: isAutoSilhouette(selectedWardrobeSilhouette)
+            ? (inferFromPhotos ? 'Auto from photos' : 'Hourglass / Defined')
+            : selectedWardrobeSilhouette,
+          harmony: isAutoHarmony(selectedWardrobeHarmony)
+            ? (inferFromPhotos ? 'Auto from photos' : 'Warm & Golden')
+            : selectedWardrobeHarmony,
+          inferFromPhotos,
           images,
           temperature: 0.8
         });
@@ -4475,10 +4674,27 @@
             fionaToast: 'Live palette returned incomplete data. Showing undertone draft.'
           });
         }
+
+        const detectedHarmony = normalizeDetectedHarmony(p.detectedHarmony || p.harmony)
+          || (!isAutoHarmony(selectedWardrobeHarmony) ? selectedWardrobeHarmony : null)
+          || 'Warm & Golden';
+        const detectedUndertone = normalizeDetectedUndertone(p.detectedUndertone || p.undertone, detectedHarmony)
+          || 'Cool';
+        const detectedSilhouette = normalizeDetectedSilhouette(p.detectedSilhouette || p.silhouette);
+
+        if (inferFromPhotos) {
+          applyDetectedWardrobeTraits({
+            silhouette: detectedSilhouette || undefined,
+            harmony: detectedHarmony,
+            undertone: detectedUndertone,
+            fromPhotos: true
+          });
+        }
+
         // Guard against unwearable lip colors (e.g. sage/olive greens)
         if (!isWearableLipColor(p.lip[0], p.lip[1])) {
-          const face = getFacePaletteForHarmony(selectedWardrobeHarmony);
-          const glam = GLAM_PALETTES[selectedUndertone] || GLAM_PALETTES['Cool'];
+          const face = getFacePaletteForHarmony(detectedHarmony);
+          const glam = GLAM_PALETTES[detectedUndertone] || GLAM_PALETTES['Cool'];
           p = {
             ...p,
             lip: face.lip || glam.lip,
@@ -4497,12 +4713,17 @@
         document.getElementById('glam-palette-quote').innerText = `"${String(p.quote || '').replace(/^"|"$/g, '')}"`;
         const status = document.getElementById('glam-status');
         if (status && images.length) {
-          status.textContent = `${images.length}/${MAX_CANVAS_PHOTOS} photos ready · live palette`;
+          status.textContent = `${images.length}/${MAX_CANVAS_PHOTOS} photos ready · live palette · ${detectedUndertone} undertone`;
         }
-        showToast('Live glam palette refreshed from your canvas ✨');
+        showToast(inferFromPhotos
+          ? `Palette matched to your photos · ${detectedHarmony} ✨`
+          : 'Live glam palette refreshed ✨');
       } catch (err) {
         console.error('[Glamour Style] palette fallback', err && err.fionaMeta ? err.fionaMeta : err);
-        const p = GLAM_PALETTES[selectedUndertone] || GLAM_PALETTES['Cool'];
+        const toneKey = (!selectedUndertone || /^auto/i.test(selectedUndertone))
+          ? (lastDetectedUndertone || 'Cool')
+          : selectedUndertone;
+        const p = GLAM_PALETTES[toneKey] || GLAM_PALETTES['Cool'];
         document.getElementById('swatch-lip').style.backgroundColor = p.lip[0];
         document.getElementById('swatch-lip-name').innerText = p.lip[1];
         document.getElementById('swatch-cheek').style.backgroundColor = p.cheek[0];
