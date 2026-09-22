@@ -61,7 +61,7 @@
         if (!res || !res.ok || !data.paid) {
           throw new Error(data.error || 'Payment not confirmed yet');
         }
-        const plan = data.plan === 'monthly' ? 'monthly' : 'annual';
+        const plan = (data.plan === 'weekly' || data.plan === 'monthly') ? 'weekly' : 'annual';
         const isTrialing = data.subscriptionStatus === 'trialing';
         localStorage.setItem(VIP_STATUS_KEY, 'vip');
         setMeta({

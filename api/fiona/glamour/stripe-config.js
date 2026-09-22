@@ -28,7 +28,9 @@ module.exports = async function handler(req, res) {
     publishableKey: process.env.STRIPE_PUBLISHABLE_KEY
       || process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
       || null,
-    monthlyPriceId: process.env.STRIPE_MONTHLY_PRICE_ID
+    weeklyPriceId: process.env.STRIPE_WEEKLY_PRICE_ID
+      || process.env.NEXT_PUBLIC_STRIPE_WEEKLY_PRICE_ID
+      || process.env.STRIPE_MONTHLY_PRICE_ID
       || process.env.NEXT_PUBLIC_STRIPE_MONTHLY_PRICE_ID
       || 'price_1UHfCx8MURYuyfuQfX02FkDg',
     annualPriceId: process.env.STRIPE_ANNUAL_PRICE_ID

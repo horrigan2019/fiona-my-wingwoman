@@ -102,20 +102,22 @@ async function handleStripeCheckout(req, res, body) {
     return res.end(JSON.stringify({ error: 'Missing or invalid priceId' }));
   }
 
-  const monthlyId = process.env.STRIPE_MONTHLY_PRICE_ID
+  const weeklyId = process.env.STRIPE_WEEKLY_PRICE_ID
+    || process.env.NEXT_PUBLIC_STRIPE_WEEKLY_PRICE_ID
+    || process.env.STRIPE_MONTHLY_PRICE_ID
     || process.env.NEXT_PUBLIC_STRIPE_MONTHLY_PRICE_ID
     || 'price_1UHfCx8MURYuyfuQfX02FkDg';
   const annualId = process.env.STRIPE_ANNUAL_PRICE_ID
     || process.env.NEXT_PUBLIC_STRIPE_ANNUAL_PRICE_ID
     || 'price_1UHfGR8MURYuyfuQroMfVfKq';
 
-  if (priceId !== monthlyId && priceId !== annualId) {
+  if (priceId !== weeklyId && priceId !== annualId) {
     res.statusCode = 400;
     res.setHeader('Content-Type', 'application/json');
     return res.end(JSON.stringify({ error: 'Unrecognized priceId for Fiona VIP plans' }));
   }
 
-  const plan = priceId === monthlyId ? 'monthly' : 'annual';
+  const plan = priceId === weeklyId ? 'weekly' : 'annual';
   const origin = siteOrigin(req);
 
   const { ok, status, json } = await stripeForm(secret, 'checkout/sessions', {
@@ -338,7 +340,9 @@ module.exports = async function handler(req, res) {
       route: '/api/fiona/glamour/style',
       hasAnthropicKey: Boolean(process.env.ANTHROPIC_API_KEY),
       hasStripeKey: Boolean(process.env.STRIPE_SECRET_KEY),
-      monthlyPriceId: process.env.STRIPE_MONTHLY_PRICE_ID
+      weeklyPriceId: process.env.STRIPE_WEEKLY_PRICE_ID
+        || process.env.NEXT_PUBLIC_STRIPE_WEEKLY_PRICE_ID
+        || process.env.STRIPE_MONTHLY_PRICE_ID
         || process.env.NEXT_PUBLIC_STRIPE_MONTHLY_PRICE_ID
         || 'price_1UHfCx8MURYuyfuQfX02FkDg',
       annualPriceId: process.env.STRIPE_ANNUAL_PRICE_ID
