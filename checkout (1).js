@@ -1,11 +1,11 @@
 /**
  * Fiona VIP — create Stripe Checkout Session
  * POST /api/fiona/stripe/checkout
- * Body: { plan: "monthly" | "annual" }
+ * Body: { plan: "weekly" | "annual" }
  *
  * Env (Vercel):
  *   STRIPE_SECRET_KEY
- *   STRIPE_MONTHLY_PRICE_ID (optional fallback below)
+ *   STRIPE_WEEKLY_PRICE_ID (optional fallback below)
  *   STRIPE_ANNUAL_PRICE_ID (optional fallback below)
  */
 
@@ -101,9 +101,9 @@ module.exports = async function handler(req, res) {
     return res.end(JSON.stringify({ error: 'Invalid JSON body' }));
   }
 
-  const plan = body && body.plan === 'monthly' ? 'monthly' : 'annual';
-  const priceId = plan === 'monthly'
-    ? (process.env.STRIPE_MONTHLY_PRICE_ID || process.env.NEXT_PUBLIC_STRIPE_MONTHLY_PRICE_ID || 'price_1UHfCx8MURYuyfuQfX02FkDg')
+  const plan = body && (body.plan === 'weekly' || body.plan === 'monthly') ? 'weekly' : 'annual';
+  const priceId = plan === 'weekly'
+    ? (process.env.STRIPE_WEEKLY_PRICE_ID || process.env.NEXT_PUBLIC_STRIPE_WEEKLY_PRICE_ID || process.env.STRIPE_MONTHLY_PRICE_ID || process.env.NEXT_PUBLIC_STRIPE_MONTHLY_PRICE_ID || 'price_1UHfCx8MURYuyfuQfX02FkDg')
     : (process.env.STRIPE_ANNUAL_PRICE_ID || process.env.NEXT_PUBLIC_STRIPE_ANNUAL_PRICE_ID || 'price_1UHfGR8MURYuyfuQroMfVfKq');
 
   const origin = siteOrigin(req);
