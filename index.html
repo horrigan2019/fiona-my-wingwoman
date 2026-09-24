@@ -33,6 +33,7 @@
   
   <!-- Lucide Icons CDN -->
   <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="/beta-pass.js"></script>
 
   <script>
     tailwind.config = {
@@ -1494,6 +1495,17 @@
         <a href="/pricing" class="block w-full text-center text-xs font-semibold text-spa-plum dark:text-pink-200 hover:underline underline-offset-2 py-1">
           Compare plans on Pricing
         </a>
+        <button type="button" id="beta-pass-toggle" onclick="toggleBetaPass()" class="w-full text-center text-xs font-semibold text-spa-plum dark:text-pink-200 hover:underline underline-offset-2 py-1">
+          Have a Beta Pass?
+        </button>
+        <div id="beta-pass-panel" class="hidden space-y-2">
+          <label for="beta-pass-input" class="block text-[11px] font-semibold text-gray-600 dark:text-gray-300">Beta passphrase</label>
+          <input id="beta-pass-input" type="password" autocomplete="off" spellcheck="false" placeholder="Enter your Beta Pass" class="w-full rounded-xl border border-pink-200 dark:border-purple-800 bg-white dark:bg-spa-darkcard px-3 py-2.5 text-sm text-gray-900 dark:text-white">
+          <button type="button" onclick="submitBetaPass()" class="w-full py-2.5 rounded-xl border border-spa-plum text-spa-plum dark:text-pink-200 text-xs font-bold hover:bg-pink-50 dark:hover:bg-purple-950/40 transition">
+            Unlock with Beta Pass
+          </button>
+          <p id="beta-pass-msg" class="text-center text-[11px] text-gray-500 min-h-[1rem]" aria-live="polite"></p>
+        </div>
         <button type="button" onclick="continueFreeSuite()" class="w-full text-center text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-spa-plum dark:hover:text-pink-200 py-1.5 transition">
           Continue with the Free Suite (Basic Access)
         </button>
@@ -5150,10 +5162,13 @@
     const BETA_INVITE_CODE = 'wingwoman-beta';
     let selectedVipPlan = 'annual';
 
-    /** Live entitlement mirror — paid Annual/Weekly VIP only (not free trial). */
+    /** Live entitlement mirror — paid VIP, or a beta tester (no Stripe). */
     const user = {
       get isSubscribed() {
-        return getVipStatus() === 'vip';
+        return getVipStatus() === 'vip' || isBetaTester();
+      },
+      get is_beta_tester() {
+        return isBetaTester();
       }
     };
 
@@ -5196,7 +5211,15 @@
       return next;
     }
 
+    function isBetaTester() {
+      if (window.FionaBeta && typeof window.FionaBeta.isBetaTester === 'function') {
+        return window.FionaBeta.isBetaTester();
+      }
+      try { return localStorage.getItem('is_beta_tester') === 'true'; } catch (_) { return false; }
+    }
+
     function hasVipAccess() {
+      if (isBetaTester()) return true;
       const s = getVipStatus();
       return s === 'trial' || s === 'vip';
     }
@@ -5521,16 +5544,22 @@
       showToast('VIP membership locked in. Penthouse treatment engaged.');
     }
 
-    /** Unlock full VIP for beta testers via ?beta=wingwoman-beta — no card needed. */
+    /** Unlock full VIP for beta testers — no Stripe checkout. Sets is_beta_tester. */
     function unlockBetaVipAccess() {
-      localStorage.setItem(VIP_STATUS_KEY, 'vip');
-      setVipMeta({
-        plan: 'beta',
-        beta: true,
-        converted: true,
-        convertedAt: new Date().toISOString(),
-        betaUnlockedAt: new Date().toISOString()
-      });
+      if (window.FionaBeta && typeof window.FionaBeta.unlockBetaTester === 'function') {
+        window.FionaBeta.unlockBetaTester();
+      } else {
+        localStorage.setItem('is_beta_tester', 'true');
+        localStorage.setItem(VIP_STATUS_KEY, 'vip');
+        setVipMeta({
+          plan: 'beta',
+          beta: true,
+          is_beta_tester: true,
+          converted: true,
+          convertedAt: new Date().toISOString(),
+          betaUnlockedAt: new Date().toISOString()
+        });
+      }
       updateVipStatusPill();
     }
 
@@ -5541,25 +5570,57 @@
       } catch (_) {
         return false;
       }
-      const code = (params.get('beta') || params.get('invite') || '').trim().toLowerCase();
-      if (!code) return false;
-      if (code !== BETA_INVITE_CODE.toLowerCase()) {
-        showToast('That beta invite code isn’t recognized. Double-check the link from Fiona.');
+      const attempted = window.FionaBeta
+        ? window.FionaBeta.queryAttempted(params)
+        : !!(params.get('beta') || params.get('tester') || params.get('invite'));
+      if (!attempted) return false;
+      const granted = window.FionaBeta
+        ? window.FionaBeta.queryGrantsBeta(params)
+        : ((params.get('beta') || '').trim().toLowerCase() === 'true'
+            || (params.get('tester') || '').trim().toLowerCase() === 'vip'
+            || (params.get('beta') || params.get('invite') || '').trim().toLowerCase() === BETA_INVITE_CODE.toLowerCase());
+      if (!granted) {
+        showToast('That beta invite isn’t recognized. Use ?beta=true or ?tester=vip.');
         return false;
       }
-      const already = hasVipAccess() && getVipMeta().beta === true;
+      const already = isBetaTester();
       unlockBetaVipAccess();
-      // Clean the invite code out of the URL so it isn’t reshared from the address bar accidentally
       try {
         const url = new URL(window.location.href);
         url.searchParams.delete('beta');
+        url.searchParams.delete('tester');
         url.searchParams.delete('invite');
         window.history.replaceState({}, '', url.pathname + url.search + url.hash);
       } catch (_) {}
       showToast(already
         ? 'Beta access is already on this device — full VIP unlocked.'
-        : 'Beta access unlocked — full VIP, no card needed. Go play.');
+        : 'Beta access unlocked — full VIP, no card needed.');
       return true;
+    }
+
+    function toggleBetaPass() {
+      const panel = document.getElementById('beta-pass-panel');
+      if (!panel) return;
+      panel.classList.toggle('hidden');
+      if (!panel.classList.contains('hidden')) {
+        document.getElementById('beta-pass-input')?.focus();
+      }
+    }
+
+    function submitBetaPass() {
+      const input = document.getElementById('beta-pass-input');
+      const msg = document.getElementById('beta-pass-msg');
+      const raw = input ? input.value : '';
+      const ok = window.FionaBeta
+        ? window.FionaBeta.passphraseGrantsBeta(raw)
+        : ['WINGWOMAN2026', 'FIONAVIP'].includes(String(raw || '').trim().toUpperCase().replace(/[\s-]+/g, ''));
+      if (!ok) {
+        if (msg) msg.textContent = 'That passphrase isn’t recognized.';
+        return;
+      }
+      unlockBetaVipAccess();
+      closeModal('modal-vip');
+      showToast('Beta Pass accepted — full VIP unlocked, no card needed.');
     }
 
     /* Modal System */

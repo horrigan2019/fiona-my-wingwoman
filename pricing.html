@@ -98,6 +98,17 @@
           Secure checkout by Stripe. Or
           <a href="/" class="font-semibold text-spa-plum hover:underline underline-offset-2">continue with the Free Suite</a>.
         </p>
+        <button type="button" id="beta-pass-toggle" class="w-full text-center text-xs font-semibold text-spa-plum hover:underline underline-offset-2 py-1">
+          Have a Beta Pass?
+        </button>
+        <div id="beta-pass-panel" class="hidden space-y-2">
+          <label for="beta-pass-input" class="block text-[11px] font-semibold text-gray-600">Beta passphrase</label>
+          <input id="beta-pass-input" type="password" autocomplete="off" spellcheck="false" placeholder="Enter your Beta Pass" class="w-full rounded-xl border border-pink-200 bg-white px-3 py-2.5 text-sm text-gray-900">
+          <button type="button" id="beta-pass-submit" class="w-full py-2.5 rounded-xl border border-spa-plum text-spa-plum text-xs font-bold hover:bg-pink-50 transition">
+            Unlock with Beta Pass
+          </button>
+          <p id="beta-pass-msg" class="text-center text-[11px] text-gray-500 min-h-[1rem]" aria-live="polite"></p>
+        </div>
       </div>
     </main>
 
@@ -108,6 +119,7 @@
     </footer>
   </div>
 
+  <script src="/beta-pass.js"></script>
   <script type="module">
     document.getElementById('y').textContent = String(new Date().getFullYear());
 
@@ -194,6 +206,22 @@
         btn.innerText = previous;
       }
     }
+
+    document.getElementById('beta-pass-toggle')?.addEventListener('click', () => {
+      document.getElementById('beta-pass-panel')?.classList.toggle('hidden');
+      document.getElementById('beta-pass-input')?.focus();
+    });
+    document.getElementById('beta-pass-submit')?.addEventListener('click', () => {
+      const raw = document.getElementById('beta-pass-input')?.value || '';
+      const msg = document.getElementById('beta-pass-msg');
+      const ok = window.FionaBeta && window.FionaBeta.passphraseGrantsBeta(raw);
+      if (!ok) {
+        if (msg) msg.textContent = 'That passphrase isn’t recognized.';
+        return;
+      }
+      window.FionaBeta.unlockBetaTester();
+      window.location.href = '/';
+    });
 
     document.getElementById('start-trial-btn').addEventListener('click', startCheckout);
     paintSelection();
