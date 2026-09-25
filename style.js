@@ -18,15 +18,16 @@ Philosophy: It's a marathon, not a sprint. Motto: "It's a marathon, not a sprint
 Celebrate 1% micro-wins. Preserve EQ rules: count wins, unruffled feathers, zero-penalty rest days.
 
 CRITICAL STYLING RULES:
-- Deliver ONE complete Glamour Suite look: outfit + hair + makeup together. Never treat wardrobe and beauty as separate products.
+- Deliver TWO distinct Wardrobe options (Option A and Option B) AND TWO distinct Hair & Makeup beauty options (Option A and Option B). The user picks one wardrobe + one beauty look; Vision combines those picks. Do not collapse into a single bundled look.
+- Wardrobe options cover outfit only (title, desc, pieces, palette, neckline). Beauty options cover hair + makeup only (hairMove, facePalette, hairStyleId). Both pairs must feel like real choices — not tiny tweaks of the same idea.
 - Every recommendation MUST be distinct and customized to THIS user's uploaded photo(s) and selected filters (occasion, vibe, silhouette, color harmony / undertone, and morning energy when provided).
 - Always include at least one sincere, specific compliment about her presence, coloring, figure, energy, or taste — grounded in the photo or what she wrote (never generic "you're beautiful"). Compliments celebrate her body and presence; never euphemize or apologize for curves.
-- When morning energy is logged, let it drive the look: fumes → easy elevated polish she can throw on fast (wrap that cinches, soft V, flats OK) — still flattering, never frumpy; conquer → sharp figure-flattering tailoring and bold statements (not boxy corporate armor); on the move → polished athleisure and movement-friendly layers that still show shape.
-- If she says she feels frumpy / stuck / "nothing to wear," start with empathy + a compliment, then prescribe a confidence-lifting full look (outfit + hair + makeup) she can actually put on today — glamorous and hot-on-her, not a cover-up.
+- When morning energy is logged, let it drive BOTH wardrobe options: fumes → easy elevated polish she can throw on fast (wrap that cinches, soft V, flats OK) — still flattering, never frumpy; conquer → sharp figure-flattering tailoring and bold statements (not boxy corporate armor); on the move → polished athleisure and movement-friendly layers that still show shape.
+- If she says she feels frumpy / stuck / "nothing to wear," start with empathy + a compliment, then prescribe confidence-lifting wardrobe + beauty options she can actually put on today — glamorous and hot-on-her, not a cover-up.
 - NEVER return a generic default like "Tailored wide-leg trousers in rich plum with a tucked silk cami" unless that literally matches what you see and the filters demand it.
 - Reference visible garments, colors, body proportions, lighting, or accessories from the photo when images are provided. When closet or wardrobe photos are mixed in with a selfie, prefer pieces she already owns and restyle them flatteringly.
 - PHOTO ANALYSIS (when photos are attached): You MUST visually assess the woman's body silhouette/figure and skin-tone / undertone from the images. Prefer what you see over manual filter chips when filters say "Auto from photos" or when inferFromPhotos is true. Be kind, specific, and never body-shame.
-- Vary titles, fabrics, cues, and beauty notes across requests — creativity is required.
+- Vary titles, fabrics, cues, and beauty notes across requests — creativity is required. Option A and Option B must clearly diverge (different silhouette strategy, fabrics, or color story for wardrobe; different hair finish + lip/cheek story for beauty).
 - Return ONLY valid JSON matching the schema in the user message. No markdown fences.
 
 FLATTERING FIT RULES (NON-NEGOTIABLE — WINGWOMAN ENERGY):
@@ -658,6 +659,8 @@ async function handleLookPhoto(req, res, body) {
       ok: true,
       provider: result.provider,
       hairStyleId: resolveHairStyleOption(look, hairStyleId).id,
+      wardrobeOptionId: body.wardrobeOptionId || look.selectedWardrobeId || look.wardrobeOptionId || null,
+      beautyOptionId: body.beautyOptionId || look.selectedBeautyId || look.beautyOptionId || null,
       image: {
         mimeType: result.mimeType,
         dataUrl: `data:${result.mimeType};base64,${result.base64}`
@@ -748,7 +751,7 @@ Return JSON only:
   } else {
     content.push({
       type: 'text',
-      text: `Create a complete Glamour Suite look for THIS user: outfit + hair + makeup in one recommendation (not separate products).
+      text: `Create Glamour Suite CHOICES for THIS user: TWO distinct Wardrobe options AND TWO distinct Hair & Makeup options. She will pick one of each; Vision combines her picks.
 
 Filters:
 - Today's weekday (her local calendar): ${localWeekday}
@@ -765,16 +768,16 @@ Filters:
 
 ${detectBlock}
 
-If morning energy is provided, weight ease vs polish — but ALWAYS stay flattering (fumes = easy elevated that still cinches/defines; conquer = sharp figure-flattering, not boxy armor; move = polished athleisure with shape).
-If photos are present, ground the look in her actual figure, coloring, and what she is wearing in frame. If multiple photos include closet/wardrobe shots, pull from pieces she owns when possible and restyle them to flatter.
-Hair advice (hairMove) MUST work with her CURRENT hair length and cut visible in the photo. Short or cropped hair stays short — recommend texture, product, part, or soft polish for HER cut. Never invent long hair, extensions, mid-length waves, or length-requiring buns/updos unless she explicitly asked for a hair change.
-Also set suggestedHairStyleId to ONE of these Vision-safe polish options (still her length/color family): "keep-mine" | "soft-waves" | "sleek-side-part" | "polished-bob" | "subtle-volume" | "tousled-texture". Prefer a flattering alternative when her current finish looks flat/frumpy; use "keep-mine" when her hair already looks intentional. Vision will only apply the user's final pick — your suggestion is advice, not a forced restyle.
-If no photos, still invent a fresh look from the filters — do not reuse a canned plum-cami-blazer or navy-wrap-plus-charcoal-blazer default.
-If she feels frumpy or needs "what to wear" help, lead with empathy + a specific compliment that celebrates her body, then a glamorous confidence-lifting full look — never a cover-up.
+If morning energy is provided, weight ease vs polish on BOTH wardrobe options — but ALWAYS stay flattering (fumes = easy elevated that still cinches/defines; conquer = sharp figure-flattering, not boxy armor; move = polished athleisure with shape).
+If photos are present, ground both wardrobe options in her actual figure, coloring, and what she is wearing in frame. If multiple photos include closet/wardrobe shots, pull from pieces she owns when possible and restyle them to flatter.
+Hair advice in EVERY beauty option MUST work with her CURRENT hair length and cut visible in the photo. Short or cropped hair stays short — recommend texture, product, part, or soft polish for HER cut. Never invent long hair, extensions, mid-length waves, or length-requiring buns/updos unless she explicitly asked for a hair change.
+For each beauty option set hairStyleId to ONE Vision-safe polish id (still her length/color family): "keep-mine" | "soft-waves" | "sleek-side-part" | "polished-bob" | "subtle-volume" | "tousled-texture". The two beauty options MUST use different hairStyleId values when possible (e.g. one keep-mine / soft polish, one more intentional restyle). Prefer flattering alternatives when her current finish looks flat/frumpy.
+If no photos, still invent fresh options from the filters — do not reuse a canned plum-cami-blazer or navy-wrap-plus-charcoal-blazer default.
+If she feels frumpy or needs "what to wear" help, lead with empathy + a specific compliment that celebrates her body, then glamorous confidence-lifting options — never a cover-up.
 Include field "compliment" with one sincere compliment grounded in her photo or vibe — warm, specific, body-positive (curves as assets).
 If quote/note/desc mentions a weekday, it MUST say ${localWeekday} (today) — never invent a different day.
 
-Style the outfit for the DETECTED silhouette and DETECTED harmony when photos exist.
+Style BOTH wardrobe options for the DETECTED silhouette and DETECTED harmony when photos exist.
 SILHOUETTE FIT GUIDE:
 - Curvy / Soft Silhouette: celebrate curves — wrap that cinches, soft V/wrap neckline, A-line skim, intentional waist, vertical lines. Ban tents, heavy blazer armor, matronly dark columns.
 - Hourglass / Defined: keep waist the star — tuck, soft belt, or wrap; structure at shoulder without boxing her in.
@@ -784,39 +787,86 @@ SILHOUETTE FIT GUIDE:
 Match formality to occasion/vibe. Casual / selfie / everyday ≠ boardroom blazer stack.
 facePalette.lip MUST be a wearable lipstick (rose/berry/mauve/nude/coral/plum/red) — NEVER green, sage, or olive lipstick. Clothing palette may include olive/sage for garments only.
 
+Wardrobe Option A and Option B must be CLEARLY different (e.g. dress vs separates, or different color stories / necklines) while both flattering. Beauty Option A and Option B must be CLEARLY different (different hair finish + lip/cheek story).
+
 Return JSON only:
 {
   "detectedSilhouette": "Hourglass / Defined|Petite|Curvy / Soft Silhouette|Tall / Long Lines|Athletic / Straight",
   "detectedHarmony": "Warm & Golden|Cool & Rosy|Deep & Rich|Olive / Neutral",
   "detectedUndertone": "Cool|Warm|Neutral|Deep Olive",
   "detectionNotes": "one kind sentence about figure + skin tone observed",
-  "title": "Look title (unique)",
-  "desc": "2-4 sentences describing the full look (outfit + hair + makeup), tailored to detected figure/skin tone and photo",
   "compliment": "One specific compliment about her",
   "quote": "One Fiona-voice line",
-  "neckline": "short neckline note",
-  "pieces": [
-    { "name": "Piece name", "fabric": "Fabric — texture note", "cue": "One-line styling cue", "hex": "#HEX", "colorLabel": "Color name" },
-    { "name": "...", "fabric": "...", "cue": "...", "hex": "#HEX", "colorLabel": "..." },
-    { "name": "...", "fabric": "...", "cue": "...", "hex": "#HEX", "colorLabel": "..." }
+  "wardrobeOptions": [
+    {
+      "id": "A",
+      "title": "Wardrobe option A title (unique)",
+      "desc": "2-4 sentences focused on the OUTFIT (not hair/makeup), tailored to detected figure/skin tone and photo",
+      "neckline": "short neckline note",
+      "pieces": [
+        { "name": "Piece name", "fabric": "Fabric — texture note", "cue": "One-line styling cue", "hex": "#HEX", "colorLabel": "Color name" },
+        { "name": "...", "fabric": "...", "cue": "...", "hex": "#HEX", "colorLabel": "..." },
+        { "name": "...", "fabric": "...", "cue": "...", "hex": "#HEX", "colorLabel": "..." }
+      ],
+      "palette": [
+        { "hex": "#HEX", "label": "Name" },
+        { "hex": "#HEX", "label": "Name" },
+        { "hex": "#HEX", "label": "Name" },
+        { "hex": "#HEX", "label": "Name" }
+      ]
+    },
+    {
+      "id": "B",
+      "title": "Wardrobe option B title (clearly different from A)",
+      "desc": "2-4 sentences focused on the OUTFIT",
+      "neckline": "short neckline note",
+      "pieces": [
+        { "name": "Piece name", "fabric": "Fabric — texture note", "cue": "One-line styling cue", "hex": "#HEX", "colorLabel": "Color name" },
+        { "name": "...", "fabric": "...", "cue": "...", "hex": "#HEX", "colorLabel": "..." },
+        { "name": "...", "fabric": "...", "cue": "...", "hex": "#HEX", "colorLabel": "..." }
+      ],
+      "palette": [
+        { "hex": "#HEX", "label": "Name" },
+        { "hex": "#HEX", "label": "Name" },
+        { "hex": "#HEX", "label": "Name" },
+        { "hex": "#HEX", "label": "Name" }
+      ]
+    }
   ],
-  "palette": [
-    { "hex": "#HEX", "label": "Name" },
-    { "hex": "#HEX", "label": "Name" },
-    { "hex": "#HEX", "label": "Name" },
-    { "hex": "#HEX", "label": "Name" }
-  ],
-  "hairMove": {
-    "title": "Hair move title (compatible with her CURRENT length/cut)",
-    "body": "Advice based on her actual hair length in the photo + outfit neckline — polish her existing cut; never recommend length she does not have",
-    "cues": ["Volume: ...", "Part: ...", "Texture: ..."]
-  },
-  "suggestedHairStyleId": "keep-mine|soft-waves|sleek-side-part|polished-bob|subtle-volume|tousled-texture",
-  "facePalette": {
-    "lip": ["#HEX", "Name"],
-    "cheek": ["#HEX", "Name"],
-    "note": "Undertone-matching beauty note"
-  }
+  "beautyOptions": [
+    {
+      "id": "A",
+      "title": "Hair & makeup option A title",
+      "summary": "1-2 sentences on this beauty look",
+      "hairMove": {
+        "title": "Hair move title (compatible with her CURRENT length/cut)",
+        "body": "Advice based on her actual hair length in the photo — polish her existing cut; never recommend length she does not have",
+        "cues": ["Volume: ...", "Part: ...", "Texture: ..."]
+      },
+      "hairStyleId": "keep-mine|soft-waves|sleek-side-part|polished-bob|subtle-volume|tousled-texture",
+      "facePalette": {
+        "lip": ["#HEX", "Name"],
+        "cheek": ["#HEX", "Name"],
+        "note": "Undertone-matching beauty note"
+      }
+    },
+    {
+      "id": "B",
+      "title": "Hair & makeup option B title (clearly different from A)",
+      "summary": "1-2 sentences on this beauty look",
+      "hairMove": {
+        "title": "Hair move title",
+        "body": "Different polish direction than option A — still her real length/cut family",
+        "cues": ["Volume: ...", "Part: ...", "Texture: ..."]
+      },
+      "hairStyleId": "keep-mine|soft-waves|sleek-side-part|polished-bob|subtle-volume|tousled-texture",
+      "facePalette": {
+        "lip": ["#HEX", "Name"],
+        "cheek": ["#HEX", "Name"],
+        "note": "Undertone-matching beauty note"
+      }
+    }
+  ]
 }`
     });
   }
@@ -829,9 +879,34 @@ function extractJson(text) {
   const fence = raw.match(/```(?:json)?\s*([\s\S]*?)```/i);
   const candidate = fence ? fence[1].trim() : raw;
   const start = candidate.indexOf('{');
-  const end = candidate.lastIndexOf('}');
-  if (start === -1 || end === -1) throw new Error('No JSON object in model response');
-  return JSON.parse(candidate.slice(start, end + 1));
+  if (start === -1) throw new Error('No JSON object in model response');
+  const slice = candidate.slice(start);
+  try {
+    const end = slice.lastIndexOf('}');
+    if (end === -1) throw new Error('No closing brace');
+    return JSON.parse(slice.slice(0, end + 1));
+  } catch (firstErr) {
+    // Truncated dual-option payloads (hit max_tokens) — try to close open braces/brackets.
+    let repaired = slice.replace(/,\s*$/, '');
+    const opens = (repaired.match(/\{/g) || []).length;
+    const closes = (repaired.match(/\}/g) || []).length;
+    const openArr = (repaired.match(/\[/g) || []).length;
+    const closeArr = (repaired.match(/\]/g) || []).length;
+    // Trim a trailing incomplete key/value fragment after the last complete comma or brace.
+    repaired = repaired.replace(/,\s*"[^"]*":\s*("[^"]*)?$/g, '');
+    repaired = repaired.replace(/,\s*\{[^}]*$/g, '');
+    repaired = repaired.replace(/,\s*"[^"]*$/g, '');
+    repaired = repaired.replace(/,\s*$/, '');
+    let arrFix = Math.max(0, openArr - closeArr);
+    let objFix = Math.max(0, opens - closes);
+    while (arrFix--) repaired += ']';
+    while (objFix--) repaired += '}';
+    try {
+      return JSON.parse(repaired);
+    } catch (_) {
+      throw firstErr;
+    }
+  }
 }
 
 function hexToRgb(hex) {
@@ -849,6 +924,207 @@ function isWearableLipColor(hex, label) {
   if (!rgb) return true;
   if (rgb.g > rgb.r + 12 && rgb.g > rgb.b + 8) return false;
   return true;
+}
+
+function sanitizeFacePaletteObj(facePalette, lipFallback, weekday) {
+  if (!facePalette || typeof facePalette !== 'object') {
+    return {
+      lip: lipFallback,
+      cheek: ['#E07A5F', 'Rose Radiance'],
+      note: 'Wearable everyday color near the face.'
+    };
+  }
+  const next = { ...facePalette };
+  if (Array.isArray(next.lip) && !isWearableLipColor(next.lip[0], next.lip[1])) {
+    next.lip = lipFallback;
+    next.note = ((next.note || '') + ' Wearable lip only — never fashion greens.').trim();
+  }
+  if (typeof next.note === 'string') next.note = alignTextToWeekday(next.note, weekday);
+  return next;
+}
+
+function sanitizeHairMoveObj(hairMove, weekday) {
+  if (!hairMove || typeof hairMove !== 'object') {
+    return {
+      title: 'Soft polish on your cut',
+      body: 'Keep your real length and add soft shine — face-framing polish only.',
+      cues: ['Volume: soft crown', 'Part: natural', 'Texture: flexible hold']
+    };
+  }
+  const next = { ...hairMove };
+  if (typeof next.body === 'string') next.body = alignTextToWeekday(next.body, weekday);
+  if (typeof next.title === 'string') next.title = alignTextToWeekday(next.title, weekday);
+  if (!Array.isArray(next.cues)) next.cues = ['Volume: soft crown', 'Part: natural', 'Texture: flexible hold'];
+  return next;
+}
+
+function normalizeOptionId(raw, fallback) {
+  const s = String(raw || '').trim().toUpperCase();
+  if (s === 'A' || s === 'OPTION A' || s === '1') return 'A';
+  if (s === 'B' || s === 'OPTION B' || s === '2') return 'B';
+  return fallback;
+}
+
+function flattenSelectedGlamourLook(data, wardrobeOpt, beautyOpt) {
+  if (!data || typeof data !== 'object') return data;
+  const w = wardrobeOpt || {};
+  const b = beautyOpt || {};
+  data.title = w.title || data.title || 'Curated look';
+  data.desc = w.desc || data.desc || '';
+  data.neckline = w.neckline || data.neckline || '';
+  data.pieces = Array.isArray(w.pieces) ? w.pieces : data.pieces;
+  data.palette = Array.isArray(w.palette) ? w.palette : data.palette;
+  data.hairMove = b.hairMove || data.hairMove;
+  data.facePalette = b.facePalette || data.facePalette;
+  data.suggestedHairStyleId = b.hairStyleId || data.suggestedHairStyleId || 'keep-mine';
+  data.selectedWardrobeId = w.id || 'A';
+  data.selectedBeautyId = b.id || 'A';
+  data.beautyTitle = b.title || '';
+  data.beautySummary = b.summary || '';
+  return data;
+}
+
+function synthesizeWardrobeB(optA) {
+  const a = optA || {};
+  const baseTitle = String(a.title || 'Look').replace(/\s*[—-]\s*Soft Alternate\s*$/i, '').trim() || 'Look';
+  return {
+    id: 'B',
+    title: `${baseTitle} — Soft Alternate`,
+    desc: (a.desc || 'A flattering alternate wardrobe direction.')
+      + ' Alternate styling: swap the hero layer for a softer open finish and keep the waist intentional — still celebrate her curves, never tent.',
+    neckline: a.neckline || 'soft V / wrap',
+    pieces: Array.isArray(a.pieces) ? a.pieces.map((p) => (p && typeof p === 'object' ? { ...p } : p)) : [],
+    palette: Array.isArray(a.palette) ? a.palette.map((p) => (p && typeof p === 'object' ? { ...p } : p)) : []
+  };
+}
+
+function synthesizeBeautyPair(data, lipFallback, weekday, allowedHair) {
+  const hairA = String((data && data.suggestedHairStyleId) || 'keep-mine').trim().toLowerCase();
+  const altHair = hairA === 'soft-waves' ? 'sleek-side-part' : 'soft-waves';
+  const faceA = sanitizeFacePaletteObj(data && data.facePalette, lipFallback, weekday);
+  const moveA = sanitizeHairMoveObj(data && data.hairMove, weekday);
+  return [
+    {
+      id: 'A',
+      title: (moveA && moveA.title) || 'Beauty Option A',
+      summary: (moveA && moveA.body) || 'Polished hair and wearable makeup.',
+      hairMove: moveA,
+      facePalette: faceA,
+      hairStyleId: allowedHair.has(hairA) ? hairA : 'keep-mine'
+    },
+    {
+      id: 'B',
+      title: 'Soft Glow Alternate',
+      summary: 'A second beauty direction with a different hair polish and lip story — still her real length.',
+      hairMove: {
+        title: altHair === 'soft-waves' ? 'Soft wave polish' : 'Sleek side polish',
+        body: 'Same length family as her photo, different finish for a second mood.',
+        cues: ['Volume: intentional', 'Part: deliberate', 'Texture: polished']
+      },
+      facePalette: {
+        lip: lipFallback,
+        cheek: (faceA && faceA.cheek) || ['#E07A5F', 'Rose Radiance'],
+        note: 'Alternate wearable lip — still rose/berry/nude family.'
+      },
+      hairStyleId: altHair
+    }
+  ];
+}
+
+function ensureDualGlamourOptions(data, lipFallback, weekday) {
+  if (!data || typeof data !== 'object') return data;
+  const allowedHair = new Set(FIONA_HAIRSTYLE_OPTIONS.map((o) => o.id));
+
+  let wardrobeOptions = Array.isArray(data.wardrobeOptions) ? data.wardrobeOptions.filter(Boolean) : [];
+  let beautyOptions = Array.isArray(data.beautyOptions) ? data.beautyOptions.filter(Boolean) : [];
+
+  // Legacy single-look OR truncated dual (only one wardrobe) → always end with A + B.
+  if (wardrobeOptions.length === 0 && data.title && Array.isArray(data.pieces)) {
+    wardrobeOptions = [{
+      id: 'A',
+      title: data.title,
+      desc: data.desc || '',
+      neckline: data.neckline || '',
+      pieces: data.pieces,
+      palette: Array.isArray(data.palette) ? data.palette : []
+    }];
+  }
+  if (wardrobeOptions.length === 1) {
+    wardrobeOptions = [wardrobeOptions[0], synthesizeWardrobeB(wardrobeOptions[0])];
+  }
+  if (wardrobeOptions.length === 0) {
+    // Last-resort placeholders so the first Style click never returns zero wardrobe picks.
+    wardrobeOptions = [
+      {
+        id: 'A',
+        title: data.title || 'Cinched Confidence Wrap',
+        desc: data.desc || 'A waist-defining wrap and clean vertical line — flattering, never tented.',
+        neckline: data.neckline || 'soft V / wrap',
+        pieces: Array.isArray(data.pieces) ? data.pieces : [],
+        palette: Array.isArray(data.palette) ? data.palette : []
+      },
+      {
+        id: 'B',
+        title: 'Soft Alternate Separates',
+        desc: 'Second wardrobe direction with an intentional waist and softer open layer — still celebrate her shape.',
+        neckline: 'soft scoop',
+        pieces: Array.isArray(data.pieces) ? data.pieces : [],
+        palette: Array.isArray(data.palette) ? data.palette : []
+      }
+    ];
+  }
+
+  if (beautyOptions.length === 0) {
+    beautyOptions = synthesizeBeautyPair(data, lipFallback, weekday, allowedHair);
+  } else if (beautyOptions.length === 1) {
+    const pair = synthesizeBeautyPair({
+      ...data,
+      hairMove: beautyOptions[0].hairMove || data.hairMove,
+      facePalette: beautyOptions[0].facePalette || data.facePalette,
+      suggestedHairStyleId: beautyOptions[0].hairStyleId || data.suggestedHairStyleId
+    }, lipFallback, weekday, allowedHair);
+    beautyOptions = [beautyOptions[0], pair[1]];
+  }
+
+  // Ensure exactly two labeled options.
+  wardrobeOptions = wardrobeOptions.slice(0, 2).map((opt, i) => {
+    const id = i === 0 ? 'A' : 'B';
+    const next = { ...(opt || {}), id };
+    for (const key of ['title', 'desc', 'neckline']) {
+      if (typeof next[key] === 'string') next[key] = alignTextToWeekday(next[key], weekday);
+    }
+    if (!Array.isArray(next.pieces)) next.pieces = data.pieces || [];
+    if (!Array.isArray(next.palette)) next.palette = data.palette || [];
+    if (!next.title) next.title = id === 'A' ? 'Wardrobe Option A' : 'Wardrobe Option B';
+    return next;
+  });
+
+  const usedHair = new Set();
+  beautyOptions = beautyOptions.slice(0, 2).map((opt, i) => {
+    const id = i === 0 ? 'A' : 'B';
+    const next = { ...(opt || {}), id };
+    if (typeof next.title === 'string') next.title = alignTextToWeekday(next.title, weekday);
+    if (typeof next.summary === 'string') next.summary = alignTextToWeekday(next.summary, weekday);
+    next.hairMove = sanitizeHairMoveObj(next.hairMove, weekday);
+    next.facePalette = sanitizeFacePaletteObj(next.facePalette, lipFallback, weekday);
+    let hairId = String(next.hairStyleId || next.suggestedHairStyleId || '').trim().toLowerCase();
+    if (!allowedHair.has(hairId)) hairId = i === 0 ? 'keep-mine' : 'soft-waves';
+    if (usedHair.has(hairId) && i === 1) {
+      hairId = hairId === 'soft-waves' ? 'sleek-side-part' : 'soft-waves';
+    }
+    usedHair.add(hairId);
+    next.hairStyleId = hairId;
+    if (!next.title) next.title = id === 'A' ? 'Beauty Option A' : 'Beauty Option B';
+    delete next.suggestedHairStyleId;
+    return next;
+  });
+
+  data.wardrobeOptions = wardrobeOptions;
+  data.beautyOptions = beautyOptions;
+
+  // Flatten Option A onto legacy fields for any older clients / Vision payload builders.
+  flattenSelectedGlamourLook(data, wardrobeOptions[0], beautyOptions[0]);
+  return data;
 }
 
 function sanitizeBeautyData(data, body) {
@@ -873,7 +1149,7 @@ function sanitizeBeautyData(data, body) {
   }
 
   // Fiona sometimes invents a random weekday in quips — force today's local day.
-  for (const key of ['quote', 'note', 'desc', 'detectionNotes', 'neckline']) {
+  for (const key of ['quote', 'note', 'desc', 'detectionNotes', 'neckline', 'compliment']) {
     if (typeof data[key] === 'string') data[key] = alignTextToWeekday(data[key], weekday);
   }
   if (data.facePalette && typeof data.facePalette === 'object') {
@@ -887,6 +1163,10 @@ function sanitizeBeautyData(data, body) {
   const allowedHair = new Set(FIONA_HAIRSTYLE_OPTIONS.map((o) => o.id));
   const suggested = String(data.suggestedHairStyleId || '').trim().toLowerCase();
   data.suggestedHairStyleId = allowedHair.has(suggested) ? suggested : 'keep-mine';
+
+  if (body && body.mode !== 'palette') {
+    ensureDualGlamourOptions(data, lipFallback, weekday);
+  }
   return data;
 }
 
@@ -1012,7 +1292,7 @@ module.exports = async function handler(req, res) {
         },
         body: JSON.stringify({
           model,
-          max_tokens: 1800,
+          max_tokens: 4500,
           temperature,
           system: FIONA_STYLE_SYSTEM,
           messages: [
@@ -1061,6 +1341,10 @@ module.exports = async function handler(req, res) {
       .filter((block) => block.type === 'text')
       .map((block) => block.text)
       .join('\n');
+
+    if (payload.stop_reason === 'max_tokens') {
+      console.warn('[fiona/glamour/style] Anthropic hit max_tokens — dual options may be truncated; sanitizer will pad to 2+2');
+    }
 
     const data = sanitizeBeautyData(extractJson(text), body);
     res.statusCode = 200;

@@ -1000,7 +1000,7 @@
           The Glamour Suite
         </h2>
         <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">
-          One full look from Fiona — outfit, hair, and makeup together — plus a generated photo of you in the recommendation.
+          One Style click gives you two wardrobe picks and two hair &amp; makeup picks — choose one of each, then Generate My Look.
         </p>
       </div>
 
@@ -1041,7 +1041,7 @@
       <div id="glamour-wardrobe-view" class="space-y-6">
         <div class="bg-white dark:bg-spa-darkcard p-6 sm:p-7 rounded-2xl border border-pink-100 dark:border-purple-900/40 shadow-sm space-y-5">
           <h3 class="font-serif text-xl font-bold text-gray-900 dark:text-white">What's the Occasion, Gorgeous?</h3>
-          <p class="text-xs text-gray-600 dark:text-gray-300 -mt-2">Tell Fiona the vibe (or that you feel frumpy). Upload a photo of you — she'll prescribe outfit + hair + makeup as one look, then generate a photo of you wearing it.</p>
+          <p class="text-xs text-gray-600 dark:text-gray-300 -mt-2">Tell Fiona the vibe (or that you feel frumpy). Upload a photo — one Style click returns Wardrobe A/B and Hair &amp; Makeup A/B. Pick one of each, then Generate My Look.</p>
           
           <!-- Glamour photo canvas -->
           <div class="space-y-3">
@@ -1145,13 +1145,32 @@
           <div id="wardrobe-recommendation-box" class="hidden p-5 sm:p-6 rounded-2xl bg-spa-cream dark:bg-spa-darkcard border border-spa-plum/25 dark:border-purple-800 space-y-5 shadow-sm">
             <div class="flex flex-wrap items-end justify-between gap-2 border-b border-spa-plum/15 dark:border-purple-900/60 pb-3">
               <div>
-                <span class="text-[10px] font-bold uppercase tracking-[0.18em] text-spa-plum dark:text-pink-300">✨ Fiona's Full Glamour Look</span>
+                <span class="text-[10px] font-bold uppercase tracking-[0.18em] text-spa-plum dark:text-pink-300">✨ Fiona's Glamour Options</span>
                 <h4 id="wardrobe-look-title" class="font-serif text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mt-1">The Cinched Confidence Wrap</h4>
               </div>
               <p id="wardrobe-visual-caption" class="text-[10px] font-semibold uppercase tracking-wider text-spa-plum/70 dark:text-pink-300/70"></p>
             </div>
 
             <p id="wardrobe-compliment" class="hidden text-sm font-medium text-spa-plumdark dark:text-pink-100 bg-white/80 dark:bg-spa-darkbg/50 border border-spa-plum/20 dark:border-purple-800 rounded-xl px-3.5 py-3"></p>
+
+            <!-- Wardrobe — Option A / Option B -->
+            <section id="fiona-wardrobe-options-section" class="space-y-2">
+              <div class="flex flex-wrap items-baseline justify-between gap-2">
+                <p class="text-[10px] font-bold uppercase tracking-[0.14em] text-spa-plum dark:text-pink-300">Wardrobe — pick one</p>
+                <p class="text-[10px] font-semibold text-spa-plum/70 dark:text-pink-300/70">Option A or B</p>
+              </div>
+              <div id="fiona-wardrobe-options" class="grid grid-cols-1 sm:grid-cols-2 gap-3" role="radiogroup" aria-label="Wardrobe options"></div>
+            </section>
+
+            <!-- Hair & Makeup — Option A / Option B (shown immediately after Style — no second request) -->
+            <section id="fiona-beauty-options-section" class="space-y-2">
+              <div class="flex flex-wrap items-baseline justify-between gap-2">
+                <p class="text-[10px] font-bold uppercase tracking-[0.14em] text-spa-plum dark:text-pink-300">Hair &amp; Makeup — pick one</p>
+                <p class="text-[10px] font-semibold text-spa-plum/70 dark:text-pink-300/70">Option A or B</p>
+              </div>
+              <div id="fiona-beauty-options" class="grid grid-cols-1 sm:grid-cols-2 gap-3" role="radiogroup" aria-label="Hair and makeup options"></div>
+              <p id="fiona-beauty-hint" class="text-[10px] text-gray-500 dark:text-gray-400 leading-snug">One Style click delivers both pairs. Face + body stay locked; hair may polish within your real length.</p>
+            </section>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-6 items-start">
               <!-- Your Canvas — Polaroid / editorial frame -->
@@ -1187,7 +1206,7 @@
                     <div id="fiona-vision-placeholder" class="px-5 text-center space-y-3">
                       <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-spa-plum/70 dark:text-pink-300/80">Fiona's Vision</p>
                       <p class="font-serif text-lg font-bold text-spa-plumdark dark:text-pink-100 leading-snug">Your Virtual Styling Look</p>
-                      <p class="text-[11px] text-gray-600 dark:text-gray-300 leading-relaxed">See yourself dressed in this exact outfit, hair, and makeup.</p>
+                      <p class="text-[11px] text-gray-600 dark:text-gray-300 leading-relaxed">Pick Wardrobe + Hair &amp; Makeup, then see yourself in that combo.</p>
                     </div>
                     <div id="fiona-vision-loading" class="hidden absolute inset-0 bg-spa-cream/90 dark:bg-spa-darkcard/90 backdrop-blur-sm flex flex-col items-center justify-center gap-3 px-6 text-center">
                       <div class="w-9 h-9 rounded-full border-2 border-spa-plum/30 border-t-spa-plum animate-spin" aria-hidden="true"></div>
@@ -1201,15 +1220,6 @@
                     </span>
                     <span id="fiona-vision-status" class="text-[10px] font-semibold text-gray-600 dark:text-gray-300"></span>
                   </div>
-                </div>
-
-                <div class="space-y-2 max-w-sm mx-auto lg:mx-0">
-                  <div class="flex flex-wrap items-baseline justify-between gap-2">
-                    <p class="text-[10px] font-bold uppercase tracking-[0.14em] text-spa-plum dark:text-pink-300">Hairstyle</p>
-                    <p id="fiona-hairstyle-fiona-note" class="hidden text-[10px] font-semibold text-spa-plum/80 dark:text-pink-300/80"></p>
-                  </div>
-                  <div id="fiona-hairstyle-options" class="flex flex-wrap gap-1.5 justify-center lg:justify-start" role="radiogroup" aria-label="Hairstyle options"></div>
-                  <p id="fiona-hairstyle-hint" class="text-[10px] text-gray-500 dark:text-gray-400 text-center lg:text-left leading-snug">Keep mine locks your exact hair. Other picks polish within your real length — face + body stay locked.</p>
                 </div>
 
                 <div class="flex flex-wrap items-center justify-center lg:justify-start gap-2">
@@ -1260,11 +1270,11 @@
               </div>
             </div>
 
-            <!-- Hair & Makeup Glow panel (bundled with outfit — no separate tab) -->
+            <!-- Hair & Makeup Glow panel (selected beauty option) -->
             <section class="pt-2 border-t border-spa-plum/15 dark:border-purple-900/60 space-y-3">
               <div class="flex items-baseline justify-between gap-2">
-                <h5 class="font-serif text-lg font-bold text-gray-900 dark:text-white">Hair &amp; Makeup (included)</h5>
-                <span class="text-[10px] font-semibold uppercase tracking-wider text-spa-plum/70 dark:text-pink-300/70">Part of your full look</span>
+                <h5 class="font-serif text-lg font-bold text-gray-900 dark:text-white">Hair &amp; Makeup <span id="wardrobe-beauty-option-label" class="text-sm font-semibold text-spa-plum dark:text-pink-300">Option A</span></h5>
+                <span class="text-[10px] font-semibold uppercase tracking-wider text-spa-plum/70 dark:text-pink-300/70">Your beauty pick</span>
               </div>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <article class="p-4 bg-white/90 dark:bg-spa-darkbg/50 border border-spa-plum/20 dark:border-purple-800 space-y-2">
@@ -4716,18 +4726,11 @@
       const silhouetteNote = WARDROBE_SILHOUETTE_NOTES[silhouette] || '';
       const harmonyNote = WARDROBE_HARMONY_NOTES[harmony] || '';
 
-      document.getElementById('wardrobe-look-title').innerText = look.title;
-      let desc = look.desc || '';
-      if (!/Styled for/i.test(desc)) {
-        desc += ` Styled for ${occasionLabel}`;
-        if (vibe) desc += ` — your vibe: “${vibe}.”`;
-        else desc += '.';
-        desc += ` ${silhouetteNote} ${harmonyNote}`;
-      }
-      document.getElementById('wardrobe-look-desc').innerText = desc.trim();
-      document.getElementById('wardrobe-look-quote').innerText = look.quote
-        ? `"${alignFionaTextToLocalWeekday(look.quote).replace(/^"|"$/g, '')}"`
-        : '';
+      const dual = normalizeClientDualOptions(look, harmony);
+      const wardrobeOptions = dual.wardrobeOptions;
+      const beautyOptions = dual.beautyOptions;
+
+      document.getElementById('wardrobe-recommendation-box').classList.remove('hidden');
 
       const complimentEl = document.getElementById('wardrobe-compliment');
       if (complimentEl) {
@@ -4740,30 +4743,45 @@
         }
       }
 
-      renderWardrobeVisualLook(look, silhouette, harmony);
-
       const note = document.getElementById('wardrobe-photo-note');
       if (photoCount > 0) {
         note.classList.remove('hidden');
-        note.innerText = `📸 Spotted your look canvas (${photoCount} photo${photoCount === 1 ? '' : 's'}) — ${sourceLabel} Fiona pulled outfit + hair + makeup from what’s already in the frame, then tuned fit and color to your silhouette and undertones.`;
+        note.innerText = `📸 Spotted your look canvas (${photoCount} photo${photoCount === 1 ? '' : 's'}) — ${sourceLabel} Fiona built two wardrobe picks and two hair & makeup picks from what’s in the frame.`;
       } else {
         note.classList.add('hidden');
         note.innerText = '';
       }
 
-      document.getElementById('wardrobe-recommendation-box').classList.remove('hidden');
+      fionaSelectedWardrobeId = 'A';
+      fionaSelectedBeautyId = 'A';
       window.lastGlamourLook = {
-        look,
+        look: null,
+        wardrobeOptions,
+        beautyOptions,
         occasionLabel,
         vibe,
         silhouette,
         harmony,
         photoCount,
-        suggestedHairStyleId: (look && look.suggestedHairStyleId) || 'keep-mine',
-        cacheKey: buildFionaVisionCacheKey(look, occasionLabel, vibe, getSelectedHairStyleId())
+        silhouetteNote,
+        harmonyNote,
+        quote: look.quote || '',
+        compliment: look.compliment || '',
+        suggestedHairStyleId: (beautyOptions[0] && beautyOptions[0].hairStyleId) || 'keep-mine',
+        cacheKey: null
       };
-      applyFionaHairSuggestion(window.lastGlamourLook.suggestedHairStyleId);
-      prepareFionaVisionCard(window.lastGlamourLook);
+
+      renderFionaWardrobeOptions();
+      renderFionaBeautyOptions();
+      applySelectedGlamourPicksToUi({ refreshVision: true });
+
+      // Debra: options must be visible after the FIRST Style click — bring them into view.
+      try {
+        const box = document.getElementById('wardrobe-recommendation-box');
+        if (box && typeof box.scrollIntoView === 'function') {
+          box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      } catch (_) {}
     }
 
     const FIONA_HAIRSTYLE_OPTIONS = [
@@ -4774,75 +4792,310 @@
       { id: 'subtle-volume', label: 'Subtle volume', short: 'Lifted crown, soft body' },
       { id: 'tousled-texture', label: 'Tousled texture', short: 'Lived-in piecey finish' }
     ];
-    const FIONA_VISION_CACHE_PREFIX = 'fiona_vision_look_v5:';
+    const FIONA_VISION_CACHE_PREFIX = 'fiona_vision_look_v7:';
     let fionaVisionSideBySide = false;
     let fionaVisionGenerating = false;
-    let fionaSelectedHairStyleId = 'keep-mine';
-    let fionaSuggestedHairStyleId = null;
+    let fionaSelectedWardrobeId = 'A';
+    let fionaSelectedBeautyId = 'A';
+
+    function normalizeClientDualOptions(look, harmony) {
+      const allowedHair = new Set(FIONA_HAIRSTYLE_OPTIONS.map((o) => o.id));
+      let wardrobeOptions = Array.isArray(look && look.wardrobeOptions)
+        ? look.wardrobeOptions.filter(Boolean).slice(0, 2)
+        : [];
+      let beautyOptions = Array.isArray(look && look.beautyOptions)
+        ? look.beautyOptions.filter(Boolean).slice(0, 2)
+        : [];
+
+      if (wardrobeOptions.length < 2 && look && (look.title || wardrobeOptions[0])) {
+        const base = wardrobeOptions[0] || {
+          id: 'A',
+          title: look.title,
+          desc: look.desc || '',
+          neckline: look.neckline || '',
+          pieces: look.pieces || [],
+          palette: look.palette || []
+        };
+        const baseTitle = String(base.title || look.title || 'Look').replace(/\s*[—-]\s*Soft Alternate\s*$/i, '').trim() || 'Look';
+        wardrobeOptions = [
+          { ...base, id: 'A', title: base.title || look.title || 'Wardrobe Option A' },
+          {
+            ...base,
+            id: 'B',
+            title: `${baseTitle} — Soft Alternate`,
+            desc: (base.desc || look.desc || '') + ' Alternate: softer open layer, same intentional waist.'
+          }
+        ];
+      }
+      if (wardrobeOptions.length === 0) {
+        wardrobeOptions = [
+          {
+            id: 'A',
+            title: (look && look.title) || 'Wardrobe Option A',
+            desc: (look && look.desc) || 'A flattering wardrobe direction with an intentional waist.',
+            neckline: (look && look.neckline) || 'soft V / wrap',
+            pieces: (look && look.pieces) || [],
+            palette: (look && look.palette) || []
+          },
+          {
+            id: 'B',
+            title: 'Wardrobe Option B — Soft Alternate',
+            desc: 'Second wardrobe direction — still celebrate her shape, never tent.',
+            neckline: 'soft scoop',
+            pieces: (look && look.pieces) || [],
+            palette: (look && look.palette) || []
+          }
+        ];
+      }
+
+      if (beautyOptions.length < 2) {
+        const face = (look && look.facePalette) || getFacePaletteForHarmony(harmony);
+        const move = (look && look.hairMove) || {
+          title: 'Soft polish',
+          body: 'Keep your real length with soft shine.',
+          cues: ['Volume: soft crown', 'Part: natural', 'Texture: flexible hold']
+        };
+        const hairA = allowedHair.has(String((look && look.suggestedHairStyleId) || '').toLowerCase())
+          ? String(look.suggestedHairStyleId).toLowerCase()
+          : 'keep-mine';
+        const hairB = hairA === 'soft-waves' ? 'sleek-side-part' : 'soft-waves';
+        beautyOptions = [
+          {
+            id: 'A',
+            title: move.title || 'Beauty Option A',
+            summary: move.body || 'Polished hair and wearable makeup.',
+            hairMove: move,
+            facePalette: face,
+            hairStyleId: hairA
+          },
+          {
+            id: 'B',
+            title: hairB === 'soft-waves' ? 'Soft Wave Glow' : 'Sleek Side Glow',
+            summary: 'A second beauty mood — different hair polish and lip story, still your length.',
+            hairMove: {
+              title: hairB === 'soft-waves' ? 'Soft wave polish' : 'Sleek side polish',
+              body: 'Same length family as your photo, different finish for a second vibe.',
+              cues: ['Volume: intentional', 'Part: deliberate', 'Texture: polished']
+            },
+            facePalette: sanitizeFacePalette({
+              lip: getFacePaletteForHarmony(harmony).lip,
+              cheek: (face && face.cheek) || getFacePaletteForHarmony(harmony).cheek,
+              note: 'Alternate wearable lip — rose/berry/nude family only.'
+            }, harmony),
+            hairStyleId: hairB
+          }
+        ];
+      }
+
+      wardrobeOptions = wardrobeOptions.map((opt, i) => {
+        const raw = String(opt.id || '').trim().toUpperCase().replace(/^OPTION\s+/, '');
+        return {
+          ...opt,
+          id: raw === 'B' || (raw !== 'A' && i === 1) ? 'B' : 'A'
+        };
+      });
+      if (wardrobeOptions[0]) wardrobeOptions[0].id = 'A';
+      if (wardrobeOptions[1]) wardrobeOptions[1].id = 'B';
+
+      beautyOptions = beautyOptions.map((opt, i) => {
+        let hairId = String(opt.hairStyleId || opt.suggestedHairStyleId || '').trim().toLowerCase();
+        if (!allowedHair.has(hairId)) hairId = i === 0 ? 'keep-mine' : 'soft-waves';
+        return {
+          ...opt,
+          id: i === 0 ? 'A' : 'B',
+          hairStyleId: hairId,
+          facePalette: sanitizeFacePalette(opt.facePalette, harmony)
+        };
+      });
+      if (beautyOptions.length === 2 && beautyOptions[0].hairStyleId === beautyOptions[1].hairStyleId) {
+        beautyOptions[1].hairStyleId = beautyOptions[0].hairStyleId === 'soft-waves' ? 'sleek-side-part' : 'soft-waves';
+      }
+
+      return { wardrobeOptions, beautyOptions };
+    }
+
+    function getSelectedWardrobeOption() {
+      const list = (window.lastGlamourLook && window.lastGlamourLook.wardrobeOptions) || [];
+      return list.find((o) => o.id === fionaSelectedWardrobeId) || list[0] || null;
+    }
+
+    function getSelectedBeautyOption() {
+      const list = (window.lastGlamourLook && window.lastGlamourLook.beautyOptions) || [];
+      return list.find((o) => o.id === fionaSelectedBeautyId) || list[0] || null;
+    }
 
     function getSelectedHairStyleId() {
-      const allowed = FIONA_HAIRSTYLE_OPTIONS.some((o) => o.id === fionaSelectedHairStyleId);
-      return allowed ? fionaSelectedHairStyleId : 'keep-mine';
+      const beauty = getSelectedBeautyOption();
+      const id = beauty && beauty.hairStyleId;
+      return FIONA_HAIRSTYLE_OPTIONS.some((o) => o.id === id) ? id : 'keep-mine';
     }
 
     function getHairStyleOption(id) {
       return FIONA_HAIRSTYLE_OPTIONS.find((o) => o.id === id) || FIONA_HAIRSTYLE_OPTIONS[0];
     }
 
-    function renderFionaHairstyleOptions() {
-      const host = document.getElementById('fiona-hairstyle-options');
-      const hint = document.getElementById('fiona-hairstyle-hint');
-      const note = document.getElementById('fiona-hairstyle-fiona-note');
+    function buildCompositeGlamourLook() {
+      const meta = window.lastGlamourLook || {};
+      const wardrobe = getSelectedWardrobeOption() || {};
+      const beauty = getSelectedBeautyOption() || {};
+      const hairId = getSelectedHairStyleId();
+      return {
+        title: wardrobe.title || 'Curated look',
+        desc: wardrobe.desc || '',
+        neckline: wardrobe.neckline || '',
+        pieces: wardrobe.pieces || [],
+        palette: wardrobe.palette || [],
+        hairMove: beauty.hairMove || null,
+        facePalette: beauty.facePalette || null,
+        beautyTitle: beauty.title || '',
+        beautySummary: beauty.summary || '',
+        compliment: meta.compliment || '',
+        quote: meta.quote || '',
+        suggestedHairStyleId: hairId,
+        hairStyleId: hairId,
+        selectedWardrobeId: wardrobe.id || 'A',
+        selectedBeautyId: beauty.id || 'A',
+        wardrobeOptionId: wardrobe.id || 'A',
+        beautyOptionId: beauty.id || 'A'
+      };
+    }
+
+    function renderFionaWardrobeOptions() {
+      const host = document.getElementById('fiona-wardrobe-options');
       if (!host) return;
-      const selected = getSelectedHairStyleId();
-      host.innerHTML = FIONA_HAIRSTYLE_OPTIONS.map((opt) => {
-        const isOn = opt.id === selected;
-        const isFiona = fionaSuggestedHairStyleId && opt.id === fionaSuggestedHairStyleId && opt.id !== 'keep-mine';
+      const list = (window.lastGlamourLook && window.lastGlamourLook.wardrobeOptions) || [];
+      host.innerHTML = list.map((opt) => {
+        const isOn = opt.id === fionaSelectedWardrobeId;
+        const pieces = Array.isArray(opt.pieces) ? opt.pieces.slice(0, 2).map((p) => (p && p.name) || p).filter(Boolean).join(' · ') : '';
         const base = isOn
-          ? 'bg-spa-plum text-white border-spa-plum shadow-sm'
-          : 'bg-white dark:bg-spa-darkbg text-spa-plum dark:text-pink-200 border-spa-plum/30 dark:border-purple-700 hover:border-spa-plum/60 hover:bg-spa-blush/40';
-        const ring = isFiona && !isOn ? ' ring-1 ring-spa-plum/35' : '';
-        return `<button type="button" role="radio" aria-checked="${isOn ? 'true' : 'false'}" data-hairstyle-id="${opt.id}" title="${opt.short}" onclick="selectFionaHairStyle('${opt.id}')" class="inline-flex items-center gap-1 px-2.5 py-1.5 text-[10px] font-bold tracking-wide border transition active:scale-95${ring} ${base}">${opt.label}${isFiona ? '<span class="text-[8px] font-semibold uppercase tracking-wider opacity-80">Fiona</span>' : ''}</button>`;
+          ? 'border-spa-plum bg-white dark:bg-spa-darkbg ring-2 ring-spa-plum/35 shadow-sm'
+          : 'border-spa-plum/20 dark:border-purple-800 bg-white/80 dark:bg-spa-darkbg/40 hover:border-spa-plum/50';
+        return `<button type="button" role="radio" aria-checked="${isOn ? 'true' : 'false'}" data-wardrobe-option="${opt.id}" onclick="selectFionaWardrobeOption('${opt.id}')" class="text-left p-3.5 border transition active:scale-[0.99] space-y-1.5 ${base}">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-[10px] font-bold uppercase tracking-[0.14em] text-spa-plum dark:text-pink-300">Option ${opt.id}</span>
+            ${isOn ? '<span class="text-[9px] font-bold uppercase tracking-wider text-white bg-spa-plum px-1.5 py-0.5">Selected</span>' : ''}
+          </div>
+          <p class="font-serif text-base font-bold text-gray-900 dark:text-white leading-snug">${opt.title || 'Wardrobe look'}</p>
+          <p class="text-[11px] text-gray-600 dark:text-gray-300 leading-relaxed line-clamp-3">${opt.desc || ''}</p>
+          ${pieces ? `<p class="text-[10px] font-semibold text-spa-plum/80 dark:text-pink-300/80 pt-0.5">${pieces}</p>` : ''}
+        </button>`;
       }).join('');
-      const opt = getHairStyleOption(selected);
+    }
+
+    function renderFionaBeautyOptions() {
+      const host = document.getElementById('fiona-beauty-options');
+      const hint = document.getElementById('fiona-beauty-hint');
+      if (!host) return;
+      const list = (window.lastGlamourLook && window.lastGlamourLook.beautyOptions) || [];
+      host.innerHTML = list.map((opt) => {
+        const isOn = opt.id === fionaSelectedBeautyId;
+        const hair = getHairStyleOption(opt.hairStyleId);
+        const lip = (opt.facePalette && opt.facePalette.lip) || [];
+        const cheek = (opt.facePalette && opt.facePalette.cheek) || [];
+        const base = isOn
+          ? 'border-spa-plum bg-white dark:bg-spa-darkbg ring-2 ring-spa-plum/35 shadow-sm'
+          : 'border-spa-plum/20 dark:border-purple-800 bg-white/80 dark:bg-spa-darkbg/40 hover:border-spa-plum/50';
+        return `<button type="button" role="radio" aria-checked="${isOn ? 'true' : 'false'}" data-beauty-option="${opt.id}" onclick="selectFionaBeautyOption('${opt.id}')" class="text-left p-3 border transition active:scale-[0.99] space-y-1.5 ${base}">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-[10px] font-bold uppercase tracking-[0.14em] text-spa-plum dark:text-pink-300">Option ${opt.id}</span>
+            ${isOn ? '<span class="text-[9px] font-bold uppercase tracking-wider text-white bg-spa-plum px-1.5 py-0.5">Selected</span>' : ''}
+          </div>
+          <p class="font-serif text-sm font-bold text-gray-900 dark:text-white leading-snug">${opt.title || 'Beauty look'}</p>
+          <p class="text-[11px] text-gray-600 dark:text-gray-300 leading-relaxed">${opt.summary || (opt.hairMove && opt.hairMove.body) || ''}</p>
+          <div class="flex flex-wrap items-center gap-2 pt-0.5">
+            <span class="text-[10px] font-semibold text-spa-plum dark:text-pink-200">${hair.label}</span>
+            ${lip[0] ? `<span class="inline-flex items-center gap-1 text-[10px] text-gray-600 dark:text-gray-300"><span class="w-3 h-3 rounded-full border border-white ring-1 ring-spa-plum/20" style="background:${lip[0]}"></span>${lip[1] || 'Lip'}</span>` : ''}
+            ${cheek[0] ? `<span class="inline-flex items-center gap-1 text-[10px] text-gray-600 dark:text-gray-300"><span class="w-3 h-3 rounded-full border border-white ring-1 ring-spa-plum/20" style="background:${cheek[0]}"></span>${cheek[1] || 'Cheek'}</span>` : ''}
+          </div>
+        </button>`;
+      }).join('');
       if (hint) {
-        hint.textContent = selected === 'keep-mine'
-          ? 'Keep mine locks your exact hair. Other picks polish within your real length — face + body stay locked.'
-          : `${opt.label}: ${opt.short}. Face + body stay locked; hair stays in your length family.`;
-      }
-      if (note) {
-        if (fionaSuggestedHairStyleId && fionaSuggestedHairStyleId !== 'keep-mine') {
-          const sug = getHairStyleOption(fionaSuggestedHairStyleId);
-          note.classList.remove('hidden');
-          note.textContent = `Fiona suggests ${sug.label}`;
-        } else {
-          note.classList.add('hidden');
-          note.textContent = '';
-        }
+        const beauty = getSelectedBeautyOption();
+        const hair = getHairStyleOption(beauty && beauty.hairStyleId);
+        hint.textContent = beauty
+          ? `${hair.label}: face + body stay locked; hair stays in your length family.`
+          : 'Pick a beauty look. Face + body stay locked; hair may polish within your real length.';
       }
     }
 
+    function applySelectedGlamourPicksToUi(opts) {
+      const meta = window.lastGlamourLook;
+      if (!meta) return;
+      const wardrobe = getSelectedWardrobeOption();
+      const beauty = getSelectedBeautyOption();
+      const composite = buildCompositeGlamourLook();
+      meta.look = composite;
+      meta.suggestedHairStyleId = composite.hairStyleId;
+      meta.cacheKey = buildFionaVisionCacheKey(
+        composite,
+        meta.occasionLabel,
+        meta.vibe,
+        composite.hairStyleId
+      );
+
+      const titleEl = document.getElementById('wardrobe-look-title');
+      if (titleEl) titleEl.innerText = composite.title;
+
+      let desc = composite.desc || '';
+      if (desc && !/Styled for/i.test(desc)) {
+        desc += ` Styled for ${meta.occasionLabel || 'your day'}`;
+        if (meta.vibe) desc += ` — your vibe: “${meta.vibe}.”`;
+        else desc += '.';
+        if (meta.silhouetteNote) desc += ` ${meta.silhouetteNote}`;
+        if (meta.harmonyNote) desc += ` ${meta.harmonyNote}`;
+      }
+      const descEl = document.getElementById('wardrobe-look-desc');
+      if (descEl) descEl.innerText = desc.trim();
+
+      const quoteEl = document.getElementById('wardrobe-look-quote');
+      if (quoteEl) {
+        quoteEl.innerText = meta.quote
+          ? `"${alignFionaTextToLocalWeekday(meta.quote).replace(/^"|"$/g, '')}"`
+          : '';
+      }
+
+      const beautyLabel = document.getElementById('wardrobe-beauty-option-label');
+      if (beautyLabel) beautyLabel.textContent = `Option ${fionaSelectedBeautyId}`;
+
+      renderWardrobeVisualLook(composite, meta.silhouette, meta.harmony);
+      if (!opts || opts.refreshVision !== false) {
+        prepareFionaVisionCard(meta);
+      }
+    }
+
+    function selectFionaWardrobeOption(id) {
+      const next = id === 'B' ? 'B' : 'A';
+      if (next === fionaSelectedWardrobeId && window.lastGlamourLook && window.lastGlamourLook.look) {
+        renderFionaWardrobeOptions();
+        return;
+      }
+      fionaSelectedWardrobeId = next;
+      renderFionaWardrobeOptions();
+      applySelectedGlamourPicksToUi({ refreshVision: true });
+    }
+
+    function selectFionaBeautyOption(id) {
+      const next = id === 'B' ? 'B' : 'A';
+      if (next === fionaSelectedBeautyId && window.lastGlamourLook && window.lastGlamourLook.look) {
+        renderFionaBeautyOptions();
+        return;
+      }
+      fionaSelectedBeautyId = next;
+      renderFionaBeautyOptions();
+      applySelectedGlamourPicksToUi({ refreshVision: true });
+    }
+
+    // Back-compat no-ops / aliases if older inline handlers remain
     function selectFionaHairStyle(id) {
-      const next = FIONA_HAIRSTYLE_OPTIONS.some((o) => o.id === id) ? id : 'keep-mine';
-      if (next === fionaSelectedHairStyleId) return;
-      fionaSelectedHairStyleId = next;
-      renderFionaHairstyleOptions();
-      if (window.lastGlamourLook && window.lastGlamourLook.look) {
-        window.lastGlamourLook.cacheKey = buildFionaVisionCacheKey(
-          window.lastGlamourLook.look,
-          window.lastGlamourLook.occasionLabel,
-          window.lastGlamourLook.vibe,
-          next
-        );
-        prepareFionaVisionCard(window.lastGlamourLook);
-      }
+      const list = (window.lastGlamourLook && window.lastGlamourLook.beautyOptions) || [];
+      const match = list.find((o) => o.hairStyleId === id);
+      if (match) selectFionaBeautyOption(match.id);
     }
-
-    function applyFionaHairSuggestion(suggestedId) {
-      const allowed = FIONA_HAIRSTYLE_OPTIONS.some((o) => o.id === suggestedId);
-      fionaSuggestedHairStyleId = allowed ? suggestedId : null;
-      // Default stays Keep mine (identity-safe). Fiona's pick is highlighted, not forced.
-      renderFionaHairstyleOptions();
+    function applyFionaHairSuggestion() {
+      renderFionaBeautyOptions();
+    }
+    function renderFionaHairstyleOptions() {
+      renderFionaBeautyOptions();
     }
 
     function buildFionaVisionCacheKey(look, occasionLabel, vibe, hairStyleId) {
@@ -4862,6 +5115,8 @@
           ? String(canvas.url).slice(-120)
         : (canvas && canvas.id) || 'nophoto';
       const styleId = hairStyleId || getSelectedHairStyleId();
+      const wardrobeId = (look && (look.selectedWardrobeId || look.wardrobeOptionId)) || fionaSelectedWardrobeId || 'A';
+      const beautyId = (look && (look.selectedBeautyId || look.beautyOptionId)) || fionaSelectedBeautyId || 'A';
       return [
         look && look.title || '',
         occasionLabel || '',
@@ -4870,6 +5125,8 @@
         hair,
         face,
         styleId,
+        `W${wardrobeId}`,
+        `B${beautyId}`,
         photoSig
       ].join('::');
     }
@@ -5078,13 +5335,27 @@
       setFionaVisionError('');
 
       const hairStyleId = getSelectedHairStyleId();
+      const compositeLook = (meta.look && meta.look.title)
+        ? meta.look
+        : buildCompositeGlamourLook();
+      const wardrobeOptionId = compositeLook.selectedWardrobeId || fionaSelectedWardrobeId || 'A';
+      const beautyOptionId = compositeLook.selectedBeautyId || fionaSelectedBeautyId || 'A';
       const body = {
         photo: photoPayload,
         images: [photoPayload],
-        look: { ...meta.look, hairStyleId },
+        look: {
+          ...compositeLook,
+          hairStyleId,
+          selectedWardrobeId: wardrobeOptionId,
+          selectedBeautyId: beautyOptionId,
+          wardrobeOptionId,
+          beautyOptionId
+        },
         occasion: meta.occasionLabel,
         vibe: meta.vibe,
-        hairStyleId
+        hairStyleId,
+        wardrobeOptionId,
+        beautyOptionId
       };
 
       try {
@@ -5144,16 +5415,25 @@
       if (optionalStatus) setFionaVisionError(optionalStatus);
     }
     async function generateGlamourLookPhoto(look, images, occasionLabel, vibe) {
+      const dual = normalizeClientDualOptions(look, (window.lastGlamourLook && window.lastGlamourLook.harmony) || 'Warm & Golden');
+      fionaSelectedWardrobeId = 'A';
+      fionaSelectedBeautyId = 'A';
       window.lastGlamourLook = {
         ...(window.lastGlamourLook || {}),
-        look,
+        look: null,
+        wardrobeOptions: dual.wardrobeOptions,
+        beautyOptions: dual.beautyOptions,
         occasionLabel,
         vibe,
         photoCount: images ? images.length : 0,
-        suggestedHairStyleId: (look && look.suggestedHairStyleId) || (window.lastGlamourLook && window.lastGlamourLook.suggestedHairStyleId) || 'keep-mine',
-        cacheKey: buildFionaVisionCacheKey(look, occasionLabel, vibe, getSelectedHairStyleId())
+        compliment: look && look.compliment,
+        quote: look && look.quote,
+        suggestedHairStyleId: (dual.beautyOptions[0] && dual.beautyOptions[0].hairStyleId) || 'keep-mine',
+        cacheKey: null
       };
-      applyFionaHairSuggestion(window.lastGlamourLook.suggestedHairStyleId);
+      renderFionaWardrobeOptions();
+      renderFionaBeautyOptions();
+      applySelectedGlamourPicksToUi({ refreshVision: false });
       return generateFionaVisionLook();
     }
 
@@ -5209,21 +5489,82 @@
         };
       });
 
-      return {
-        ...base,
+      const altKey = lookKey === 'Desk to Dinner' ? 'Casual Comfort Chic'
+        : lookKey === 'Soft Evening Out' ? 'Desk to Dinner'
+        : lookKey === 'Power Meeting' ? 'Soft Evening Out'
+        : 'Desk to Dinner';
+      const altBase = WARDROBE_LOOKS[altKey] || base;
+      const altPieces = (altBase.pieces || pieces).map((piece, index) => {
+        const swatch = palette[(index + 1) % palette.length] || {};
+        return {
+          ...piece,
+          hex: swatch.hex || '#5E2750',
+          colorLabel: swatch.label || 'Plum',
+          cue: `${piece.cue} · celebrate the waist`
+        };
+      });
+
+      const face = getFacePaletteForHarmony(harmony);
+      const hairMove = getHairMoveForLook({ title: base.title, neckline: base.neckline }, silhouette);
+
+      const lookA = {
+        id: 'A',
         title: `${titlePrefix} ${base.title} · ${silShort}`,
         desc: `${energyLead}. ${base.desc} Built for ${occasionLabel}${vibe ? ` (“${vibe}”)` : ''}. ${silhouetteNote} ${harmonyNote} Energy brief: ${energyBias}.`,
-        quote: base.quote,
+        neckline: base.neckline || 'soft V / wrap',
         pieces,
-        palette: palette.map((p) => ({ hex: p.hex, label: p.label })),
-        facePalette: (() => {
-          const face = getFacePaletteForHarmony(harmony);
-          return {
-            lip: face.lip,
-            cheek: face.cheek,
-            note: `${harmony} harmony — lips stay rosy/berry/nude (never green). Soft color near the face only.`
-          };
-        })()
+        palette: palette.map((p) => ({ hex: p.hex, label: p.label }))
+      };
+      const lookB = {
+        id: 'B',
+        title: `Alternate ${altBase.title} · ${silShort}`,
+        desc: `Second wardrobe direction: ${altBase.desc} Still flattering for ${silhouette} — waist intentional, never tented. ${harmonyNote}`,
+        neckline: altBase.neckline || 'soft scoop',
+        pieces: altPieces,
+        palette: palette.map((p) => ({ hex: p.hex, label: p.label }))
+      };
+
+      const beautyA = {
+        id: 'A',
+        title: hairMove.title || 'Soft Everyday Glow',
+        summary: hairMove.body || 'Polished hair and wearable makeup on your real length.',
+        hairMove,
+        facePalette: {
+          lip: face.lip,
+          cheek: face.cheek,
+          note: `${harmony} harmony — lips stay rosy/berry/nude (never green). Soft color near the face only.`
+        },
+        hairStyleId: 'keep-mine'
+      };
+      const beautyB = {
+        id: 'B',
+        title: 'Soft Wave Glow',
+        summary: 'Gentle wave polish within your length family, with a second wearable lip story.',
+        hairMove: {
+          title: 'Soft wave polish',
+          body: 'Restyle your existing length into soft face-framing waves — same color family, no extensions.',
+          cues: ['Volume: soft mid-lengths', 'Part: soft side', 'Texture: flexible hold']
+        },
+        facePalette: sanitizeFacePalette({
+          lip: face.lip,
+          cheek: face.cheek,
+          note: 'Alternate wearable lip — still rose/berry/nude family.'
+        }, harmony),
+        hairStyleId: 'soft-waves'
+      };
+
+      return {
+        ...lookA,
+        title: lookA.title,
+        desc: lookA.desc,
+        quote: base.quote,
+        pieces: lookA.pieces,
+        palette: lookA.palette,
+        facePalette: beautyA.facePalette,
+        hairMove: beautyA.hairMove,
+        suggestedHairStyleId: 'keep-mine',
+        wardrobeOptions: [lookA, lookB],
+        beautyOptions: [beautyA, beautyB]
       };
     }
 
@@ -5235,7 +5576,7 @@
       const previousLabel = btn ? btn.innerText : '';
         if (btn) {
           btn.disabled = true;
-          btn.innerText = 'Fiona is building your full look…';
+          btn.innerText = 'Fiona is building your 4 options…';
         }
 
       try {
@@ -5274,7 +5615,7 @@
           fionaGuidelines: typeof FIONA_CORE_GUIDELINES !== 'undefined' ? FIONA_CORE_GUIDELINES : undefined,
           systemPromptAppendix: typeof fionaSystemPromptAppendix === 'function' ? fionaSystemPromptAppendix() : undefined
         });
-        if (!payload.data || !payload.data.title) {
+        if (!payload.data || !(payload.data.title || (payload.data.wardrobeOptions && payload.data.wardrobeOptions[0]))) {
           throw Object.assign(new Error('bad style response — missing look data'), {
             fionaToast: 'Live styling returned an incomplete look. Showing offline draft.'
           });
@@ -5324,11 +5665,11 @@
           inferFromPhotos ? 'Live Fiona · photo-read figure & skin tone —' : 'Live Fiona —'
         );
         showToast(inferFromPhotos
-          ? `Full Glamour look ready → ${detectedSilhouette} · ${detectedHarmony} ✨`
-          : 'Fiona tailored a full Glamour look ✨');
+          ? `Wardrobe A/B + Hair & Makeup A/B ready → ${detectedSilhouette} · ${detectedHarmony} ✨`
+          : 'Four options ready — pick Wardrobe + Hair & Makeup ✨');
 
         if (images.length) {
-          showToast('Tap Generate My Look ✨ to see yourself in this outfit');
+          showToast('Pick one of each, then Generate My Look ✨');
         }
       } catch (err) {
         console.error('[Glamour Style] wardrobe fallback', err && err.fionaMeta ? err.fionaMeta : err);
