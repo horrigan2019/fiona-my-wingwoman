@@ -3617,16 +3617,17 @@
     function resolveMoodboardHeroImage(images) {
       const list = Array.isArray(images) ? images : getCanvasImages('wardrobe');
       if (!list.length) return null;
+      const person = pickPreferredCanvasPersonPhoto(list);
       if (moodboardHeroUrl) {
         const match = list.find((img) => img && img.url === moodboardHeroUrl);
         if (match) {
-          // Never keep a closet as hero when a person photo exists — unless Debra just clicked it.
-          const person = pickPreferredCanvasPersonPhoto(list);
+          // Keep person as hero whenever a classified person exists — closet/unknown must not win by upload order.
+          // Exception: Debra explicitly tapped a thumb (moodboardHeroManual).
           if (
-            match.kind === 'closet'
-            && person
-            && person !== match
+            person
             && person.kind === 'person'
+            && match !== person
+            && match.kind !== 'person'
             && !moodboardHeroManual
           ) {
             return person;
@@ -3634,7 +3635,7 @@
           return match;
         }
       }
-      return pickPreferredCanvasPersonPhoto(list);
+      return person;
     }
 
     function setMoodboardHeroFromImage(img, { manual = false } = {}) {
@@ -3955,8 +3956,13 @@
       const url = URL.createObjectURL(file);
       const entry = { url, name: file.name || 'photo', file, kind: null };
       images.push(entry);
-      // Optimistic hero: newest upload, then classify async and prefer person over closet.
-      setMoodboardHeroFromImage(entry, { manual: false });
+      // If a classified person already exists, keep them as hero while the new shot classifies.
+      const existingPerson = images.find((img) => img && img !== entry && img.kind === 'person');
+      if (existingPerson) {
+        setMoodboardHeroFromImage(existingPerson, { manual: false });
+      } else {
+        setMoodboardHeroFromImage(entry, { manual: false });
+      }
       classifyAndPreferNewPhoto(entry);
       // Syncing into the other tab is NOT a photo analysis / trial scan.
       syncCanvasPhotoState(ids.target);
@@ -5127,19 +5133,18 @@
     function resolveCanvasSelfieForLook() {
       const images = getCanvasImages('wardrobe');
       if (!images.length) return null;
-      // Honor explicit thumb selection when it is a person (or the only shot).
+      const person = pickPreferredCanvasPersonPhoto(images);
+      // Honor explicit thumb selection only when it is the person (or no person exists).
       if (moodboardHeroUrl) {
         const byUrl = images.find((img) => img && img.url && img.url === moodboardHeroUrl);
         if (byUrl) {
-          const person = pickPreferredCanvasPersonPhoto(images);
-          if (byUrl.kind === 'closet' && person && person.kind === 'person') {
+          if (person && person.kind === 'person' && byUrl.kind !== 'person') {
             return person;
           }
           return byUrl;
         }
       }
-      const preferred = pickPreferredCanvasPersonPhoto(images);
-      if (preferred) return preferred;
+      if (person) return person;
       const hero = document.getElementById('wardrobe-moodboard-hero');
       if (hero && hero.src && !hero.classList.contains('hidden')) {
         const byUrl = images.find((img) => img && img.url && img.url === hero.src);

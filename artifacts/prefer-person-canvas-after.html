@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>After: person Canvas hero (not closet)</title>
+<style>
+  body{font-family:Georgia,serif;background:#f7f0f4;color:#3b1f36;margin:0;padding:24px}
+  h1{font-size:1.25rem;margin:0 0 8px}
+  p{max-width:52rem;line-height:1.45}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+  figure{margin:0;background:#fff;border:1px solid #e0c9d6;padding:10px}
+  img{width:100%;height:auto;display:block;object-fit:cover}
+  figcaption{font-size:12px;margin-top:8px;color:#5e2750}
+  .ok{color:#1b6b3a;font-weight:700}
+  ul{line-height:1.5}
+</style>
+</head>
+<body>
+  <h1>Prefer person over closet — expected after fix</h1>
+  <p>Before: Your Canvas hero was the <strong>closet shelf</strong> (latest upload) while the bikini person sat in a thumb. Vision edited from the closet identity path.</p>
+  <p class="ok">After: Canvas hero + Vision identity = latest person/selfie. Closet informs wardrobe text only.</p>
+  <div class="grid">
+    <figure>
+      <img src="debra-before-closet-as-hero.png" alt="Before: closet as Canvas hero"/>
+      <figcaption>Before — closet as Your Canvas hero; bikini only in thumbs; matronly Vision dress.</figcaption>
+    </figure>
+    <figure>
+      <img src="debra-bikini-person.png" alt="Bikini person photo that must be Canvas hero"/>
+      <figcaption>Identity photo that must be Canvas hero + Vision edit input whenever present.</figcaption>
+    </figure>
+  </div>
+  <ul>
+    <li>Upload order bikini → closet must still show bikini as hero.</li>
+    <li>Thumb click selects hero; Style re-render must not reset away from person unless Debra picked closet.</li>
+    <li>Generate My Look always passes person selfie when one exists.</li>
+    <li>Swimwear canvas → hot-on-her / occasion-aware Style, not black midi + cardigan armor.</li>
+  </ul>
+</body>
+</html>
