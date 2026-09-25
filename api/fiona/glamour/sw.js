@@ -1,5 +1,5 @@
 /* Fiona PWA service worker — resilient for Vercel cleanUrls + mobile install */
-const CACHE_NAME = 'fiona-pwa-v5';
+const CACHE_NAME = 'fiona-pwa-v6';
 /* Only cache final URLs (no /index.html — Vercel 308-redirects it to /) */
 const PRECACHE = [
   '/',

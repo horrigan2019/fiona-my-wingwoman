@@ -387,36 +387,98 @@ Write clarityRefocus, confidenceAnchor, wingwomanQuip, and compliment that are u
   }
 }
 
-function hairLocksReference(look) {
-  // hairMove is user-facing advice. Feeding it into Vision often invents long hair / buns
-  // and destroys likeness — especially for short textured cuts. Lock hair to the selfie.
-  const raw = look && look.hairMove
-    ? `${look.hairMove.title || ''} ${look.hairMove.body || ''} ${(look.hairMove.cues || []).join(' ')}`
-    : '';
-  const risky = /bun|up-?do|chignon|ponytail|pony tail|extension|weave|long hair|longer|mid-?length|waves down|blowout|french twist|sleek bun|top knot|lengthen|grow(n|ing)?\s+out/i.test(raw);
+/** User-selected Vision hairstyles — polish within her real length/color; never invent a new woman. */
+const FIONA_HAIRSTYLE_OPTIONS = [
+  {
+    id: 'keep-mine',
+    label: 'Keep mine',
+    short: 'Exact hair from your photo',
+    vision: null
+  },
+  {
+    id: 'soft-waves',
+    label: 'Soft waves',
+    short: 'Gentle wave, same length',
+    vision: 'Restyle her EXISTING hair into soft, face-framing waves with natural movement — same color, density, hairline, and approximate length as the reference. Ends stay at her real length (chin/ear/as photographed).'
+  },
+  {
+    id: 'sleek-side-part',
+    label: 'Sleek side part',
+    short: 'Polished deep side part',
+    vision: 'Restyle her EXISTING hair with a polished deep side part and smooth, controlled finish — same color, density, hairline, and approximate length. Soft shine, not stiff; no added length.'
+  },
+  {
+    id: 'polished-bob',
+    label: 'Polished bob',
+    short: 'Smooth chin-length bob',
+    vision: 'Restyle her EXISTING cut into a polished chin-length bob with clean ends and soft face framing — keep her real color, density, and hairline. If her hair is already a bob/chin-length, refine it; never grow past chin length.'
+  },
+  {
+    id: 'subtle-volume',
+    label: 'Subtle volume',
+    short: 'Lifted crown, soft body',
+    vision: 'Keep her exact cut silhouette and length, but add subtle lifted crown volume and soft body through the mid-lengths — same color, density, and hairline. Polish only; no extensions or length change.'
+  },
+  {
+    id: 'tousled-texture',
+    label: 'Tousled texture',
+    short: 'Lived-in piecey finish',
+    vision: 'Restyle her EXISTING hair with soft tousled, piecey texture and a lived-in finish — same color, density, hairline, and approximate length. Flattering and intentional, still clearly HER cut family.'
+  }
+];
+
+function resolveHairStyleOption(look, hairStyleId) {
+  const raw = String(
+    hairStyleId
+      || (look && (look.hairStyleId || look.hairstyleId || look.selectedHairStyleId))
+      || 'keep-mine'
+  ).trim().toLowerCase();
+  return FIONA_HAIRSTYLE_OPTIONS.find((o) => o.id === raw) || FIONA_HAIRSTYLE_OPTIONS[0];
+}
+
+function hairDirectionForVision(look, hairStyleId) {
+  // Intentional user pick is allowed; free-form hairMove text is still risky (long hair / buns).
+  const option = resolveHairStyleOption(look, hairStyleId);
+  const lengthGuard = [
+    'HAIR IDENTITY GUARD: Keep her real hair COLOR, density, hairline, and approximate length from the reference selfie.',
+    'If her hair is short, textured, cropped, ear-length, or chin-length, it MUST stay in that length family. Never grow hair longer.',
+    'Do NOT invent a bun, updo, ponytail, chignon, top knot, long hair, extensions, weave, or mid-length past her real length.'
+  ].join(' ');
+
+  if (!option.vision || option.id === 'keep-mine') {
+    return [
+      'HAIR LOCK: Keep her exact hair from the reference selfie — same length, cut, color, texture, density, and hairline.',
+      lengthGuard,
+      'Optional: light product polish of her EXISTING cut only (shine / soft tame) — do not invent a new silhouette.'
+    ].join(' ');
+  }
+
   return [
-    'HAIR LOCK: Keep her exact hair from the reference selfie — same length, cut, color, texture, density, and hairline.',
-    'If her hair is short, textured, cropped, or ear-length, it MUST stay that short. Never grow hair longer.',
-    'Do NOT invent a bun, updo, ponytail, long hair, waves past her real length, or extensions.',
-    risky
-      ? 'Ignore any hairstyle recommendation that would change length or create an updo; light polish of her CURRENT cut only (shine / soft tame).'
-      : 'Optional: light product polish of her EXISTING cut only — never restyle into a new length or silhouette.'
+    lengthGuard,
+    `INTENTIONAL HAIRSTYLE (user selected "${option.label}"): ${option.vision}`,
+    'Ignore conflicting hairMove / outfit-desc hair notes that would change length drastically or create an updo.',
+    'She must still look like herself — face locked; only styling direction above within her real cut family.'
   ].join(' ');
 }
 
-function buildLookImagePrompt(look, occasion, vibe) {
+function buildLookImagePrompt(look, occasion, vibe, hairStyleId) {
   const pieces = Array.isArray(look && look.pieces)
     ? look.pieces.map((p) => `${p.name} (${p.fabric || ''} ${p.colorLabel || p.hex || ''})`.trim()).join('; ')
     : '';
   const face = look && look.facePalette
     ? `Lips ${((look.facePalette.lip || [])[1]) || ''}, cheeks ${((look.facePalette.cheek || [])[1]) || ''}. ${look.facePalette.note || ''}`
     : '';
+  const hairOption = resolveHairStyleOption(look, hairStyleId);
+  const allowHairRestyle = Boolean(hairOption.vision && hairOption.id !== 'keep-mine');
+  const changeLine = allowHairRestyle
+    ? `CHANGE ALLOWED: clothing/outfit, light makeup (lipstick and blush), and the intentional "${hairOption.label}" hairstyle within her real length/color. Keep pose geometry, face, and body type intact.`
+    : 'CHANGE ONLY: clothing/outfit and light makeup (lipstick and blush). Keep pose geometry, exact hair, and her identity intact.';
   return [
     'Edit the attached reference selfie of this exact woman. Virtual try-on only — same person, not a new model.',
     'IDENTITY LOCK — do not change: her exact face, facial geometry, eyes, nose, mouth, expression, skin tone, age, ethnicity, or likeness.',
     'BODY LOCK: Preserve her real body type, soft/curvy proportions if present, shoulder-to-hip balance, and figure. Do not slim, idealize, lengthen legs, or cast a fashion-model body.',
-    hairLocksReference(look),
-    'CHANGE ONLY: clothing/outfit and light makeup (lipstick and blush). Keep pose geometry and her identity intact.',
+    hairDirectionForVision(look, hairStyleId),
+    changeLine,
     'FLATTERING FIT: Dress her to look intentional and gorgeous on HER body — define the waist, skim (never tent) bust and hips, celebrate soft curves. Prefer wrap that cinches, soft V / wrap neckline, A-line, vertical lines, right proportions.',
     'Do NOT drown her in an oversized heavy blazer, shapeless dark midi tent, or matronly corporate armor. Outfit should look hot-on-her and polished — never frumpy or covering-up.',
     `Look title: ${(look && look.title) || 'Curated look'}`,
@@ -426,7 +488,9 @@ function buildLookImagePrompt(look, occasion, vibe) {
     pieces ? `Dress her in these pieces (fit flatteringly to HER body — cinch waist, skim curves): ${pieces}` : '',
     face ? `Light makeup only: ${face}` : '',
     'Soft studio or wardrobe background OK. Tasteful, non-sexual, photorealistic. No text overlays, no logos.',
-    'FINAL CHECK: face matches the reference, hair length/style matches the reference, body type matches the reference, outfit flatters her real figure (waist visible, not tented). If anything conflicts, prefer the reference selfie for identity — keep the flattering fit.'
+    allowHairRestyle
+      ? `FINAL CHECK: face matches the reference, hair stays in her real length/color family with the selected "${hairOption.label}" finish, body type matches the reference, outfit flatters her real figure (waist visible, not tented). If anything conflicts, prefer the reference selfie for face + body — keep the flattering fit and selected hair polish.`
+      : 'FINAL CHECK: face matches the reference, hair length/style matches the reference, body type matches the reference, outfit flatters her real figure (waist visible, not tented). If anything conflicts, prefer the reference selfie for identity — keep the flattering fit.'
   ].filter(Boolean).join('\n');
 }
 
@@ -500,7 +564,7 @@ async function generateLookWithGemini(images, prompt) {
   const mediaType = first.mediaType || first.media_type || 'image/jpeg';
   const model = process.env.GEMINI_IMAGE_MODEL || 'gemini-2.0-flash-preview-image-generation';
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`;
-  const identityLead = 'You are editing the attached photo of a real woman. Keep her identical face, short-or-as-photographed hair length, and body type. Change clothes and light makeup only.\n\n';
+  const identityLead = 'You are editing the attached photo of a real woman. Keep her identical face and body type. Keep hair in her real length/color family (short stays short). Change clothes, light makeup, and only an intentional selected hairstyle polish when the prompt asks for it.\n\n';
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -556,7 +620,8 @@ async function handleLookPhoto(req, res, body) {
   }
 
   const look = body.look || {};
-  const prompt = buildLookImagePrompt(look, body.occasion, body.vibe);
+  const hairStyleId = body.hairStyleId || body.hairstyleId || (look && look.hairStyleId) || 'keep-mine';
+  const prompt = buildLookImagePrompt(look, body.occasion, body.vibe, hairStyleId);
   const hasOpenAI = Boolean(process.env.OPENAI_API_KEY);
   const hasGemini = Boolean(process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY);
   if (!hasOpenAI && !hasGemini) {
@@ -592,6 +657,7 @@ async function handleLookPhoto(req, res, body) {
     return res.end(JSON.stringify({
       ok: true,
       provider: result.provider,
+      hairStyleId: resolveHairStyleOption(look, hairStyleId).id,
       image: {
         mimeType: result.mimeType,
         dataUrl: `data:${result.mimeType};base64,${result.base64}`
@@ -702,6 +768,7 @@ ${detectBlock}
 If morning energy is provided, weight ease vs polish — but ALWAYS stay flattering (fumes = easy elevated that still cinches/defines; conquer = sharp figure-flattering, not boxy armor; move = polished athleisure with shape).
 If photos are present, ground the look in her actual figure, coloring, and what she is wearing in frame. If multiple photos include closet/wardrobe shots, pull from pieces she owns when possible and restyle them to flatter.
 Hair advice (hairMove) MUST work with her CURRENT hair length and cut visible in the photo. Short or cropped hair stays short — recommend texture, product, part, or soft polish for HER cut. Never invent long hair, extensions, mid-length waves, or length-requiring buns/updos unless she explicitly asked for a hair change.
+Also set suggestedHairStyleId to ONE of these Vision-safe polish options (still her length/color family): "keep-mine" | "soft-waves" | "sleek-side-part" | "polished-bob" | "subtle-volume" | "tousled-texture". Prefer a flattering alternative when her current finish looks flat/frumpy; use "keep-mine" when her hair already looks intentional. Vision will only apply the user's final pick — your suggestion is advice, not a forced restyle.
 If no photos, still invent a fresh look from the filters — do not reuse a canned plum-cami-blazer or navy-wrap-plus-charcoal-blazer default.
 If she feels frumpy or needs "what to wear" help, lead with empathy + a specific compliment that celebrates her body, then a glamorous confidence-lifting full look — never a cover-up.
 Include field "compliment" with one sincere compliment grounded in her photo or vibe — warm, specific, body-positive (curves as assets).
@@ -744,6 +811,7 @@ Return JSON only:
     "body": "Advice based on her actual hair length in the photo + outfit neckline — polish her existing cut; never recommend length she does not have",
     "cues": ["Volume: ...", "Part: ...", "Texture: ..."]
   },
+  "suggestedHairStyleId": "keep-mine|soft-waves|sleek-side-part|polished-bob|subtle-volume|tousled-texture",
   "facePalette": {
     "lip": ["#HEX", "Name"],
     "cheek": ["#HEX", "Name"],
@@ -816,6 +884,9 @@ function sanitizeBeautyData(data, body) {
   if (data.hairMove && typeof data.hairMove === 'object' && typeof data.hairMove.body === 'string') {
     data.hairMove.body = alignTextToWeekday(data.hairMove.body, weekday);
   }
+  const allowedHair = new Set(FIONA_HAIRSTYLE_OPTIONS.map((o) => o.id));
+  const suggested = String(data.suggestedHairStyleId || '').trim().toLowerCase();
+  data.suggestedHairStyleId = allowedHair.has(suggested) ? suggested : 'keep-mine';
   return data;
 }
 
