@@ -378,30 +378,44 @@ Write clarityRefocus, confidenceAnchor, wingwomanQuip, and compliment that are u
   }
 }
 
+function hairLocksReference(look) {
+  // hairMove is user-facing advice. Feeding it into Vision often invents long hair / buns
+  // and destroys likeness — especially for short textured cuts. Lock hair to the selfie.
+  const raw = look && look.hairMove
+    ? `${look.hairMove.title || ''} ${look.hairMove.body || ''} ${(look.hairMove.cues || []).join(' ')}`
+    : '';
+  const risky = /bun|up-?do|chignon|ponytail|pony tail|extension|weave|long hair|longer|mid-?length|waves down|blowout|french twist|sleek bun|top knot|lengthen|grow(n|ing)?\s+out/i.test(raw);
+  return [
+    'HAIR LOCK: Keep her exact hair from the reference selfie — same length, cut, color, texture, density, and hairline.',
+    'If her hair is short, textured, cropped, or ear-length, it MUST stay that short. Never grow hair longer.',
+    'Do NOT invent a bun, updo, ponytail, long hair, waves past her real length, or extensions.',
+    risky
+      ? 'Ignore any hairstyle recommendation that would change length or create an updo; light polish of her CURRENT cut only (shine / soft tame).'
+      : 'Optional: light product polish of her EXISTING cut only — never restyle into a new length or silhouette.'
+  ].join(' ');
+}
+
 function buildLookImagePrompt(look, occasion, vibe) {
   const pieces = Array.isArray(look && look.pieces)
     ? look.pieces.map((p) => `${p.name} (${p.fabric || ''} ${p.colorLabel || p.hex || ''})`.trim()).join('; ')
-    : '';
-  const hair = look && look.hairMove
-    ? `${look.hairMove.title || ''}: ${look.hairMove.body || ''} ${(look.hairMove.cues || []).join(', ')}`
     : '';
   const face = look && look.facePalette
     ? `Lips ${((look.facePalette.lip || [])[1]) || ''}, cheeks ${((look.facePalette.cheek || [])[1]) || ''}. ${look.facePalette.note || ''}`
     : '';
   return [
-    'IDENTITY LOCK: Edit the attached reference selfie of this exact woman — do not invent, replace, or cast a different model.',
-    'Preserve her exact face, facial geometry, eyes, nose, mouth, skin tone, age, body type/proportions, and hairline.',
-    'Only change outfit, hair styling, and makeup. Keep the same person recognizably identical to the reference.',
-    'Do not beautify into a generic fashion model. No face swap. No different ethnicity, age, or body shape.',
-    'Transform only hair, makeup, and clothing into this complete Glamour Suite recommendation:',
+    'Edit the attached reference selfie of this exact woman. Virtual try-on only — same person, not a new model.',
+    'IDENTITY LOCK — do not change: her exact face, facial geometry, eyes, nose, mouth, expression, skin tone, age, ethnicity, or likeness.',
+    'BODY LOCK: Preserve her real body type, soft/curvy proportions if present, shoulder-to-hip balance, and figure. Do not slim, idealize, lengthen legs, or cast a fashion-model body.',
+    hairLocksReference(look),
+    'CHANGE ONLY: clothing/outfit and light makeup (lipstick and blush). Keep pose geometry and her identity intact.',
     `Look title: ${(look && look.title) || 'Curated look'}`,
     `Occasion: ${occasion || 'everyday'}`,
     vibe ? `Vibe: ${vibe}` : '',
-    look && look.desc ? `Description: ${look.desc}` : '',
-    pieces ? `Outfit pieces: ${pieces}` : '',
-    hair ? `Hair: ${hair}` : '',
-    face ? `Makeup: ${face}` : '',
-    'Natural flattering light, elegant spa-luxe aesthetic, tasteful, confident, non-sexual, no text overlays, no logos.'
+    look && look.desc ? `Outfit description (ignore any hair-length changes in this text): ${look.desc}` : '',
+    pieces ? `Dress her in these pieces (fit to HER body): ${pieces}` : '',
+    face ? `Light makeup only: ${face}` : '',
+    'Soft studio or wardrobe background OK. Tasteful, non-sexual, photorealistic. No text overlays, no logos.',
+    'FINAL CHECK: face matches the reference, hair length/style matches the reference, body type matches the reference. If anything conflicts, prefer the reference selfie.'
   ].filter(Boolean).join('\n');
 }
 
@@ -417,7 +431,7 @@ async function generateLookWithOpenAI(images, prompt) {
     ? 'low'
     : 'high';
   const modelsToTry = [
-    process.env.OPENAI_IMAGE_MODEL || 'gpt-image-1',
+    process.env.OPENAI_IMAGE_MODEL || 'gpt-image-1.5',
     'gpt-image-1.5',
     'gpt-image-1'
   ].filter((m, i, a) => a.indexOf(m) === i && !/^dall-e/i.test(m));
@@ -433,6 +447,7 @@ async function generateLookWithOpenAI(images, prompt) {
       if (model === 'gpt-image-1' || model === 'gpt-image-1.5' || model.startsWith('gpt-image-1')) {
         form.append('input_fidelity', fidelity);
       }
+      // Mask-free edit — identity/hair/body locks live in the prompt.
       form.append('image', new Blob([bytes], { type: mediaType }), 'canvas-selfie.jpg');
 
       const res = await fetch('https://api.openai.com/v1/images/edits', {
@@ -474,6 +489,7 @@ async function generateLookWithGemini(images, prompt) {
   const mediaType = first.mediaType || first.media_type || 'image/jpeg';
   const model = process.env.GEMINI_IMAGE_MODEL || 'gemini-2.0-flash-preview-image-generation';
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`;
+  const identityLead = 'You are editing the attached photo of a real woman. Keep her identical face, short-or-as-photographed hair length, and body type. Change clothes and light makeup only.\n\n';
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -481,7 +497,7 @@ async function generateLookWithGemini(images, prompt) {
       contents: [{
         role: 'user',
         parts: [
-          { text: prompt },
+          { text: identityLead + prompt },
           { inline_data: { mime_type: mediaType, data: raw } }
         ]
       }],
@@ -545,12 +561,13 @@ async function handleLookPhoto(req, res, body) {
   try {
     let result = null;
     let lastErr = null;
-    if (hasOpenAI) {
-      try { result = await generateLookWithOpenAI(images, prompt); } catch (e) { lastErr = e; }
-    }
-    if (!result && hasGemini) {
-      try { result = await generateLookWithGemini(images, prompt); } catch (e) { lastErr = e; }
-    }
+    const preferGemini = String(process.env.VISION_PREFER_GEMINI || '').toLowerCase() === '1'
+      || String(process.env.VISION_PREFER_GEMINI || '').toLowerCase() === 'true';
+    const tryOpenAI = async () => { try { return await generateLookWithOpenAI(images, prompt); } catch (e) { lastErr = e; return null; } };
+    const tryGemini = async () => { try { return await generateLookWithGemini(images, prompt); } catch (e) { lastErr = e; return null; } };
+    if (preferGemini && hasGemini) result = await tryGemini();
+    if (!result && hasOpenAI) result = await tryOpenAI();
+    if (!result && hasGemini) result = await tryGemini();
     if (!result) {
       res.statusCode = (lastErr && lastErr.status) || 502;
       res.setHeader('Content-Type', 'application/json');
@@ -673,6 +690,7 @@ ${detectBlock}
 
 If morning energy is provided, weight the outfit toward that bias (fumes = soft/low-friction; conquer = structured/bold; move = polished athleisure).
 If photos are present, ground the look in her actual figure, coloring, and what she is wearing in frame.
+Hair advice (hairMove) MUST work with her CURRENT hair length and cut visible in the photo. Short or cropped hair stays short — recommend texture, product, part, or soft polish for HER cut. Never invent long hair, extensions, mid-length waves, or length-requiring buns/updos unless she explicitly asked for a hair change.
 If no photos, still invent a fresh look from the filters — do not reuse a canned plum-cami-blazer default.
 If she feels frumpy or needs "what to wear" help, lead with empathy + a specific compliment, then the full look.
 Include field "compliment" with one sincere compliment grounded in her photo or vibe.
@@ -704,8 +722,8 @@ Return JSON only:
     { "hex": "#HEX", "label": "Name" }
   ],
   "hairMove": {
-    "title": "Hair move title",
-    "body": "Advice based on face/outfit neckline and silhouette",
+    "title": "Hair move title (compatible with her CURRENT length/cut)",
+    "body": "Advice based on her actual hair length in the photo + outfit neckline — polish her existing cut; never recommend length she does not have",
     "cues": ["Volume: ...", "Part: ...", "Texture: ..."]
   },
   "facePalette": {

@@ -4281,35 +4281,35 @@
 
       if (/Petite/i.test(sil)) {
         title = 'Elongating Soft Lift';
-        body = `Petite frames love height at the crown and a sleek mid-length finish so the ${neckline} neckline stays the visual center.`;
+        body = `Petite frames love height at the crown on YOUR current length so the ${neckline} neckline stays the visual center — never grow hair longer.`;
         cues = [
           'Volume: high crown, controlled sides',
           'Part: center-soft or slight side',
-          'Texture: smooth with a touch of air'
+          'Texture: smooth with a touch of air — keep your real length'
         ];
       } else if (/Tall/i.test(sil)) {
-        title = 'Long-Line Waves';
-        body = `Tall lines suit unbroken waves that echo the outfit’s verticals and keep the ${neckline} neckline elegant, not busy.`;
+        title = 'Long-Line Soft Polish';
+        body = `Tall lines suit a polished finish on the hair length you already have — keep the ${neckline} neckline elegant, not busy.`;
         cues = [
-          'Volume: mid-length body, soft ends',
+          'Volume: soft body on your existing length',
           'Part: deep side for drama without bulk',
-          'Texture: loose S-wave, low shine'
+          'Texture: soft polish, low shine — no extensions'
         ];
       } else if (/Athletic/i.test(sil)) {
-        title = 'Soft Contour Waves';
-        body = `Add gentle face-framing waves to soften athletic shoulders while keeping the ${neckline} neckline crisp.`;
+        title = 'Soft Contour Polish';
+        body = `Add gentle face-framing polish on YOUR existing length to soften athletic shoulders while keeping the ${neckline} neckline crisp — no length change.`;
         cues = [
-          'Volume: face-frame only',
+          'Volume: face-frame only on your real cut',
           'Part: soft side part',
           'Texture: flexible hold, lived-in polish'
         ];
       } else if (/Curvy|Soft Silhouette/i.test(sil)) {
-        title = 'Romantic Crown Softness';
-        body = `Soft volume and a romantic finish balance curves and celebrate a ${neckline} neckline without fighting your silhouette.`;
+        title = 'Soft Crown Texture Polish';
+        body = `Keep your current hair length and celebrate soft volume at the crown that balances curves and respects a ${neckline} neckline — polish the cut you already have.`;
         cues = [
-          'Volume: rounded crown',
+          'Volume: rounded crown on your existing length',
           'Part: soft side',
-          'Texture: brushed wave with movement'
+          'Texture: soft hold — never grow length or invent an updo'
         ];
       }
 
@@ -4628,6 +4628,9 @@
       if (!img) return null;
       const maxDim = options.maxDim || 1280;
       const quality = options.quality || 0.72;
+      const softLimit = options.softLimit || 280000;
+      const hardMaxDim = options.hardMaxDim || Math.min(maxDim, 960);
+      const hardQuality = options.hardQuality != null ? options.hardQuality : Math.min(quality, 0.55);
       try {
         let blob = null;
         if (img.file instanceof Blob) blob = img.file;
@@ -4642,10 +4645,10 @@
           const compressed = await compressImageBlobForApi(blob, maxDim, quality);
           if (compressed) sendBlob = compressed;
         } catch (_) {}
-        // If still huge, compress harder
-        if (sendBlob.size > 280000) {
+        // If still huge, compress harder (Vision likeness path uses a higher softLimit).
+        if (sendBlob.size > softLimit) {
           try {
-            const harder = await compressImageBlobForApi(sendBlob, Math.min(maxDim, 960), Math.min(quality, 0.55));
+            const harder = await compressImageBlobForApi(sendBlob, hardMaxDim, hardQuality);
             if (harder) sendBlob = harder;
           } catch (_) {}
         }
@@ -4690,7 +4693,14 @@
     async function collectCanvasSelfieForLook() {
       const selfie = resolveCanvasSelfieForLook();
       if (!selfie) return null;
-      return canvasImageToApiPayload(selfie, { maxDim: 1280, quality: 0.78 });
+      // Higher-res input helps gpt-image edit keep face + short hair + body type.
+      return canvasImageToApiPayload(selfie, {
+        maxDim: 1536,
+        quality: 0.9,
+        softLimit: 520000,
+        hardMaxDim: 1280,
+        hardQuality: 0.78
+      });
     }
 
     function applyWardrobeLookToUi(look, occasionLabel, vibe, silhouette, harmony, photoCount, sourceLabel) {
@@ -4745,7 +4755,7 @@
       prepareFionaVisionCard(window.lastGlamourLook);
     }
 
-    const FIONA_VISION_CACHE_PREFIX = 'fiona_vision_look_v2:';
+    const FIONA_VISION_CACHE_PREFIX = 'fiona_vision_look_v3:';
     let fionaVisionSideBySide = false;
     let fionaVisionGenerating = false;
 
