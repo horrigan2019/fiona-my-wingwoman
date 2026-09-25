@@ -226,27 +226,91 @@ async function generateWithFashn(apiKey, dataUrl, prompt) {
 async function generateWithOpenAI(apiKey, photo, prompt) {
   const parsed = stripDataUrl(photo.data || photo);
   const bytes = Buffer.from(parsed.base64, 'base64');
-  const form = new FormData();
-  form.append('model', process.env.OPENAI_IMAGE_MODEL || 'gpt-image-1');
-  form.append('prompt', prompt.slice(0, 3200));
-  form.append('size', process.env.OPENAI_IMAGE_SIZE || '1024x1536');
-  form.append('quality', process.env.OPENAI_IMAGE_QUALITY || 'medium');
-  form.append('image', new Blob([bytes], { type: parsed.mediaType || 'image/jpeg' }), 'selfie.jpg');
-  const res = await fetch('https://api.openai.com/v1/images/edits', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${apiKey}` },
-    body: form
-  });
-  const json = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    const err = new Error((json && json.error && json.error.message) || 'OpenAI image edit failed');
-    err.status = res.status;
-    err.detail = json;
-    throw err;
+  const modelsToTry = [
+    process.env.OPENAI_IMAGE_MODEL || 'gpt-image-1',
+    'gpt-image-1',
+    'dall-e-2'
+  ].filter((m, i, a) => a.indexOf(m) === i);
+
+  let lastErr = null;
+  for (const model of modelsToTry) {
+    try {
+      const form = new FormData();
+      form.append('model', model);
+      form.append('prompt', prompt.slice(0, 3200));
+      if (model === 'dall-e-2') {
+        form.append('size', '1024x1024');
+        form.append('n', '1');
+      } else {
+        form.append('size', process.env.OPENAI_IMAGE_SIZE || '1024x1536');
+        form.append('quality', process.env.OPENAI_IMAGE_QUALITY || 'medium');
+      }
+      form.append('image', new Blob([bytes], { type: parsed.mediaType || 'image/jpeg' }), 'selfie.jpg');
+
+      const res = await fetch('https://api.openai.com/v1/images/edits', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${apiKey}` },
+        body: form
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        lastErr = new Error((json && json.error && json.error.message) || `OpenAI edits failed (${model})`);
+        lastErr.status = res.status;
+        lastErr.detail = json;
+        continue;
+      }
+      const b64 = json.data && json.data[0] && (json.data[0].b64_json || json.data[0].b64);
+      if (!b64) {
+        lastErr = Object.assign(new Error('OpenAI returned no image'), { detail: json });
+        continue;
+      }
+      return { mimeType: 'image/png', base64: b64, provider: `openai:${model}` };
+    } catch (e) {
+      lastErr = e;
+    }
   }
-  const b64 = json.data && json.data[0] && (json.data[0].b64_json || json.data[0].b64);
-  if (!b64) throw Object.assign(new Error('OpenAI returned no image'), { detail: json });
-  return { mimeType: 'image/png', base64: b64, provider: 'openai' };
+
+  // Last resort: text-to-image generations (weaker identity match, but better than total failure)
+  try {
+    const res = await fetch('https://api.openai.com/v1/images/generations', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: process.env.OPENAI_IMAGE_GEN_MODEL || 'gpt-image-1',
+        prompt: `${prompt}\nUse the reference woman's appearance from this description context; keep a realistic full-body editorial portrait.`,
+        size: process.env.OPENAI_IMAGE_SIZE || '1024x1536',
+        quality: process.env.OPENAI_IMAGE_QUALITY || 'medium'
+      })
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const err = new Error((json && json.error && json.error.message) || 'OpenAI generations failed');
+      err.status = res.status;
+      err.detail = json;
+      throw err;
+    }
+    const row = json.data && json.data[0];
+    if (row && row.b64_json) {
+      return { mimeType: 'image/png', base64: row.b64_json, provider: 'openai:generations' };
+    }
+    if (row && row.url) {
+      const imgRes = await fetch(row.url);
+      const buf = Buffer.from(await imgRes.arrayBuffer());
+      return {
+        mimeType: imgRes.headers.get('content-type') || 'image/png',
+        base64: buf.toString('base64'),
+        provider: 'openai:generations',
+        url: row.url
+      };
+    }
+  } catch (e) {
+    lastErr = e;
+  }
+
+  throw lastErr || new Error('OpenAI image generation failed');
 }
 
 async function generateWithGemini(apiKey, photo, prompt) {
@@ -356,7 +420,15 @@ module.exports = async function handler(req, res) {
       return null;
     };
 
-    const order = [provider, 'fal', 'replicate', 'fashn', 'openai', 'gemini']
+    const order = [
+      // Prefer OpenAI when configured — most common setup for Fiona right now
+      openAiKey ? 'openai' : '',
+      provider,
+      'fal',
+      'replicate',
+      'fashn',
+      'gemini'
+    ]
       .filter(Boolean)
       .filter((v, i, a) => a.indexOf(v) === i);
 
@@ -371,12 +443,18 @@ module.exports = async function handler(req, res) {
     }
 
     if (!result) {
+      const detailMsg = typeof (lastErr && lastErr.message) === 'string' ? lastErr.message : '';
+      const billingHint = /billing|quota|credit|payment|limit/i.test(detailMsg + JSON.stringify((lastErr && lastErr.detail) || {}));
       res.statusCode = (lastErr && lastErr.status) || 502;
       res.setHeader('Content-Type', 'application/json');
       return res.end(JSON.stringify({
         error: 'Could not generate outfit look',
         detail: lastErr && (lastErr.detail || lastErr.message),
-        fionaMessage: "That look got stuck in the dressing room, darling. Try again in a moment — your text recommendation is still perfect."
+        fionaMessage: billingHint
+          ? "OpenAI needs billing credit for image generation — add a little credit at platform.openai.com, then try Generate My Look again."
+          : (detailMsg
+            ? `Fiona couldn't finish the Vision look (${detailMsg}). Check OPENAI_API_KEY / billing, then try again.`
+            : "That look got stuck in the dressing room, darling. Try again in a moment — your text recommendation is still perfect.")
       }));
     }
 
