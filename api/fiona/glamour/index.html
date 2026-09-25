@@ -3,8 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Fiona: Your Wingwoman — Private Spa Suite</title>
-  <meta name="description" content="Your private spa suite for calm, style, and high-EQ support — Fiona, your wingwoman.">
+  <title>Your Personal Sanctuary Suite | Fiona</title>
+  <meta name="description" content="Your AI Wingwoman for daily confidence, self-care rituals, and styling.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Your Personal Sanctuary Suite | Fiona">
+  <meta property="og:description" content="Your AI Wingwoman for daily confidence, self-care rituals, and styling.">
+  <meta property="og:site_name" content="Fiona">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Your Personal Sanctuary Suite | Fiona">
+  <meta name="twitter:description" content="Your AI Wingwoman for daily confidence, self-care rituals, and styling.">
   <meta name="theme-color" content="#5E2750">
   <meta name="msapplication-TileColor" content="#5E2750">
   <meta name="mobile-web-app-capable" content="yes">
@@ -26,6 +33,7 @@
   
   <!-- Lucide Icons CDN -->
   <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="/beta-pass.js"></script>
 
   <script>
     tailwind.config = {
@@ -246,7 +254,7 @@
     <!-- ================================================================= -->
     <section id="wing-lounge" class="space-y-8 animate-fadeIn">
       
-      <!-- Spa Suite Arrival Header -->
+      <!-- Personal Sanctuary Suite Arrival Header -->
       <div class="text-center max-w-2xl mx-auto space-y-2 pt-2">
         <h2 class="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white tracking-tight">
           Welcome to Your Suite, Gorgeous
@@ -447,7 +455,7 @@
             </div>
             <div class="space-y-1">
               <h4 class="font-serif text-lg font-bold text-gray-900 dark:text-white">The Glamour Suite</h4>
-              <p class="text-xs text-gray-600 dark:text-gray-300">Effortless wardrobe styling recommendations and hair & makeup vanity mirror.</p>
+              <p class="text-xs text-gray-600 dark:text-gray-300">One Glamour Suite look: outfit + hair + makeup, with an AI photo of you in the recommendation.</p>
             </div>
           </div>
 
@@ -992,18 +1000,8 @@
           The Glamour Suite
         </h2>
         <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">
-          Feel-good style advice and customized beauty palettes. No body shaming, just pure plumage celebration.
+          One full look from Fiona — outfit, hair, and makeup together — plus a generated photo of you in the recommendation.
         </p>
-
-        <!-- Clean Sub-Tabs (No Double Pill Overlap) -->
-        <div class="mt-4 inline-flex max-w-full flex-wrap items-center gap-1 p-1 rounded-full bg-pink-50/90 dark:bg-purple-950/50 border border-pink-100 dark:border-purple-900/60">
-          <button onclick="switchGlamourTab('wardrobe')" id="subtab-wardrobe" class="px-4 py-2 text-sm font-medium rounded-full transition bg-spa-plum text-white shadow-sm">
-            👗 The Wardrobe
-          </button>
-          <button onclick="switchGlamourTab('hairmakeup')" id="subtab-hairmakeup" class="px-4 py-2 text-sm font-medium rounded-full transition text-purple-900/70 dark:text-pink-100/80 hover:bg-white/70 dark:hover:bg-purple-900/40">
-            💄 Hair & Makeup
-          </button>
-        </div>
       </div>
 
       <!-- Start My Day — morning energy check-in (feeds Style Me); top of Glamour Suite -->
@@ -1039,18 +1037,18 @@
         </div>
       </div>
 
-      <!-- SUB-CHAMBER 1: The Wardrobe -->
+      <!-- Glamour Suite — unified outfit + hair + makeup (no separate Wardrobe / Hair tabs) -->
       <div id="glamour-wardrobe-view" class="space-y-6">
         <div class="bg-white dark:bg-spa-darkcard p-6 sm:p-7 rounded-2xl border border-pink-100 dark:border-purple-900/40 shadow-sm space-y-5">
           <h3 class="font-serif text-xl font-bold text-gray-900 dark:text-white">What's the Occasion, Gorgeous?</h3>
-          <p class="text-xs text-gray-600 dark:text-gray-300 -mt-2">Give Fiona a little context — and optionally a photo of you or an outfit — and she’ll find the magic in what you already have.</p>
+          <p class="text-xs text-gray-600 dark:text-gray-300 -mt-2">Tell Fiona the vibe (or that you feel frumpy). Upload a photo of you — she'll prescribe outfit + hair + makeup as one look, then generate a photo of you wearing it.</p>
           
-          <!-- Wardrobe photo canvas -->
+          <!-- Glamour photo canvas -->
           <div class="space-y-3">
             <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
               <div>
                 <h4 class="font-serif text-base font-bold text-gray-900 dark:text-white">Your Look Canvas</h4>
-                <p class="text-xs text-gray-600 dark:text-gray-300">Upload or snap a photo of you / your outfit so Fiona can style from what’s real.</p>
+                <p class="text-xs text-gray-600 dark:text-gray-300">Upload or snap up to 10 photos of you so Fiona can style hair, makeup, and wardrobe from what's real.</p>
               </div>
               <span class="text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-1 rounded-full shrink-0">🔒 Local Only</span>
             </div>
@@ -1070,7 +1068,11 @@
                     Clear
                   </button>
                 </div>
-                <p id="wardrobe-status" class="text-[11px] text-gray-600 dark:text-gray-300">Photos stay in your browser only — never uploaded to a server.</p>
+                <p id="wardrobe-status" class="text-[11px] text-gray-600 dark:text-gray-300">Take a Photo opens your camera. Photos can be saved on this device for later.</p>
+                <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-1">
+                  <button type="button" id="save-wardrobe-photos-btn" onclick="saveGlamourPhotosForLater()" class="hidden px-3 py-1.5 rounded-lg bg-teal-700 text-white text-[10px] font-bold hover:bg-teal-800 transition">💾 Save for later</button>
+                  <span id="wardrobe-saved-badge" class="hidden text-[10px] font-semibold text-teal-700 dark:text-teal-300">Saved on this device</span>
+                </div>
                 <p id="wardrobe-error" class="hidden text-[11px] text-rose-700 dark:text-rose-300 font-medium"></p>
               </div>
             </div>
@@ -1082,7 +1084,7 @@
               <div id="wardrobe-thumbs" class="flex gap-2 overflow-x-auto pb-1"></div>
             </div>
             <input id="wardrobe-upload-input" type="file" accept="image/*" multiple class="sr-only" aria-label="Upload wardrobe photo" onchange="handleCanvasUpload(event, 'wardrobe')">
-            <input id="wardrobe-camera-input" type="file" accept="image/*" capture="environment" class="sr-only" aria-label="Take wardrobe photo" onchange="handleCanvasUpload(event, 'wardrobe')">
+            <input id="wardrobe-camera-input" type="file" accept="image/*" capture="user" class="sr-only" aria-label="Take wardrobe selfie with front camera" onchange="handleCanvasUpload(event, 'wardrobe')">
           </div>
 
           <!-- Occasion Selector -->
@@ -1098,15 +1100,20 @@
           </div>
 
           <div class="space-y-2">
-            <label for="wardrobe-vibe" class="text-xs font-semibold text-gray-700 dark:text-gray-300">Or tell Fiona the exact vibe / event:</label>
-            <textarea id="wardrobe-vibe" rows="3" placeholder="e.g., brunch with the girls, first day back at the office, gallery opening…" class="w-full p-3 rounded-xl border border-pink-100 dark:border-purple-900/60 bg-spa-cream/40 dark:bg-spa-darkbg/40 focus:outline-none focus:ring-2 focus:ring-purple-300 text-sm"></textarea>
+            <label for="wardrobe-vibe" class="text-xs font-semibold text-gray-700 dark:text-gray-300">Or tell Fiona the exact vibe / event (even “I feel frumpy”):</label>
+            <textarea id="wardrobe-vibe" rows="3" placeholder="e.g., brunch with the girls, first day back at the office, gallery opening, or I feel frumpy and need help…" class="w-full p-3 rounded-xl border border-pink-100 dark:border-purple-900/60 bg-spa-cream/40 dark:bg-spa-darkbg/40 focus:outline-none focus:ring-2 focus:ring-purple-300 text-sm"></textarea>
           </div>
 
           <!-- Figure & color harmony (wardrobe only) -->
           <div class="space-y-2">
-            <span class="text-xs font-semibold text-gray-700 dark:text-gray-300">Body silhouette / fit preference:</span>
+            <div class="flex flex-wrap items-end justify-between gap-2">
+              <span class="text-xs font-semibold text-gray-700 dark:text-gray-300">Body silhouette / fit:</span>
+              <span id="wardrobe-detect-silhouette-note" class="hidden text-[10px] font-semibold text-teal-700 dark:text-teal-300"></span>
+            </div>
+            <p class="text-[11px] text-gray-500 dark:text-gray-400">With photos, Fiona reads your figure from the canvas. Override only if you want.</p>
             <div id="wardrobe-silhouette-chips" class="flex flex-wrap gap-2">
-              <button type="button" onclick="selectWardrobeSilhouette(this, 'Hourglass / Defined')" class="wardrobe-silhouette-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-purple-200 dark:border-purple-800 bg-pink-50 dark:bg-purple-950 text-spa-plum dark:text-pink-200">Hourglass / Defined</button>
+              <button type="button" onclick="selectWardrobeSilhouette(this, 'Auto from photos')" class="wardrobe-silhouette-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-purple-200 dark:border-purple-800 bg-pink-50 dark:bg-purple-950 text-spa-plum dark:text-pink-200">✨ Auto from photos</button>
+              <button type="button" onclick="selectWardrobeSilhouette(this, 'Hourglass / Defined')" class="wardrobe-silhouette-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 dark:border-purple-900 text-gray-700 dark:text-gray-300">Hourglass / Defined</button>
               <button type="button" onclick="selectWardrobeSilhouette(this, 'Petite')" class="wardrobe-silhouette-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 dark:border-purple-900 text-gray-700 dark:text-gray-300">Petite</button>
               <button type="button" onclick="selectWardrobeSilhouette(this, 'Curvy / Soft Silhouette')" class="wardrobe-silhouette-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 dark:border-purple-900 text-gray-700 dark:text-gray-300">Curvy / Soft Silhouette</button>
               <button type="button" onclick="selectWardrobeSilhouette(this, 'Tall / Long Lines')" class="wardrobe-silhouette-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 dark:border-purple-900 text-gray-700 dark:text-gray-300">Tall / Long Lines</button>
@@ -1115,9 +1122,14 @@
           </div>
 
           <div class="space-y-2">
-            <span class="text-xs font-semibold text-gray-700 dark:text-gray-300">Skin tone / color harmony:</span>
+            <div class="flex flex-wrap items-end justify-between gap-2">
+              <span class="text-xs font-semibold text-gray-700 dark:text-gray-300">Skin tone / color harmony:</span>
+              <span id="wardrobe-detect-harmony-note" class="hidden text-[10px] font-semibold text-teal-700 dark:text-teal-300"></span>
+            </div>
+            <p class="text-[11px] text-gray-500 dark:text-gray-400">With photos, Fiona reads undertone from your face and skin. Override only if you want.</p>
             <div id="wardrobe-harmony-chips" class="flex flex-wrap gap-2">
-              <button type="button" onclick="selectWardrobeHarmony(this, 'Warm & Golden')" class="wardrobe-harmony-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-purple-200 dark:border-purple-800 bg-pink-50 dark:bg-purple-950 text-spa-plum dark:text-pink-200">Warm & Golden</button>
+              <button type="button" onclick="selectWardrobeHarmony(this, 'Auto from photos')" class="wardrobe-harmony-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-purple-200 dark:border-purple-800 bg-pink-50 dark:bg-purple-950 text-spa-plum dark:text-pink-200">✨ Auto from photos</button>
+              <button type="button" onclick="selectWardrobeHarmony(this, 'Warm & Golden')" class="wardrobe-harmony-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 dark:border-purple-900 text-gray-700 dark:text-gray-300">Warm & Golden</button>
               <button type="button" onclick="selectWardrobeHarmony(this, 'Cool & Rosy')" class="wardrobe-harmony-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 dark:border-purple-900 text-gray-700 dark:text-gray-300">Cool & Rosy</button>
               <button type="button" onclick="selectWardrobeHarmony(this, 'Deep & Rich')" class="wardrobe-harmony-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 dark:border-purple-900 text-gray-700 dark:text-gray-300">Deep & Rich</button>
               <button type="button" onclick="selectWardrobeHarmony(this, 'Olive / Neutral')" class="wardrobe-harmony-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 dark:border-purple-900 text-gray-700 dark:text-gray-300">Olive / Neutral</button>
@@ -1126,17 +1138,30 @@
 
           <!-- Outfit Recommendation Trigger -->
           <button onclick="generateWardrobeAdvice()" class="px-6 py-2.5 rounded-xl bg-spa-plum text-white text-xs font-bold hover:bg-spa-plumdark active:scale-95 transition shadow-sm">
-            Style Me, Fiona ✨
+            Style My Full Look, Fiona ✨
           </button>
 
-          <!-- Wardrobe Recommendation Card — editorial luxury moodboard -->
+          <!-- Glamour Recommendation Card — editorial luxury moodboard -->
           <div id="wardrobe-recommendation-box" class="hidden p-5 sm:p-6 rounded-2xl bg-spa-cream dark:bg-spa-darkcard border border-spa-plum/25 dark:border-purple-800 space-y-5 shadow-sm">
             <div class="flex flex-wrap items-end justify-between gap-2 border-b border-spa-plum/15 dark:border-purple-900/60 pb-3">
               <div>
-                <span class="text-[10px] font-bold uppercase tracking-[0.18em] text-spa-plum dark:text-pink-300">✨ Fiona's Curated Look</span>
+                <span class="text-[10px] font-bold uppercase tracking-[0.18em] text-spa-plum dark:text-pink-300">✨ Fiona's Full Glamour Look</span>
                 <h4 id="wardrobe-look-title" class="font-serif text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mt-1">The Effortless Boss Silhouette</h4>
               </div>
               <p id="wardrobe-visual-caption" class="text-[10px] font-semibold uppercase tracking-wider text-spa-plum/70 dark:text-pink-300/70"></p>
+            </div>
+
+            <p id="wardrobe-compliment" class="hidden text-sm font-medium text-spa-plumdark dark:text-pink-100 bg-white/80 dark:bg-spa-darkbg/50 border border-spa-plum/20 dark:border-purple-800 rounded-xl px-3.5 py-3"></p>
+
+            <!-- AI-generated look of the user -->
+            <div id="wardrobe-ai-look-panel" class="hidden space-y-2">
+              <div class="flex items-center justify-between gap-2">
+                <p class="text-[10px] font-bold uppercase tracking-[0.16em] text-spa-plum dark:text-pink-300">Your Look — Generated</p>
+                <span id="wardrobe-ai-look-status" class="text-[10px] font-semibold text-gray-500 dark:text-gray-400"></span>
+              </div>
+              <div class="max-w-sm mx-auto lg:mx-0 rounded-2xl overflow-hidden border border-spa-plum/25 dark:border-purple-800 bg-spa-blush/40 shadow-sm">
+                <img id="wardrobe-ai-look-img" src="" alt="You in Fiona's recommended look" class="w-full h-auto object-cover">
+              </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.35fr)] gap-5 lg:gap-6 items-start">
@@ -1223,16 +1248,16 @@
         </div>
       </div>
 
-      <!-- SUB-CHAMBER 2: Hair & Makeup (With Photo / Selfie Upload & Color Swatches) -->
-      <div id="glamour-hairmakeup-view" class="hidden space-y-6">
+      <!-- Hair & Makeup is now bundled into the Glamour Suite Style flow above (kept hidden for legacy deep-links). -->
+      <div id="glamour-hairmakeup-view" class="hidden space-y-6" aria-hidden="true" hidden>
         <div class="bg-white dark:bg-spa-darkcard p-6 sm:p-7 rounded-2xl border border-pink-100 dark:border-purple-900/40 shadow-sm space-y-6">
           
           <!-- Photo Upload / Selfie Canvas -->
           <div class="space-y-3">
             <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
               <div>
-                <h3 class="font-serif text-lg font-bold text-gray-900 dark:text-white">Your Canvas: Upload or Snap a Selfie</h3>
-                <p class="text-xs text-gray-600 dark:text-gray-300">Add a clear, well-lit photo so Fiona can frame your glam palette.</p>
+                <h3 class="font-serif text-lg font-bold text-gray-900 dark:text-white">Your Canvas: Upload or Snap Selfies</h3>
+                <p class="text-xs text-gray-600 dark:text-gray-300">Add up to 10 clear, well-lit photos so Fiona can read your skin tone and frame your glam palette. Shared with Wardrobe Style Me.</p>
               </div>
               <span class="text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-1 rounded-full shrink-0">🔒 100% Private (Local Only)</span>
             </div>
@@ -1254,7 +1279,11 @@
                     Clear
                   </button>
                 </div>
-                <p id="glam-status" class="text-[11px] text-gray-600 dark:text-gray-300">Photos stay in your browser only — never uploaded to a server.</p>
+                <p id="glam-status" class="text-[11px] text-gray-600 dark:text-gray-300">Take a Selfie opens your camera. Photos can be saved on this device for later.</p>
+                <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-1">
+                  <button type="button" id="save-glam-photos-btn" onclick="saveGlamourPhotosForLater()" class="hidden px-3 py-1.5 rounded-lg bg-teal-700 text-white text-[10px] font-bold hover:bg-teal-800 transition">💾 Save for later</button>
+                  <span id="glam-saved-badge" class="hidden text-[10px] font-semibold text-teal-700 dark:text-teal-300">Saved on this device</span>
+                </div>
                 <p id="glam-error" class="hidden text-[11px] text-rose-700 dark:text-rose-300 font-medium"></p>
               </div>
             </div>
@@ -1275,7 +1304,8 @@
           <div class="space-y-2">
             <span class="text-xs font-semibold text-gray-700 dark:text-gray-300">Skin Undertone:</span>
             <div class="flex flex-wrap gap-2">
-              <button onclick="selectUndertone(this, 'Cool')" class="undertone-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-purple-200 dark:border-purple-800 bg-pink-50 dark:bg-purple-950 text-spa-plum dark:text-pink-200">❄️ Cool (Rosy / Berry)</button>
+              <button onclick="selectUndertone(this, 'Auto')" class="undertone-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-purple-200 dark:border-purple-800 bg-pink-50 dark:bg-purple-950 text-spa-plum dark:text-pink-200">✨ Auto from photos</button>
+              <button onclick="selectUndertone(this, 'Cool')" class="undertone-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 dark:border-purple-900 text-gray-700 dark:text-gray-300">❄️ Cool (Rosy / Berry)</button>
               <button onclick="selectUndertone(this, 'Warm')" class="undertone-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 dark:border-purple-900 text-gray-700 dark:text-gray-300">☀️ Warm (Golden / Peachy)</button>
               <button onclick="selectUndertone(this, 'Neutral')" class="undertone-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 dark:border-purple-900 text-gray-700 dark:text-gray-300">⚖️ Neutral (Balanced)</button>
               <button onclick="selectUndertone(this, 'Deep Olive')" class="undertone-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 dark:border-purple-900 text-gray-700 dark:text-gray-300">🫒 Olive / Rich</button>
@@ -1337,27 +1367,7 @@
     </div>
   </footer>
 
-  <!-- Shared camera capture modal (Wardrobe + Hair & Makeup) -->
-  <div id="camera-capture-panel" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-spa-darkcard w-full max-w-md rounded-2xl p-4 border border-purple-800 shadow-2xl space-y-3">
-      <div class="flex items-center justify-between">
-        <p id="camera-capture-hint" class="text-xs font-semibold text-pink-100">Line up your shot, then capture</p>
-        <button type="button" onclick="stopSelfieCamera()" class="text-gray-300 hover:text-white text-xs font-semibold">Close</button>
-      </div>
-      <div class="relative">
-        <video id="selfie-video" autoplay playsinline muted class="w-full max-h-80 rounded-xl object-cover bg-black"></video>
-        <div id="camera-countdown-overlay" class="hidden absolute inset-0 rounded-xl flex items-center justify-center bg-black/40 pointer-events-none" aria-live="polite">
-          <span id="camera-countdown-number" class="text-7xl font-bold text-white drop-shadow-lg tabular-nums">3</span>
-        </div>
-      </div>
-      <canvas id="selfie-canvas" class="hidden"></canvas>
-      <div class="flex flex-wrap justify-center gap-2">
-        <button type="button" onclick="captureSelfieFrame()" class="px-5 py-2.5 rounded-xl bg-spa-plum text-white text-xs font-bold">Capture Photo</button>
-        <button type="button" id="camera-countdown-btn" onclick="startCaptureCountdown()" class="px-5 py-2.5 rounded-xl bg-pink-100/20 text-pink-100 text-xs font-bold border border-pink-200/40">3s Countdown</button>
-        <button type="button" onclick="stopSelfieCamera()" class="px-4 py-2.5 rounded-xl bg-white/10 text-white text-xs font-semibold border border-white/30">Cancel</button>
-      </div>
-    </div>
-  </div>
+  <!-- Native camera only: Take a Photo uses the device camera, not an in-page frame. -->
 
   <!-- Floating SOS + Fiona mascot (mobile-safe, non-colliding) -->
   <aside class="fixed bottom-4 right-4 z-40 flex flex-col items-center gap-3" style="bottom: max(1rem, env(safe-area-inset-bottom, 0px));">
@@ -1464,6 +1474,17 @@
         <a href="/pricing" class="block w-full text-center text-xs font-semibold text-spa-plum dark:text-pink-200 hover:underline underline-offset-2 py-1">
           Compare plans on Pricing
         </a>
+        <button type="button" id="beta-pass-toggle" onclick="toggleBetaPass()" class="w-full text-center text-xs font-semibold text-spa-plum dark:text-pink-200 hover:underline underline-offset-2 py-1">
+          Have a Beta Pass?
+        </button>
+        <div id="beta-pass-panel" class="hidden space-y-2">
+          <label for="beta-pass-input" class="block text-[11px] font-semibold text-gray-600 dark:text-gray-300">Beta passphrase</label>
+          <input id="beta-pass-input" type="password" autocomplete="off" spellcheck="false" placeholder="Enter your Beta Pass" class="w-full rounded-xl border border-pink-200 dark:border-purple-800 bg-white dark:bg-spa-darkcard px-3 py-2.5 text-sm text-gray-900 dark:text-white">
+          <button type="button" onclick="submitBetaPass()" class="w-full py-2.5 rounded-xl border border-spa-plum text-spa-plum dark:text-pink-200 text-xs font-bold hover:bg-pink-50 dark:hover:bg-purple-950/40 transition">
+            Unlock with Beta Pass
+          </button>
+          <p id="beta-pass-msg" class="text-center text-[11px] text-gray-500 min-h-[1rem]" aria-live="polite"></p>
+        </div>
         <button type="button" onclick="continueFreeSuite()" class="w-full text-center text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-spa-plum dark:hover:text-pink-200 py-1.5 transition">
           Continue with the Free Suite (Basic Access)
         </button>
@@ -1918,32 +1939,17 @@
     }
 
     function switchGlamourTab(subtab) {
+      // Glamour Suite is unified — outfit + hair + makeup live in one view.
       stopSelfieCamera(false);
       const wardrobeView = document.getElementById('glamour-wardrobe-view');
       const hairmakeupView = document.getElementById('glamour-hairmakeup-view');
-      const btnWardrobe = document.getElementById('subtab-wardrobe');
-      const btnHair = document.getElementById('subtab-hairmakeup');
-
-      const setActive = (btn, on) => {
-        if (on) {
-          btn.classList.add('bg-spa-plum', 'text-white', 'shadow-sm');
-          btn.classList.remove('text-purple-900/70', 'dark:text-pink-100/80');
-        } else {
-          btn.classList.remove('bg-spa-plum', 'text-white', 'shadow-sm');
-          btn.classList.add('text-purple-900/70', 'dark:text-pink-100/80');
-        }
-      };
-
-      if (subtab === 'wardrobe') {
-        wardrobeView.classList.remove('hidden');
+      if (wardrobeView) wardrobeView.classList.remove('hidden');
+      if (hairmakeupView) {
         hairmakeupView.classList.add('hidden');
-        setActive(btnWardrobe, true);
-        setActive(btnHair, false);
-      } else {
-        hairmakeupView.classList.remove('hidden');
-        wardrobeView.classList.add('hidden');
-        setActive(btnHair, true);
-        setActive(btnWardrobe, false);
+        hairmakeupView.setAttribute('hidden', 'hidden');
+      }
+      if (subtab && subtab !== 'wardrobe') {
+        showToast('Hair & makeup now come with your full Glamour look — no separate tab needed ✨');
       }
     }
 
@@ -2519,37 +2525,52 @@
       btn.querySelector('span').innerText = 'Fiona is fluffing…';
       box.classList.add('hidden');
 
-      fetch('https://fiona-your-wingwoman.polsia.io/api/fiona/roost/reflect', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          journalEntry: text,
-          moods,
-          // Append-only personality guidelines for the live model (does not replace EQ rules).
-          systemPromptAppendix: fionaSystemPromptAppendix(),
-          fionaGuidelines: FIONA_CORE_GUIDELINES
-        })
-      })
-        .then(r => r.json().then(data => ({ ok: r.ok, data })))
-        .then(({ ok, data }) => {
-          if (!ok || !data.clarityRefocus) throw new Error('bad response');
-          showStructuredReflection(data);
-          showToast("Fiona finished your reflection ✨");
-        })
-        .catch(() => {
-          // Offline / API hiccup — still give the same 3-part shape locally
-          showStructuredReflection(fionaReflectStructured(text, moods));
-          showToast("Fiona reflected locally — still got you ✨");
-        })
-        .finally(() => {
-          btn.disabled = false;
-          btn.querySelector('span').innerText = 'Reflect with Fiona';
-        });
+      const reflectBody = {
+        journalEntry: text,
+        moods,
+        mode: 'reflect',
+        systemPromptAppendix: fionaSystemPromptAppendix(),
+        fionaGuidelines: FIONA_CORE_GUIDELINES
+      };
+
+      const endpoints = [
+        '/api/fiona/glamour/style',
+        'https://fiona-your-wingwoman.polsia.io/api/fiona/roost/reflect'
+      ];
+
+      (async () => {
+        let lastErr = null;
+        for (const url of endpoints) {
+          try {
+            const r = await fetch(url, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(reflectBody)
+            });
+            const data = await r.json().catch(() => ({}));
+            if (r.ok && data.clarityRefocus) {
+              showStructuredReflection(data);
+              showToast("Fiona finished your reflection ✨");
+              return;
+            }
+            lastErr = new Error(data.error || `HTTP ${r.status}`);
+          } catch (e) {
+            lastErr = e;
+          }
+        }
+        console.warn('[Journal Reflect] falling back locally', lastErr);
+        showStructuredReflection(fionaReflectStructured(text, moods));
+        showToast("Fiona reflected locally — still got you ✨");
+      })().finally(() => {
+        btn.disabled = false;
+        btn.querySelector('span').innerText = 'Reflect with Fiona';
+      });
     }
 
     function showStructuredReflection(data) {
       document.getElementById('reflect-clarity').innerText = data.clarityRefocus || '';
-      document.getElementById('reflect-anchor').innerText = data.confidenceAnchor || '';
+      const anchor = [data.confidenceAnchor, data.compliment].filter(Boolean).join(' ');
+      document.getElementById('reflect-anchor').innerText = anchor || '';
       document.getElementById('reflect-quip').innerText = data.wingwomanQuip || '';
       document.getElementById('fiona-reflection-box').classList.remove('hidden');
       window.lastFionaReflection = data;
@@ -2577,54 +2598,68 @@
       return selectedDiaryMoods.slice();
     }
 
-    /** Local 3-part fallback matching live Fiona product shape */
+    /** Local 3-part fallback matching live Fiona product shape — always grounded in her words + a compliment */
     function fionaReflectStructured(text, moods) {
       const sentiment = detectSentiment(text);
       const themes = detectThemes(text);
       const moodHint = (moods && moods[0]) || '';
-      const echo = snippetEcho(text, 60).replace(/[.!?]+$/, '');
+      const echo = snippetEcho(text, 110).replace(/[.!?]+$/, '');
+      const firstSentence = (text || '').trim().split(/(?<=[.!?])\s+/)[0] || echo;
+      const shortEcho = snippetEcho(firstSentence, 80).replace(/[.!?]+$/, '');
 
-      let clarity, anchor, quip;
+      let clarity, anchor, quip, compliment;
 
       if (moodHint === 'Proud of Myself' || sentiment === 'up' || themes.includes('confidence')) {
-        clarity = `You're standing in a moment of self-recognition — letting your strengths take center stage without a "but" or "maybe."`;
-        anchor = `Own this without shrinking. Name one specific choice today that reflects this version of you, and keep it in your pocket for heavier days.`;
+        clarity = `You're standing in a moment of self-recognition in "${shortEcho}" — letting your strengths take center stage without a "but" or "maybe."`;
+        compliment = `That honesty about what's working is a flex — most people skip past their wins, and you didn't.`;
+        anchor = `Own this without shrinking. Name one specific choice today that reflects this version of you, and keep it in your pocket for heavier days. ${compliment}`;
         quip = pick([
-          `Well, it's about time the internal memo went out! You're absolutely right — and honestly? It's a great look on you.`,
+          `Well, it's about time the internal memo went out on "${shortEcho}." You're absolutely right — and honestly? It's a great look on you.`,
           `The secret's out. I'd tell you to stay humble, but you're pulling off legendary way too well to stop now.`
         ]);
       } else if (moodHint === 'Drained' || themes.includes('exhaustion') || themes.includes('pain')) {
-        clarity = `Your body and battery are telling the truth about capacity. Pushing through isn't strength here — honesty is.`;
-        anchor = `You have the right to prioritize comfort without apology. One step: Do Not Disturb, nest up, and let rest count as care.`;
+        clarity = `When you write "${shortEcho}," your body and battery are telling the truth about capacity. Pushing through isn't strength here — honesty is.`;
+        compliment = `It takes real self-respect to name the drain instead of performing "fine." That awareness is a strength.`;
+        anchor = `You have the right to prioritize comfort without apology. One step: Do Not Disturb, nest up, and let rest count as care. ${compliment}`;
         quip = pick([
           `Real friends want the version of you that isn't in pain — not a forced RSVP. Go get cozy and let the guilt evaporate.`,
           `Low battery isn't lazy. Lie down like the queen you are and recharge. The world can wait.`
         ]);
       } else if (moodHint === 'Overwhelmed' || moodHint === 'Second-Guessing' || themes.includes('anxiety') || themes.includes('work')) {
-        clarity = `When things feel loud, your mind fills the silence with worst-case scripts — though delay and doubt are often logistics, not a verdict on you.`;
-        anchor = `You have agency to step away from the spiral. Set a short no-check window and give your nervous system a break.`;
+        clarity = `I hear the spiral in "${shortEcho}." When things feel loud, your mind fills silence with worst-case scripts — though delay and doubt are often logistics, not a verdict on you.`;
+        compliment = `The fact that you can name the story spinning in your head means you're already halfway out of it — that's sharp self-awareness.`;
+        anchor = `You have agency to step away from the spiral. Set a short no-check window and give your nervous system a break. ${compliment}`;
         quip = pick([
           `If silence is golden, that inbox is trying to be a billionaire. Let them be rich while you go be fabulous and unbothered.`,
-          `Spiral detected. Anxiety doesn't get the Wi-Fi password today — camera facts only, gorgeous.`
+          `Spiral detected around "${shortEcho}." Anxiety doesn't get the Wi-Fi password today — camera facts only, gorgeous.`
         ]);
       } else if (moodHint === 'People-Pleasing' || themes.includes('guilt') || themes.includes('boundary')) {
-        clarity = `It sounds like you're carrying other people's comfort as if it were your job description. It isn't.`;
-        anchor = `No is a complete sentence. Drop one obligation that was never yours and keep the kindness you'd give a best friend.`;
+        clarity = `In "${shortEcho}," it sounds like you're carrying other people's comfort as if it were your job description. It isn't.`;
+        compliment = `Wanting people to feel okay doesn't make you weak — it makes you kind. Kindness with a boundary is even stronger.`;
+        anchor = `No is a complete sentence. Drop one obligation that was never yours and keep the kindness you'd give a best friend. ${compliment}`;
         quip = pick([
           `You are a woman, not a bowl of warm queso. Stop plating yourself for everyone else's appetite.`,
           `Boundaries aren't rude — they're velvet-rope energy. Keep the fence; skip the apology essay.`
         ]);
       } else if (moodHint === 'Fired Up') {
-        clarity = `There's fire in what you wrote — momentum wanting somewhere useful to land.`;
-        anchor = `Aim that heat at one bold next move: a boundary, a send, or a celebration. Don't scatter it.`;
+        clarity = `There's fire in "${shortEcho}" — momentum wanting somewhere useful to land.`;
+        compliment = `That heat you're feeling is charisma with a purpose — don't dim it.`;
+        anchor = `Aim that heat at one bold next move: a boundary, a send, or a celebration. Don't scatter it. ${compliment}`;
         quip = `THERE she is. Sass is proof the fire's still lit — spend it like it's limited edition, because it is.`;
       } else if (moodHint === 'Imposter Syndrome') {
-        clarity = `Imposter thoughts love to edit your resume mid-sentence. The doubt is loud; the evidence of you showing up is louder.`;
-        anchor = `List two receipts of competence from this week — then read them like a contract you already signed.`;
+        clarity = `Imposter thoughts love to edit your resume mid-sentence — I hear that in "${shortEcho}." The doubt is loud; the evidence of you showing up is louder.`;
+        compliment = `People who are actually impostors never worry this carefully. Your care is a receipt of competence.`;
+        anchor = `List two receipts of competence from this week — then read them like a contract you already signed. ${compliment}`;
         quip = `You're not an impostor. You're a woman mid-upgrade. Act like the role already fits — because it does.`;
+      } else if (themes.includes('body_image') || /frump|outfit|wear|makeup|mirror|ugly|looks/i.test(text)) {
+        clarity = `When you say "${shortEcho}," this isn't vanity — it's you noticing a disconnect between how you feel and how you want to show up.`;
+        compliment = `Caring how you present yourself is self-respect, not shallow — and you deserve a look that matches your energy.`;
+        anchor = `Pick one upgrade today: a cleaner neckline, soft hair, or a color that loves your face. Then take yourself to the Glamour Suite and let Fiona finish the look. ${compliment}`;
+        quip = `Frumpy is a feeling, not a life sentence. We're not doing a makeover marathon — just one polished cuff at a time, darling.`;
       } else {
         clarity = `I hear you in "${echo}." You're naming what's real, and that alone shifts the room.`;
-        anchor = `You don't have to tidy this into a perfect lesson. Choose what you need: a cheer, a reframe, or quiet company — then take one kind next step.`;
+        compliment = `The way you put this into words already shows clarity most people skip — that counts.`;
+        anchor = `You don't have to tidy this into a perfect lesson. Choose what you need: a cheer, a reframe, or quiet company — then take one kind next step. ${compliment}`;
         quip = `I've got you either way. Soft landing, high standards, zero guilt. That's the wingwoman deal.`;
       }
 
@@ -2633,7 +2668,12 @@
         anchor = `${anchor} ${marathon}`;
       }
 
-      return { clarityRefocus: clarity, confidenceAnchor: anchor, wingwomanQuip: quip };
+      return {
+        clarityRefocus: clarity,
+        confidenceAnchor: anchor,
+        wingwomanQuip: quip,
+        compliment
+      };
     }
 
     function saveDiaryEntry() {
@@ -3011,31 +3051,32 @@
       const triggerBox = document.getElementById('flare-trigger-options');
       const softList = document.getElementById('flare-soft-care-list');
       if (!batteryBox) return;
+      ensureFlareTrackerListeners();
 
       batteryBox.innerHTML = FLARE_BATTERY_LEVELS.map(level => `
-        <button type="button" onclick="selectFlareBattery(${JSON.stringify(level)})"
-          class="text-left px-3 py-2.5 rounded-xl border text-xs font-semibold transition ${chipClass(flareForm.batteryLevel === level)}">
+        <button type="button" data-flare-action="battery" data-flare-value="${encodeURIComponent(level)}"
+          class="flare-option text-left px-3 py-2.5 rounded-xl border text-xs font-semibold transition ${chipClass(flareForm.batteryLevel === level)}">
           ${level}
         </button>
       `).join('');
 
       statusBox.innerHTML = FLARE_STATUSES.map(status => `
-        <button type="button" onclick="selectFlareStatus(${JSON.stringify(status)})"
-          class="text-left px-3 py-2.5 rounded-xl border text-xs font-semibold transition ${flareForm.flareStatus === status ? (FLARE_STATUS_STYLES[status] + ' ring-2 ring-spa-plum/40') : (FLARE_STATUS_STYLES[status] + ' opacity-80')}">
+        <button type="button" data-flare-action="status" data-flare-value="${encodeURIComponent(status)}"
+          class="flare-option text-left px-3 py-2.5 rounded-xl border text-xs font-semibold transition ${flareForm.flareStatus === status ? (FLARE_STATUS_STYLES[status] + ' ring-2 ring-spa-plum/40') : (FLARE_STATUS_STYLES[status] + ' opacity-80')}">
           ${status}
         </button>
       `).join('');
 
       symptomBox.innerHTML = FLARE_SYMPTOMS.map(s => `
-        <button type="button" onclick="toggleFlareSymptom(${JSON.stringify(s)})"
-          class="px-3 py-1.5 rounded-full border text-xs font-semibold transition ${chipClass(flareForm.symptoms.includes(s))}">
+        <button type="button" data-flare-action="symptom" data-flare-value="${encodeURIComponent(s)}"
+          class="flare-option px-3 py-1.5 rounded-full border text-xs font-semibold transition ${chipClass(flareForm.symptoms.includes(s))}">
           ${s}
         </button>
       `).join('');
 
       triggerBox.innerHTML = FLARE_TRIGGERS.map(t => `
-        <button type="button" onclick="toggleFlareTrigger(${JSON.stringify(t)})"
-          class="px-3 py-1.5 rounded-full border text-xs font-semibold transition ${chipClass(flareForm.triggers.includes(t))}">
+        <button type="button" data-flare-action="trigger" data-flare-value="${encodeURIComponent(t)}"
+          class="flare-option px-3 py-1.5 rounded-full border text-xs font-semibold transition ${chipClass(flareForm.triggers.includes(t))}">
           ${t}
         </button>
       `).join('');
@@ -3043,8 +3084,8 @@
       softList.innerHTML = FLARE_SOFT_CARE.map(item => `
         <label class="flex items-start gap-2 text-xs text-gray-800 dark:text-gray-200 cursor-pointer">
           <input type="checkbox" class="mt-0.5 rounded border-pink-300 text-spa-plum focus:ring-spa-plum"
-            ${flareForm.softCare[item.id] ? 'checked' : ''}
-            onchange="toggleFlareSoftCare('${item.id}', this.checked)">
+            data-flare-soft="${item.id}"
+            ${flareForm.softCare[item.id] ? 'checked' : ''}>
           <span>${item.label}</span>
         </label>
       `).join('');
@@ -3054,6 +3095,31 @@
       soft.classList.toggle('hidden', !showSoft);
 
       renderFlareHistory();
+    }
+
+    function onFlareTrackerClick(event) {
+      const softInput = event.target.closest('input[data-flare-soft]');
+      if (softInput) {
+        toggleFlareSoftCare(softInput.getAttribute('data-flare-soft'), softInput.checked);
+        return;
+      }
+      const btn = event.target.closest('[data-flare-action]');
+      if (!btn) return;
+      const action = btn.getAttribute('data-flare-action');
+      const value = decodeURIComponent(btn.getAttribute('data-flare-value') || '');
+      if (!action || !value) return;
+      if (action === 'battery') selectFlareBattery(value);
+      else if (action === 'status') selectFlareStatus(value);
+      else if (action === 'symptom') toggleFlareSymptom(value);
+      else if (action === 'trigger') toggleFlareTrigger(value);
+    }
+
+    function ensureFlareTrackerListeners() {
+      const root = document.getElementById('lagoon-tracker-view');
+      if (!root || root.dataset.flareBound === '1') return;
+      root.dataset.flareBound = '1';
+      root.addEventListener('click', onFlareTrackerClick);
+      root.addEventListener('change', onFlareTrackerClick);
     }
 
     function selectFlareBattery(level) {
@@ -3268,6 +3334,12 @@
     let activeCameraTarget = 'glam';
     let captureCountdownTimer = null;
     let captureCountdownActive = false;
+    /** Default to front-facing (selfie) camera for Dress Me / Glamour. */
+    let preferredCameraFacing = 'user';
+    let glamourPhotosSaved = false;
+    let glamourPersistTimer = null;
+    const GLAMOUR_PHOTO_DB = 'fiona-glamour-canvas-v1';
+    const GLAMOUR_PHOTO_STORE = 'photos';
 
     const CANVAS_PLACEHOLDERS = {
       wardrobe: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150'%3E%3Crect fill='%23FCEFEF' width='150' height='150'/%3E%3Ctext x='50%25' y='52%25' dominant-baseline='middle' text-anchor='middle' fill='%235E2750' font-family='serif' font-size='13'%3EYour Look%3C/text%3E%3C/svg%3E",
@@ -3293,6 +3365,170 @@
     function getCanvasImages(_target) {
       // Wardrobe and glam share one gallery — target kept for call-site compatibility.
       return sharedGlamourImages;
+    }
+
+    function updateGlamourSaveUi() {
+      ['wardrobe', 'glam'].forEach((t) => {
+        const saveBtn = document.getElementById(`save-${t}-photos-btn`);
+        const badge = document.getElementById(`${t}-saved-badge`);
+        const hasPhotos = sharedGlamourImages.length > 0;
+        if (saveBtn) {
+          if (hasPhotos) saveBtn.classList.remove('hidden');
+          else saveBtn.classList.add('hidden');
+        }
+        if (badge) {
+          if (hasPhotos && glamourPhotosSaved) badge.classList.remove('hidden');
+          else badge.classList.add('hidden');
+        }
+      });
+    }
+
+    function openGlamourPhotoDb() {
+      return new Promise((resolve, reject) => {
+        if (!window.indexedDB) {
+          reject(new Error('IndexedDB unavailable'));
+          return;
+        }
+        const req = indexedDB.open(GLAMOUR_PHOTO_DB, 1);
+        req.onupgradeneeded = () => {
+          const db = req.result;
+          if (!db.objectStoreNames.contains(GLAMOUR_PHOTO_STORE)) {
+            db.createObjectStore(GLAMOUR_PHOTO_STORE, { keyPath: 'id' });
+          }
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error || new Error('IndexedDB open failed'));
+      });
+    }
+
+    async function blobFromCanvasImage(img) {
+      if (!img) return null;
+      if (img.file instanceof Blob) return img.file;
+      if (img.url) {
+        try {
+          const res = await fetch(img.url);
+          return await res.blob();
+        } catch (_) {}
+      }
+      return null;
+    }
+
+    async function persistGlamourGallery({ silent = true } = {}) {
+      try {
+        const db = await openGlamourPhotoDb();
+        const records = [];
+        for (let i = 0; i < sharedGlamourImages.length; i += 1) {
+          const img = sharedGlamourImages[i];
+          let blob = await blobFromCanvasImage(img);
+          if (!blob) continue;
+          // Keep stored copies lean so 10 photos fit comfortably on-device.
+          try {
+            if (typeof compressImageBlobForApi === 'function') {
+              const compressed = await compressImageBlobForApi(blob, 1280, 0.72);
+              if (compressed) blob = compressed;
+            }
+          } catch (_) {}
+          records.push({
+            id: i,
+            name: img.name || `photo-${i + 1}.jpg`,
+            type: blob.type || 'image/jpeg',
+            blob,
+            savedAt: Date.now()
+          });
+        }
+        await new Promise((resolve, reject) => {
+          const tx = db.transaction(GLAMOUR_PHOTO_STORE, 'readwrite');
+          const store = tx.objectStore(GLAMOUR_PHOTO_STORE);
+          store.clear();
+          records.forEach((rec) => store.put(rec));
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => reject(tx.error || new Error('persist failed'));
+        });
+        db.close();
+        glamourPhotosSaved = records.length > 0;
+        updateGlamourSaveUi();
+        if (!silent) {
+          showToast(records.length
+            ? `Saved ${records.length} photo${records.length === 1 ? '' : 's'} on this device for later ✨`
+            : 'Gallery cleared from this device.');
+        }
+        return true;
+      } catch (err) {
+        console.warn('[Glamour] persist failed', err);
+        if (!silent) showToast('Could not save photos on this device. Try again, or keep the tab open.');
+        return false;
+      }
+    }
+
+    function schedulePersistGlamourGallery() {
+      glamourPhotosSaved = false;
+      updateGlamourSaveUi();
+      if (glamourPersistTimer) clearTimeout(glamourPersistTimer);
+      glamourPersistTimer = setTimeout(() => {
+        persistGlamourGallery({ silent: true });
+      }, 450);
+    }
+
+    async function loadPersistedGlamourGallery() {
+      try {
+        const db = await openGlamourPhotoDb();
+        const records = await new Promise((resolve, reject) => {
+          const tx = db.transaction(GLAMOUR_PHOTO_STORE, 'readonly');
+          const req = tx.objectStore(GLAMOUR_PHOTO_STORE).getAll();
+          req.onsuccess = () => resolve(req.result || []);
+          req.onerror = () => reject(req.error || new Error('load failed'));
+        });
+        db.close();
+        if (!records.length) {
+          glamourPhotosSaved = false;
+          updateGlamourSaveUi();
+          return 0;
+        }
+        records.sort((a, b) => (a.id || 0) - (b.id || 0));
+        sharedGlamourImages.forEach((img) => {
+          if (img && img.url) URL.revokeObjectURL(img.url);
+        });
+        sharedGlamourImages.length = 0;
+        for (const rec of records.slice(0, MAX_CANVAS_PHOTOS)) {
+          if (!rec || !rec.blob) continue;
+          const file = new File([rec.blob], rec.name || 'saved-photo.jpg', {
+            type: rec.type || 'image/jpeg',
+            lastModified: rec.savedAt || Date.now()
+          });
+          const url = URL.createObjectURL(file);
+          sharedGlamourImages.push({ url, name: file.name, file, persisted: true });
+        }
+        glamourPhotosSaved = sharedGlamourImages.length > 0;
+        syncCanvasPhotoState('wardrobe');
+        updateGlamourSaveUi();
+        return sharedGlamourImages.length;
+      } catch (err) {
+        console.warn('[Glamour] load persisted photos failed', err);
+        return 0;
+      }
+    }
+
+    async function saveGlamourPhotosForLater() {
+      if (!sharedGlamourImages.length) {
+        showToast('Add a photo first, then tap Save for later.');
+        return;
+      }
+      await persistGlamourGallery({ silent: false });
+    }
+
+    async function clearPersistedGlamourGallery() {
+      try {
+        const db = await openGlamourPhotoDb();
+        await new Promise((resolve, reject) => {
+          const tx = db.transaction(GLAMOUR_PHOTO_STORE, 'readwrite');
+          tx.objectStore(GLAMOUR_PHOTO_STORE).clear();
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => reject(tx.error || new Error('clear failed'));
+        });
+        db.close();
+      } catch (_) {}
+      glamourPhotosSaved = false;
+      updateGlamourSaveUi();
     }
 
     function syncOneCanvasUi(target) {
@@ -3339,10 +3575,13 @@
         });
       }
       if (status && images.length) {
-        status.textContent = `${images.length}/${MAX_CANVAS_PHOTOS} photos ready · shared across Wardrobe & Hair & Makeup`;
+        status.textContent = glamourPhotosSaved
+          ? `${images.length}/${MAX_CANVAS_PHOTOS} photos · saved on this device for later`
+          : `${images.length}/${MAX_CANVAS_PHOTOS} photos ready · tap Save for later to keep them`;
       } else if (status && !images.length) {
-        status.textContent = 'Photos stay in your browser only — never uploaded to a server.';
+        status.textContent = 'Front camera ready · photos can be saved on this device for later.';
       }
+      updateGlamourSaveUi();
     }
 
     function syncCanvasPhotoState(_target) {
@@ -3383,8 +3622,9 @@
       syncCanvasPhotoState(ids.target);
       setCanvasError('wardrobe', '');
       setCanvasError('glam', '');
+      schedulePersistGlamourGallery();
       if (!silentToast) {
-        showToast('Photo saved to your shared Glamour gallery ✨');
+        showToast('Photo added — tap Save for later to keep it on this device ✨');
       }
       if (!keepCameraOpen) {
         // Instant capture / upload path may close camera via caller
@@ -3401,6 +3641,7 @@
       syncCanvasPhotoState(ids.target);
       setCanvasError('wardrobe', '');
       setCanvasError('glam', '');
+      schedulePersistGlamourGallery();
     }
 
     function triggerPhotoUpload(target) {
@@ -3423,7 +3664,7 @@
         if (applyCanvasFile(target, file, { silentToast: true })) added += 1;
       }
       if (added) {
-        showToast('Photo saved to your shared Glamour gallery ✨');
+        showToast(`${added} photo${added === 1 ? '' : 's'} added — tap Save for later to keep them ✨`);
       }
       event.target.value = '';
     }
@@ -3431,6 +3672,19 @@
     // Back-compat aliases
     function handleSelfieUpload(event) { handleCanvasUpload(event, 'glam'); }
     function clearSelfie() { clearCanvasPhoto('glam'); }
+
+    function updateCameraFacingUi() {
+      const label = document.getElementById('camera-facing-label');
+      const video = document.getElementById('selfie-video');
+      const isFront = preferredCameraFacing === 'user';
+      if (label) {
+        label.textContent = isFront ? 'Front camera (selfie)' : 'Rear camera';
+      }
+      if (video) {
+        // Mirror preview for front camera so it feels like a mirror.
+        video.style.transform = isFront ? 'scaleX(-1)' : 'none';
+      }
+    }
 
     function resetCaptureCountdownUi() {
       if (captureCountdownTimer) {
@@ -3483,44 +3737,57 @@
       }, 1000);
     }
 
-    async function startSelfieCamera(target) {
+    async function startCameraWithFacing(facing) {
+      const ids = canvasIds(activeCameraTarget || 'glam');
+      if (!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) {
+        throw new Error('getUserMedia unavailable');
+      }
+      if (selfieMediaStream) {
+        selfieMediaStream.getTracks().forEach((t) => t.stop());
+        selfieMediaStream = null;
+      }
+      preferredCameraFacing = facing === 'environment' ? 'environment' : 'user';
+      selfieMediaStream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: { ideal: preferredCameraFacing },
+          width: { ideal: 1280 },
+          height: { ideal: 1280 }
+        },
+        audio: false
+      });
+      const video = document.getElementById('selfie-video');
+      const panel = document.getElementById('camera-capture-panel');
+      video.srcObject = selfieMediaStream;
+      panel.classList.remove('hidden');
+      updateCameraFacingUi();
+      try { await video.play(); } catch (_) {}
+      document.getElementById(ids.status).textContent = preferredCameraFacing === 'user'
+        ? 'Front camera live — capture your selfie when ready.'
+        : 'Rear camera live — capture when ready.';
+    }
+
+    async function flipCameraFacing() {
+      const next = preferredCameraFacing === 'user' ? 'environment' : 'user';
+      try {
+        await startCameraWithFacing(next);
+        showToast(next === 'user' ? 'Switched to front camera' : 'Switched to rear camera');
+      } catch (err) {
+        showToast('Could not flip cameras on this device. Try Upload Photo instead.');
+      }
+    }
+
+    function startSelfieCamera(target) {
       const ids = canvasIds(target || 'glam');
       activeCameraTarget = ids.target;
       setCanvasError(ids.target, '');
       stopSelfieCamera(false);
-
-      const hint = document.getElementById('camera-capture-hint');
-      if (hint) hint.textContent = ids.target === 'wardrobe'
-        ? 'Line up your outfit or full look, then capture'
-        : 'Line up your face, then capture';
-
-      // Prefer live getUserMedia
-      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        try {
-          const facingMode = ids.target === 'wardrobe' ? { ideal: 'environment' } : 'user';
-          selfieMediaStream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode },
-            audio: false
-          });
-          const video = document.getElementById('selfie-video');
-          const panel = document.getElementById('camera-capture-panel');
-          video.srcObject = selfieMediaStream;
-          panel.classList.remove('hidden');
-          try { await video.play(); } catch (_) {}
-          document.getElementById(ids.status).textContent = 'Camera live — capture when ready.';
-          return;
-        } catch (err) {
-          const name = err && err.name;
-          if (name === 'NotAllowedError' || name === 'SecurityError') {
-            setCanvasError(ids.target, 'Camera access was denied. Allow camera access, or upload a photo instead.');
-          } else if (name === 'NotFoundError') {
-            setCanvasError(ids.target, 'No camera found. You can still upload a photo.');
-          }
-        }
-      }
-
-      // Fallback: native camera / picker
+      // Hand the shot to the phone's own camera (flash, zoom, flip), not an in-page frame.
       const camInput = document.getElementById(ids.camera);
+      if (!camInput) {
+        setCanvasError(ids.target, 'Camera could not open. You can still upload a photo.');
+        return;
+      }
+      camInput.setAttribute('capture', 'user');
       camInput.value = '';
       camInput.click();
     }
@@ -3543,7 +3810,8 @@
       canvas.height = video.videoHeight;
       const ctx = canvas.getContext('2d');
       ctx.setTransform(1, 0, 0, 1, 0, 0);
-      if (target === 'glam') {
+      // Mirror capture for front camera so the saved photo matches the selfie preview.
+      if (preferredCameraFacing === 'user') {
         ctx.translate(canvas.width, 0);
         ctx.scale(-1, 1);
       }
@@ -3553,7 +3821,7 @@
           setCanvasError(ids.target, 'Could not capture that frame. Please upload a photo instead.');
           return;
         }
-        const file = new File([blob], target === 'wardrobe' ? 'wardrobe-capture.jpg' : 'selfie-capture.jpg', {
+        const file = new File([blob], preferredCameraFacing === 'user' ? 'selfie-capture.jpg' : 'camera-capture.jpg', {
           type: 'image/jpeg',
           lastModified: Date.now()
         });
@@ -3562,7 +3830,7 @@
         if (!keepCameraOpen || sharedGlamourImages.length >= MAX_CANVAS_PHOTOS) {
           stopSelfieCamera(false);
         } else {
-          document.getElementById(ids.status).textContent = `Camera live — ${sharedGlamourImages.length}/${MAX_CANVAS_PHOTOS} photos. Capture again anytime.`;
+          document.getElementById(ids.status).textContent = `Front camera live — ${sharedGlamourImages.length}/${MAX_CANVAS_PHOTOS} photos. Capture again anytime.`;
         }
       }, 'image/jpeg', 0.92);
     }
@@ -3574,7 +3842,10 @@
         selfieMediaStream = null;
       }
       const video = document.getElementById('selfie-video');
-      if (video) video.srcObject = null;
+      if (video) {
+        video.srcObject = null;
+        video.style.transform = 'none';
+      }
       const panel = document.getElementById('camera-capture-panel');
       if (panel) panel.classList.add('hidden');
     }
@@ -3592,7 +3863,8 @@
       syncCanvasPhotoState(ids.target);
       setCanvasError('wardrobe', '');
       setCanvasError('glam', '');
-      showToast('Shared Glamour gallery cleared');
+      clearPersistedGlamourGallery();
+      showToast('Shared Glamour gallery cleared from this device');
     }
 
     document.addEventListener('visibilitychange', () => {
@@ -3600,9 +3872,129 @@
     });
 
     let selectedOccasion = 'Desk to Dinner';
-    let selectedUndertone = 'Cool';
-    let selectedWardrobeSilhouette = 'Hourglass / Defined';
-    let selectedWardrobeHarmony = 'Warm & Golden';
+    let selectedUndertone = 'Auto';
+    let selectedWardrobeSilhouette = 'Auto from photos';
+    let selectedWardrobeHarmony = 'Auto from photos';
+    let lastDetectedSilhouette = null;
+    let lastDetectedHarmony = null;
+    let lastDetectedUndertone = null;
+
+    const VALID_SILHOUETTES = [
+      'Hourglass / Defined',
+      'Petite',
+      'Curvy / Soft Silhouette',
+      'Tall / Long Lines',
+      'Athletic / Straight'
+    ];
+    const VALID_HARMONIES = [
+      'Warm & Golden',
+      'Cool & Rosy',
+      'Deep & Rich',
+      'Olive / Neutral'
+    ];
+    const VALID_UNDERTONES = ['Cool', 'Warm', 'Neutral', 'Deep Olive'];
+
+    function isAutoSilhouette(value) {
+      return !value || /^auto/i.test(String(value));
+    }
+    function isAutoHarmony(value) {
+      return !value || /^auto/i.test(String(value));
+    }
+
+    function normalizeDetectedSilhouette(value) {
+      const raw = String(value || '').trim();
+      if (!raw) return null;
+      const hit = VALID_SILHOUETTES.find((s) => s.toLowerCase() === raw.toLowerCase());
+      if (hit) return hit;
+      if (/petite/i.test(raw)) return 'Petite';
+      if (/hourglass|defined waist|curvy waist/i.test(raw)) return 'Hourglass / Defined';
+      if (/curvy|soft silhouette|pear|fuller/i.test(raw)) return 'Curvy / Soft Silhouette';
+      if (/tall|long line|elongated/i.test(raw)) return 'Tall / Long Lines';
+      if (/athletic|straight|rectangle|column/i.test(raw)) return 'Athletic / Straight';
+      return null;
+    }
+
+    function normalizeDetectedHarmony(value) {
+      const raw = String(value || '').trim();
+      if (!raw) return null;
+      const hit = VALID_HARMONIES.find((h) => h.toLowerCase() === raw.toLowerCase());
+      if (hit) return hit;
+      if (/warm|golden|peach|caramel/i.test(raw)) return 'Warm & Golden';
+      if (/cool|rosy|pink|berry/i.test(raw)) return 'Cool & Rosy';
+      if (/deep|rich|deep olive|espresso/i.test(raw)) return 'Deep & Rich';
+      if (/olive|neutral|balanced/i.test(raw)) return 'Olive / Neutral';
+      return null;
+    }
+
+    function normalizeDetectedUndertone(value, harmony) {
+      const raw = String(value || '').trim();
+      if (raw) {
+        const hit = VALID_UNDERTONES.find((u) => u.toLowerCase() === raw.toLowerCase());
+        if (hit) return hit;
+        if (/warm/i.test(raw)) return 'Warm';
+        if (/cool/i.test(raw)) return 'Cool';
+        if (/deep|olive/i.test(raw)) return 'Deep Olive';
+        if (/neutral/i.test(raw)) return 'Neutral';
+      }
+      return HARMONY_TO_UNDERTONE[harmony] || null;
+    }
+
+    function paintChipSelection(selector, matchValue) {
+      document.querySelectorAll(selector).forEach((c) => {
+        const onclick = c.getAttribute('onclick') || '';
+        const fromOnclick = /,\s*'([^']+)'\)/.exec(onclick);
+        const value = fromOnclick ? fromOnclick[1] : (c.textContent || '').replace(/^✨\s*/, '').trim();
+        const isAutoChip = /^auto/i.test(value);
+        const on = value === matchValue || (isAutoChip && /^auto/i.test(String(matchValue || '')));
+        if (on) {
+          c.classList.add('bg-pink-50', 'dark:bg-purple-950', 'text-spa-plum', 'border-purple-200', 'dark:border-purple-800', 'dark:text-pink-200');
+          c.classList.remove('border-gray-200', 'dark:border-purple-900', 'text-gray-700', 'dark:text-gray-300');
+        } else {
+          c.classList.remove('bg-pink-50', 'dark:bg-purple-950', 'text-spa-plum', 'border-purple-200', 'dark:border-purple-800', 'dark:text-pink-200');
+          c.classList.add('border-gray-200', 'dark:border-purple-900', 'text-gray-700', 'dark:text-gray-300');
+        }
+      });
+    }
+
+    function applyDetectedWardrobeTraits({ silhouette, harmony, undertone, fromPhotos }) {
+      if (silhouette) {
+        lastDetectedSilhouette = silhouette;
+        selectedWardrobeSilhouette = silhouette;
+        paintChipSelection('.wardrobe-silhouette-chip', silhouette);
+        const note = document.getElementById('wardrobe-detect-silhouette-note');
+        if (note) {
+          note.textContent = fromPhotos ? `Detected: ${silhouette}` : '';
+          note.classList.toggle('hidden', !fromPhotos);
+        }
+      }
+      if (harmony) {
+        lastDetectedHarmony = harmony;
+        selectedWardrobeHarmony = harmony;
+        paintChipSelection('.wardrobe-harmony-chip', harmony);
+        const note = document.getElementById('wardrobe-detect-harmony-note');
+        if (note) {
+          note.textContent = fromPhotos ? `Detected: ${harmony}` : '';
+          note.classList.toggle('hidden', !fromPhotos);
+        }
+      }
+      if (undertone) {
+        lastDetectedUndertone = undertone;
+        selectedUndertone = undertone;
+        document.querySelectorAll('.undertone-chip').forEach((c) => {
+          const onclick = c.getAttribute('onclick') || '';
+          const m = /,\s*'([^']+)'\)/.exec(onclick);
+          const value = m ? m[1] : (c.textContent || '').trim();
+          const on = value === undertone;
+          if (on) {
+            c.classList.add('bg-pink-50', 'dark:bg-purple-950', 'text-spa-plum', 'border-purple-200', 'dark:border-purple-800', 'dark:text-pink-200');
+            c.classList.remove('border-gray-200', 'dark:border-purple-900', 'text-gray-700', 'dark:text-gray-300');
+          } else {
+            c.classList.remove('bg-pink-50', 'dark:bg-purple-950', 'text-spa-plum', 'border-purple-200', 'dark:border-purple-800', 'dark:text-pink-200');
+            c.classList.add('border-gray-200', 'dark:border-purple-900', 'text-gray-700', 'dark:text-gray-300');
+          }
+        });
+      }
+    }
 
     function selectOccasion(btn, occasion) {
       selectedOccasion = occasion;
@@ -3622,6 +4014,14 @@
       });
       btn.classList.add('bg-pink-50', 'dark:bg-purple-950', 'text-spa-plum', 'border-purple-200', 'dark:border-purple-800', 'dark:text-pink-200');
       btn.classList.remove('border-gray-200', 'text-gray-700', 'dark:text-gray-300');
+      const note = document.getElementById('wardrobe-detect-silhouette-note');
+      if (note && !isAutoSilhouette(value)) {
+        note.textContent = 'Manual override';
+        note.classList.remove('hidden');
+      } else if (note && isAutoSilhouette(value)) {
+        note.classList.add('hidden');
+        note.textContent = '';
+      }
     }
 
     function selectWardrobeHarmony(btn, value) {
@@ -3632,6 +4032,14 @@
       });
       btn.classList.add('bg-pink-50', 'dark:bg-purple-950', 'text-spa-plum', 'border-purple-200', 'dark:border-purple-800', 'dark:text-pink-200');
       btn.classList.remove('border-gray-200', 'text-gray-700', 'dark:text-gray-300');
+      const note = document.getElementById('wardrobe-detect-harmony-note');
+      if (note && !isAutoHarmony(value)) {
+        note.textContent = 'Manual override';
+        note.classList.remove('hidden');
+      } else if (note && isAutoHarmony(value)) {
+        note.classList.add('hidden');
+        note.textContent = '';
+      }
     }
 
     const WARDROBE_LOOKS = {
@@ -3727,12 +4135,67 @@
         { hex: '#F7F1E8', label: 'Ivory' }
       ],
       'Olive / Neutral': [
-        { hex: '#6B7F5E', label: 'Sage' },
-        { hex: '#B76E79', label: 'Rosewood' },
         { hex: '#8B5E3C', label: 'Bronze' },
+        { hex: '#B76E79', label: 'Rosewood' },
+        { hex: '#6B7F5E', label: 'Muted olive' },
         { hex: '#F4EFE8', label: 'Warm cream' }
       ]
     };
+
+    /** Wearable face colors — NEVER reuse clothing greens as lipstick. */
+    const FACE_HARMONY_PALETTES = {
+      'Warm & Golden': {
+        lip: ['#C45C26', 'Spiced Coral'],
+        cheek: ['#E8A87C', 'Honey Flush']
+      },
+      'Cool & Rosy': {
+        lip: ['#9E2A2B', 'Velvet Currant'],
+        cheek: ['#E07A9A', 'Rose Radiance']
+      },
+      'Deep & Rich': {
+        lip: ['#7A1F2B', 'Deep Merlot'],
+        cheek: ['#C45C4A', 'Terracotta Glow']
+      },
+      'Olive / Neutral': {
+        lip: ['#B76E79', 'Muted Rosewood'],
+        cheek: ['#D4A5A5', 'Quiet Bloom']
+      }
+    };
+
+    function hexToRgb(hex) {
+      const h = String(hex || '').replace('#', '').trim();
+      if (h.length !== 6) return null;
+      const n = parseInt(h, 16);
+      if (Number.isNaN(n)) return null;
+      return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+    }
+
+    function isWearableLipColor(hex, label) {
+      const name = String(label || '').toLowerCase();
+      if (/sage|olive|moss|forest|kelly|chartreuse|lime|mint|emerald|teal|green/.test(name)) return false;
+      const rgb = hexToRgb(hex);
+      if (!rgb) return true;
+      // Reject green-dominant lip swatches (fashion greens ≠ lipstick)
+      if (rgb.g > rgb.r + 12 && rgb.g > rgb.b + 8) return false;
+      return true;
+    }
+
+    function getFacePaletteForHarmony(harmony) {
+      return FACE_HARMONY_PALETTES[harmony] || FACE_HARMONY_PALETTES['Warm & Golden'];
+    }
+
+    function sanitizeFacePalette(facePalette, harmony) {
+      const fallback = getFacePaletteForHarmony(harmony);
+      const lip = Array.isArray(facePalette?.lip) ? facePalette.lip : fallback.lip;
+      const cheek = Array.isArray(facePalette?.cheek) ? facePalette.cheek : fallback.cheek;
+      const safeLip = isWearableLipColor(lip[0], lip[1]) ? lip : fallback.lip;
+      const safeCheek = cheek[0] ? cheek : fallback.cheek;
+      return {
+        lip: [safeLip[0], safeLip[1] || fallback.lip[1]],
+        cheek: [safeCheek[0], safeCheek[1] || fallback.cheek[1]],
+        note: (facePalette && facePalette.note) || `${harmony} harmony — keep color near the face soft, flattering, and wearable.`
+      };
+    }
 
     const HARMONY_TO_UNDERTONE = {
       'Warm & Golden': 'Warm',
@@ -3899,20 +4362,15 @@
       let cheek = null;
       let noteText = '';
       if (look && look.facePalette && look.facePalette.lip) {
-        lip = look.facePalette.lip;
-        cheek = look.facePalette.cheek;
-        noteText = look.facePalette.note || '';
+        const safeFace = sanitizeFacePalette(look.facePalette, harmony);
+        lip = safeFace.lip;
+        cheek = safeFace.cheek;
+        noteText = alignFionaTextToLocalWeekday(safeFace.note);
       } else {
-        const undertoneKey = selectedUndertone || HARMONY_TO_UNDERTONE[harmony] || 'Cool';
-        const glam = (typeof GLAM_PALETTES !== 'undefined' && GLAM_PALETTES[undertoneKey])
-          ? GLAM_PALETTES[undertoneKey]
-          : {
-              lip: ['#9E2A2B', 'Velvet Currant'],
-              cheek: ['#E07A5F', 'Rose Radiance']
-            };
-        lip = glam.lip;
-        cheek = glam.cheek;
-        noteText = `Undertone-matched for ${undertoneKey} skin: keep lip and cheek in the same temperature family so the wardrobe palette and your glow read as one editorial story.`;
+        const face = getFacePaletteForHarmony(harmony);
+        lip = face.lip;
+        cheek = face.cheek;
+        noteText = `Undertone-matched for ${harmony}: soft wearable lip and cheek — never fashion greens as lipstick.`;
       }
 
       const lipSwatch = document.getElementById('wardrobe-face-lip-swatch');
@@ -4030,12 +4488,18 @@
     }
 
     async function postGlamourStyle(body) {
+      const weekdayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const localWeekday = weekdayNames[new Date().getDay()];
+      const requestBody = {
+        ...body,
+        localWeekday: body && body.localWeekday ? body.localWeekday : localWeekday
+      };
       let res;
       try {
         res = await fetch(GLAMOUR_STYLE_API, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body)
+          body: JSON.stringify(requestBody)
         });
       } catch (networkErr) {
         const formatted = formatGlamourApiError(null, null, networkErr);
@@ -4071,6 +4535,38 @@
       return payload;
     }
 
+    function alignFionaTextToLocalWeekday(text) {
+      if (text == null || text === '') return text;
+      const weekdayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const today = weekdayNames[new Date().getDay()];
+      return String(text).replace(
+        /\b(Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday)(s?)\b/gi,
+        (_, _day, plural) => today + (plural || '')
+      );
+    }
+
+    async function compressImageBlobForApi(blob, maxDim = 1280, quality = 0.72) {
+      if (!blob) return null;
+      const bitmap = await createImageBitmap(blob);
+      const scale = Math.min(1, maxDim / Math.max(bitmap.width, bitmap.height));
+      const width = Math.max(1, Math.round(bitmap.width * scale));
+      const height = Math.max(1, Math.round(bitmap.height * scale));
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        bitmap.close?.();
+        return null;
+      }
+      ctx.drawImage(bitmap, 0, 0, width, height);
+      bitmap.close?.();
+      const compressed = await new Promise((resolve) => {
+        canvas.toBlob((b) => resolve(b), 'image/jpeg', quality);
+      });
+      return compressed || null;
+    }
+
     function blobToBase64(blob) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -4084,34 +4580,51 @@
       });
     }
 
-    async function canvasImageToApiPayload(img) {
+    async function canvasImageToApiPayload(img, options = {}) {
       if (!img) return null;
+      const maxDim = options.maxDim || 1280;
+      const quality = options.quality || 0.72;
       try {
-        if (img.file instanceof Blob) {
-          const data = await blobToBase64(img.file);
-          return {
-            mediaType: img.file.type || 'image/jpeg',
-            data
-          };
-        }
-        if (img.url && String(img.url).startsWith('blob:')) {
+        let blob = null;
+        if (img.file instanceof Blob) blob = img.file;
+        else if (img.url && String(img.url).startsWith('blob:')) {
           const res = await fetch(img.url);
-          const blob = await res.blob();
-          const data = await blobToBase64(blob);
-          return {
-            mediaType: blob.type || 'image/jpeg',
-            data
-          };
+          blob = await res.blob();
         }
+        if (!blob) return null;
+        // Compress before upload — phone photos blow past Vercel payload limits.
+        let sendBlob = blob;
+        try {
+          const compressed = await compressImageBlobForApi(blob, maxDim, quality);
+          if (compressed) sendBlob = compressed;
+        } catch (_) {}
+        // If still huge, compress harder
+        if (sendBlob.size > 280000) {
+          try {
+            const harder = await compressImageBlobForApi(sendBlob, Math.min(maxDim, 960), Math.min(quality, 0.55));
+            if (harder) sendBlob = harder;
+          } catch (_) {}
+        }
+        const data = await blobToBase64(sendBlob);
+        return {
+          mediaType: 'image/jpeg',
+          data
+        };
       } catch (_) {}
       return null;
     }
 
-    async function collectGlamourApiImages(limit = 10) {
+    async function collectGlamourApiImages(limit = MAX_CANVAS_PHOTOS) {
       const images = getCanvasImages('wardrobe');
+      const maxCount = Math.min(Math.max(1, limit || MAX_CANVAS_PHOTOS), MAX_CANVAS_PHOTOS);
+      const selected = images.slice(0, maxCount);
+      // More photos → tighter compression so all 10 can travel safely.
+      const count = selected.length;
+      const maxDim = count >= 7 ? 900 : count >= 4 ? 1100 : 1280;
+      const quality = count >= 7 ? 0.55 : count >= 4 ? 0.65 : 0.72;
       const out = [];
-      for (const img of images.slice(0, limit)) {
-        const payload = await canvasImageToApiPayload(img);
+      for (const img of selected) {
+        const payload = await canvasImageToApiPayload(img, { maxDim, quality });
         if (payload && payload.data) out.push(payload);
       }
       return out;
@@ -4130,20 +4643,108 @@
         desc += ` ${silhouetteNote} ${harmonyNote}`;
       }
       document.getElementById('wardrobe-look-desc').innerText = desc.trim();
-      document.getElementById('wardrobe-look-quote').innerText = look.quote ? `"${look.quote.replace(/^"|"$/g, '')}"` : '';
+      document.getElementById('wardrobe-look-quote').innerText = look.quote
+        ? `"${alignFionaTextToLocalWeekday(look.quote).replace(/^"|"$/g, '')}"`
+        : '';
+
+      const complimentEl = document.getElementById('wardrobe-compliment');
+      if (complimentEl) {
+        if (look.compliment) {
+          complimentEl.classList.remove('hidden');
+          complimentEl.innerText = `💕 ${look.compliment}`;
+        } else {
+          complimentEl.classList.add('hidden');
+          complimentEl.innerText = '';
+        }
+      }
 
       renderWardrobeVisualLook(look, silhouette, harmony);
 
       const note = document.getElementById('wardrobe-photo-note');
       if (photoCount > 0) {
         note.classList.remove('hidden');
-        note.innerText = `📸 Spotted your look canvas (${photoCount} photo${photoCount === 1 ? '' : 's'}) — ${sourceLabel} Fiona pulled from what’s already in the frame, then tuned fit and color to your silhouette and undertones. Keep the pieces that feel like you; elevate with one polished layer.`;
+        note.innerText = `📸 Spotted your look canvas (${photoCount} photo${photoCount === 1 ? '' : 's'}) — ${sourceLabel} Fiona pulled outfit + hair + makeup from what’s already in the frame, then tuned fit and color to your silhouette and undertones.`;
       } else {
         note.classList.add('hidden');
         note.innerText = '';
       }
 
       document.getElementById('wardrobe-recommendation-box').classList.remove('hidden');
+      window.lastGlamourLook = {
+        look,
+        occasionLabel,
+        vibe,
+        silhouette,
+        harmony,
+        photoCount
+      };
+    }
+
+    function resetAiLookPanel(statusText) {
+      const panel = document.getElementById('wardrobe-ai-look-panel');
+      const img = document.getElementById('wardrobe-ai-look-img');
+      const status = document.getElementById('wardrobe-ai-look-status');
+      if (!panel || !img) return;
+      panel.classList.remove('hidden');
+      img.removeAttribute('src');
+      img.alt = 'Generating your Glamour look…';
+      if (status) status.innerText = statusText || 'Generating your look photo…';
+    }
+
+    function showAiLookPanel(dataUrl, statusText) {
+      const panel = document.getElementById('wardrobe-ai-look-panel');
+      const img = document.getElementById('wardrobe-ai-look-img');
+      const status = document.getElementById('wardrobe-ai-look-status');
+      if (!panel || !img || !dataUrl) return;
+      panel.classList.remove('hidden');
+      img.src = dataUrl;
+      img.alt = 'You in Fiona\'s recommended look';
+      if (status) status.innerText = statusText || 'AI look ready';
+    }
+
+    function hideAiLookPanel(optionalStatus) {
+      const panel = document.getElementById('wardrobe-ai-look-panel');
+      const status = document.getElementById('wardrobe-ai-look-status');
+      if (optionalStatus && panel && status) {
+        panel.classList.remove('hidden');
+        status.innerText = optionalStatus;
+        return;
+      }
+      if (panel) panel.classList.add('hidden');
+    }
+
+    async function generateGlamourLookPhoto(look, images, occasionLabel, vibe) {
+      if (!images || !images.length) {
+        hideAiLookPanel('Add a selfie to generate a photo of you in this look.');
+        return null;
+      }
+      resetAiLookPanel('Fiona is generating your look photo…');
+      try {
+        const res = await fetch(GLAMOUR_STYLE_API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            mode: 'look',
+            generateLook: true,
+            occasion: occasionLabel,
+            vibe,
+            look,
+            images: images.slice(0, 2)
+          })
+        });
+        const payload = await res.json().catch(() => ({}));
+        if (!res.ok || !payload.image || !payload.image.dataUrl) {
+          const hint = payload.hint || payload.error || 'Look photo unavailable';
+          hideAiLookPanel(hint);
+          return null;
+        }
+        showAiLookPanel(payload.image.dataUrl, payload.provider === 'openai' ? 'Generated look' : 'Generated look');
+        return payload.image.dataUrl;
+      } catch (err) {
+        console.error('[Glamour Look Photo]', err);
+        hideAiLookPanel('Look photo could not start — text recommendation is still ready.');
+        return null;
+      }
     }
 
     /** Offline-only emergency fallback — varied by occasion, vibe, energy, silhouette, harmony. */
@@ -4205,11 +4806,14 @@
         quote: base.quote,
         pieces,
         palette: palette.map((p) => ({ hex: p.hex, label: p.label })),
-        facePalette: {
-          lip: [palette[0]?.hex || '#9E2A2B', palette[0]?.label || 'Berry'],
-          cheek: [palette[1]?.hex || '#E07A9A', palette[1]?.label || 'Rose'],
-          note: `${harmony} harmony — keep color near the face intentional and soft.`
-        }
+        facePalette: (() => {
+          const face = getFacePaletteForHarmony(harmony);
+          return {
+            lip: face.lip,
+            cheek: face.cheek,
+            note: `${harmony} harmony — lips stay rosy/berry/nude (never green). Soft color near the face only.`
+          };
+        })()
       };
     }
 
@@ -4217,25 +4821,39 @@
       if (!consumePhotoAnalysis()) return;
       const vibe = (document.getElementById('wardrobe-vibe')?.value || '').trim();
       const occasionLabel = selectedOccasion;
-      const silhouette = selectedWardrobeSilhouette;
-      const harmony = selectedWardrobeHarmony;
       const btn = document.querySelector('button[onclick="generateWardrobeAdvice()"]');
       const previousLabel = btn ? btn.innerText : '';
-      if (btn) {
-        btn.disabled = true;
-        btn.innerText = 'Fiona is styling…';
-      }
+        if (btn) {
+          btn.disabled = true;
+          btn.innerText = 'Fiona is building your full look…';
+        }
 
       try {
-        const images = await collectGlamourApiImages(10);
+        const images = await collectGlamourApiImages(MAX_CANVAS_PHOTOS);
+        const inferFromPhotos = images.length > 0;
+        const silhouetteHint = isAutoSilhouette(selectedWardrobeSilhouette)
+          ? (inferFromPhotos ? 'Auto from photos' : 'Hourglass / Defined')
+          : selectedWardrobeSilhouette;
+        const harmonyHint = isAutoHarmony(selectedWardrobeHarmony)
+          ? (inferFromPhotos ? 'Auto from photos' : 'Warm & Golden')
+          : selectedWardrobeHarmony;
+        const undertoneHint = (!selectedUndertone || /^auto/i.test(selectedUndertone))
+          ? (inferFromPhotos ? 'Auto from photos' : 'Cool')
+          : selectedUndertone;
+
+        if (!inferFromPhotos && (isAutoSilhouette(selectedWardrobeSilhouette) || isAutoHarmony(selectedWardrobeHarmony))) {
+          showToast('Add at least one photo for Auto detect — or pick silhouette and skin tone chips.');
+        }
+
         const morningEnergy = getMorningEnergyState();
         const payload = await postGlamourStyle({
           mode: 'wardrobe',
           occasion: occasionLabel,
           vibe,
-          silhouette,
-          harmony,
-          undertone: selectedUndertone,
+          silhouette: silhouetteHint,
+          harmony: harmonyHint,
+          undertone: undertoneHint,
+          inferFromPhotos,
           morningEnergy: morningEnergy ? {
             id: morningEnergy.id,
             label: morningEnergy.label,
@@ -4252,19 +4870,69 @@
           });
         }
 
+        const detectedSilhouette = normalizeDetectedSilhouette(
+          payload.data.detectedSilhouette || payload.data.silhouette
+        ) || (!isAutoSilhouette(selectedWardrobeSilhouette) ? selectedWardrobeSilhouette : null)
+          || 'Hourglass / Defined';
+        const detectedHarmony = normalizeDetectedHarmony(
+          payload.data.detectedHarmony || payload.data.harmony
+        ) || (!isAutoHarmony(selectedWardrobeHarmony) ? selectedWardrobeHarmony : null)
+          || 'Warm & Golden';
+        const detectedUndertone = normalizeDetectedUndertone(
+          payload.data.detectedUndertone || payload.data.undertone,
+          detectedHarmony
+        ) || 'Cool';
+
+        if (inferFromPhotos) {
+          applyDetectedWardrobeTraits({
+            silhouette: detectedSilhouette,
+            harmony: detectedHarmony,
+            undertone: detectedUndertone,
+            fromPhotos: true
+          });
+        }
+
+        if (payload.data.facePalette) {
+          payload.data.facePalette = sanitizeFacePalette(payload.data.facePalette, detectedHarmony);
+        } else {
+          payload.data.facePalette = sanitizeFacePalette(null, detectedHarmony);
+        }
+
+        if (!payload.data.compliment) {
+          payload.data.compliment = inferFromPhotos
+            ? `Your coloring and presence already do half the styling — Fiona just finished the sentence.`
+            : `You asking for a full look is already a confidence move. Let's make it visible.`;
+        }
+
         applyWardrobeLookToUi(
           payload.data,
           occasionLabel,
           vibe,
-          silhouette,
-          harmony,
+          detectedSilhouette,
+          detectedHarmony,
           images.length,
-          'Live Fiona'
+          inferFromPhotos ? 'Live Fiona · photo-read figure & skin tone —' : 'Live Fiona —'
         );
-        showToast('Fiona tailored a live look from your canvas ✨');
+        showToast(inferFromPhotos
+          ? `Full Glamour look ready → ${detectedSilhouette} · ${detectedHarmony} ✨`
+          : 'Fiona tailored a full Glamour look ✨');
+
+        if (images.length) {
+          if (btn) btn.innerText = 'Generating your look photo…';
+          await generateGlamourLookPhoto(payload.data, images, occasionLabel, vibe);
+        } else {
+          hideAiLookPanel('Add a selfie above, then Style again to generate a photo of you in this look.');
+        }
       } catch (err) {
         console.error('[Glamour Style] wardrobe fallback', err && err.fionaMeta ? err.fionaMeta : err);
+        const silhouette = (!isAutoSilhouette(selectedWardrobeSilhouette) && selectedWardrobeSilhouette)
+          || lastDetectedSilhouette
+          || 'Hourglass / Defined';
+        const harmony = (!isAutoHarmony(selectedWardrobeHarmony) && selectedWardrobeHarmony)
+          || lastDetectedHarmony
+          || 'Warm & Golden';
         const offline = buildOfflineWardrobeLook(occasionLabel, vibe, silhouette, harmony);
+        offline.compliment = offline.compliment || 'Even offline, Fiona sees the woman who showed up asking for better — that counts.';
         applyWardrobeLookToUi(
           offline,
           occasionLabel,
@@ -4274,11 +4942,12 @@
           getCanvasImages('wardrobe').length,
           'Offline draft —'
         );
+        hideAiLookPanel('Live look photo needs the style API online.');
         showToast((err && err.fionaToast) || `Live styling unavailable (${err && err.message ? err.message : 'unknown error'}). Showing offline draft.`);
       } finally {
         if (btn) {
           btn.disabled = false;
-          btn.innerText = previousLabel || 'Style Me, Fiona ✨';
+          btn.innerText = previousLabel || 'Style My Full Look, Fiona ✨';
         }
       }
     }
@@ -4330,28 +4999,63 @@
       const previousLabel = btn ? btn.innerText : '';
       if (btn) {
         btn.disabled = true;
-        btn.innerText = 'Fiona is mixing…';
+        btn.innerText = 'Fiona is reading your glow…';
       }
 
       try {
-        const images = await collectGlamourApiImages(10);
+        const images = await collectGlamourApiImages(MAX_CANVAS_PHOTOS);
+        const inferFromPhotos = images.length > 0;
         const payload = await postGlamourStyle({
           mode: 'palette',
-          undertone: selectedUndertone,
+          undertone: (!selectedUndertone || /^auto/i.test(selectedUndertone))
+            ? (inferFromPhotos ? 'Auto from photos' : 'Cool')
+            : selectedUndertone,
           occasion: selectedOccasion,
           vibe: (document.getElementById('wardrobe-vibe')?.value || '').trim(),
-          silhouette: selectedWardrobeSilhouette,
-          harmony: selectedWardrobeHarmony,
+          silhouette: isAutoSilhouette(selectedWardrobeSilhouette)
+            ? (inferFromPhotos ? 'Auto from photos' : 'Hourglass / Defined')
+            : selectedWardrobeSilhouette,
+          harmony: isAutoHarmony(selectedWardrobeHarmony)
+            ? (inferFromPhotos ? 'Auto from photos' : 'Warm & Golden')
+            : selectedWardrobeHarmony,
+          inferFromPhotos,
           images,
           temperature: 0.8
         });
-        const p = payload.data;
+        let p = payload.data;
         if (!p || !p.lip) {
           throw Object.assign(new Error('bad palette response'), {
             fionaToast: 'Live palette returned incomplete data. Showing undertone draft.'
           });
         }
 
+        const detectedHarmony = normalizeDetectedHarmony(p.detectedHarmony || p.harmony)
+          || (!isAutoHarmony(selectedWardrobeHarmony) ? selectedWardrobeHarmony : null)
+          || 'Warm & Golden';
+        const detectedUndertone = normalizeDetectedUndertone(p.detectedUndertone || p.undertone, detectedHarmony)
+          || 'Cool';
+        const detectedSilhouette = normalizeDetectedSilhouette(p.detectedSilhouette || p.silhouette);
+
+        if (inferFromPhotos) {
+          applyDetectedWardrobeTraits({
+            silhouette: detectedSilhouette || undefined,
+            harmony: detectedHarmony,
+            undertone: detectedUndertone,
+            fromPhotos: true
+          });
+        }
+
+        // Guard against unwearable lip colors (e.g. sage/olive greens)
+        if (!isWearableLipColor(p.lip[0], p.lip[1])) {
+          const face = getFacePaletteForHarmony(detectedHarmony);
+          const glam = GLAM_PALETTES[detectedUndertone] || GLAM_PALETTES['Cool'];
+          p = {
+            ...p,
+            lip: face.lip || glam.lip,
+            cheek: p.cheek && p.cheek[0] ? p.cheek : (face.cheek || glam.cheek)
+          };
+        }
+
         document.getElementById('swatch-lip').style.backgroundColor = p.lip[0];
         document.getElementById('swatch-lip-name').innerText = p.lip[1];
         document.getElementById('swatch-cheek').style.backgroundColor = p.cheek[0];
@@ -4360,15 +5064,20 @@
         document.getElementById('swatch-eye-name').innerText = p.eye[1];
         document.getElementById('swatch-hair').style.backgroundColor = p.hair[0];
         document.getElementById('swatch-hair-name').innerText = p.hair[1];
-        document.getElementById('glam-palette-quote').innerText = `"${String(p.quote || '').replace(/^"|"$/g, '')}"`;
+        document.getElementById('glam-palette-quote').innerText = `"${alignFionaTextToLocalWeekday(String(p.quote || '')).replace(/^"|"$/g, '')}"`;
         const status = document.getElementById('glam-status');
         if (status && images.length) {
-          status.textContent = `${images.length}/${MAX_CANVAS_PHOTOS} photos ready · live palette`;
+          status.textContent = `${images.length}/${MAX_CANVAS_PHOTOS} photos ready · live palette · ${detectedUndertone} undertone`;
         }
-        showToast('Live glam palette refreshed from your canvas ✨');
+        showToast(inferFromPhotos
+          ? `Palette matched to your photos · ${detectedHarmony} ✨`
+          : 'Live glam palette refreshed ✨');
       } catch (err) {
         console.error('[Glamour Style] palette fallback', err && err.fionaMeta ? err.fionaMeta : err);
-        const p = GLAM_PALETTES[selectedUndertone] || GLAM_PALETTES['Cool'];
+        const toneKey = (!selectedUndertone || /^auto/i.test(selectedUndertone))
+          ? (lastDetectedUndertone || 'Cool')
+          : selectedUndertone;
+        const p = GLAM_PALETTES[toneKey] || GLAM_PALETTES['Cool'];
         document.getElementById('swatch-lip').style.backgroundColor = p.lip[0];
         document.getElementById('swatch-lip-name').innerText = p.lip[1];
         document.getElementById('swatch-cheek').style.backgroundColor = p.cheek[0];
@@ -4377,7 +5086,7 @@
         document.getElementById('swatch-eye-name').innerText = p.eye[1];
         document.getElementById('swatch-hair').style.backgroundColor = p.hair[0];
         document.getElementById('swatch-hair-name').innerText = p.hair[1];
-        document.getElementById('glam-palette-quote').innerText = `"${p.quote}"`;
+        document.getElementById('glam-palette-quote').innerText = `"${alignFionaTextToLocalWeekday(p.quote)}"`;
         showToast((err && err.fionaToast) || `Live palette unavailable (${err && err.message ? err.message : 'unknown'}). Showing undertone draft.`);
       } finally {
         if (btn) {
@@ -4513,12 +5222,17 @@
     const FREE_DAILY_CHAT_LIMIT = 30;
     const FREE_PHOTO_ANALYSIS_LIMIT = 5;
     const CHAT_LIMIT_MESSAGE = "Fiona needs a quick beauty rest! You've reached your daily free chat limit. Upgrade to Annual for unlimited 24/7 access, or come back tomorrow.";
+    /** Private beta invite — share as ?beta=wingwoman-beta (no card required). */
+    const BETA_INVITE_CODE = 'wingwoman-beta';
     let selectedVipPlan = 'annual';
 
-    /** Live entitlement mirror — paid Annual/Weekly VIP only (not free trial). */
+    /** Live entitlement mirror — paid VIP, or a beta tester (no Stripe). */
     const user = {
       get isSubscribed() {
-        return getVipStatus() === 'vip';
+        return getVipStatus() === 'vip' || isBetaTester();
+      },
+      get is_beta_tester() {
+        return isBetaTester();
       }
     };
 
@@ -4561,7 +5275,15 @@
       return next;
     }
 
+    function isBetaTester() {
+      if (window.FionaBeta && typeof window.FionaBeta.isBetaTester === 'function') {
+        return window.FionaBeta.isBetaTester();
+      }
+      try { return localStorage.getItem('is_beta_tester') === 'true'; } catch (_) { return false; }
+    }
+
     function hasVipAccess() {
+      if (isBetaTester()) return true;
       const s = getVipStatus();
       return s === 'trial' || s === 'vip';
     }
@@ -4653,7 +5375,11 @@
       const status = getVipStatus();
       const meta = getVipMeta();
       if (status === 'vip') {
-        if (meta.stripeTrialing) {
+        if (meta.beta) {
+          label.textContent = 'VIP Beta';
+          dot.className = 'w-2 h-2 rounded-full bg-teal-400 animate-pulse';
+          pill?.classList.add('border-teal-200');
+        } else if (meta.stripeTrialing) {
           label.textContent = 'VIP Trial · Stripe';
           dot.className = 'w-2 h-2 rounded-full bg-pink-400 animate-pulse';
         } else {
@@ -4724,7 +5450,7 @@
     };
 
     async function loadStripePriceConfig() {
-      for (const url of ['/api/fiona/stripe-config', '/api/stripe/config']) {
+      for (const url of ['/api/fiona/glamour/style', '/api/fiona/stripe-config', '/api/stripe/config']) {
         try {
           const res = await fetch(url);
           const data = await res.json().catch(() => ({}));
@@ -4754,7 +5480,7 @@
           : stripePriceConfig.annualPriceId;
         let payload = {};
         let res = null;
-        for (const url of ['/api/fiona/checkout', '/api/checkout']) {
+        for (const url of ['/api/fiona/glamour/style', '/api/fiona/checkout', '/api/checkout']) {
           res = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -4882,6 +5608,85 @@
       showToast('VIP membership locked in. Penthouse treatment engaged.');
     }
 
+    /** Unlock full VIP for beta testers — no Stripe checkout. Sets is_beta_tester. */
+    function unlockBetaVipAccess() {
+      if (window.FionaBeta && typeof window.FionaBeta.unlockBetaTester === 'function') {
+        window.FionaBeta.unlockBetaTester();
+      } else {
+        localStorage.setItem('is_beta_tester', 'true');
+        localStorage.setItem(VIP_STATUS_KEY, 'vip');
+        setVipMeta({
+          plan: 'beta',
+          beta: true,
+          is_beta_tester: true,
+          converted: true,
+          convertedAt: new Date().toISOString(),
+          betaUnlockedAt: new Date().toISOString()
+        });
+      }
+      updateVipStatusPill();
+    }
+
+    function applyBetaInviteFromUrl() {
+      let params;
+      try {
+        params = new URLSearchParams(window.location.search || '');
+      } catch (_) {
+        return false;
+      }
+      const attempted = window.FionaBeta
+        ? window.FionaBeta.queryAttempted(params)
+        : !!(params.get('beta') || params.get('tester') || params.get('invite'));
+      if (!attempted) return false;
+      const granted = window.FionaBeta
+        ? window.FionaBeta.queryGrantsBeta(params)
+        : ((params.get('beta') || '').trim().toLowerCase() === 'true'
+            || (params.get('tester') || '').trim().toLowerCase() === 'vip'
+            || (params.get('beta') || params.get('invite') || '').trim().toLowerCase() === BETA_INVITE_CODE.toLowerCase());
+      if (!granted) {
+        showToast('That beta invite isn’t recognized. Use ?beta=true or ?tester=vip.');
+        return false;
+      }
+      const already = isBetaTester();
+      unlockBetaVipAccess();
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('beta');
+        url.searchParams.delete('tester');
+        url.searchParams.delete('invite');
+        window.history.replaceState({}, '', url.pathname + url.search + url.hash);
+      } catch (_) {}
+      showToast(already
+        ? 'Beta access is already on this device — full VIP unlocked.'
+        : 'Beta access unlocked — full VIP, no card needed.');
+      return true;
+    }
+
+    function toggleBetaPass() {
+      const panel = document.getElementById('beta-pass-panel');
+      if (!panel) return;
+      panel.classList.toggle('hidden');
+      if (!panel.classList.contains('hidden')) {
+        document.getElementById('beta-pass-input')?.focus();
+      }
+    }
+
+    function submitBetaPass() {
+      const input = document.getElementById('beta-pass-input');
+      const msg = document.getElementById('beta-pass-msg');
+      const raw = input ? input.value : '';
+      const ok = window.FionaBeta
+        ? window.FionaBeta.passphraseGrantsBeta(raw)
+        : ['WINGWOMAN2026', 'FIONAVIP'].includes(String(raw || '').trim().toUpperCase().replace(/[\s-]+/g, ''));
+      if (!ok) {
+        if (msg) msg.textContent = 'That passphrase isn’t recognized.';
+        return;
+      }
+      unlockBetaVipAccess();
+      closeModal('modal-vip');
+      showToast('Beta Pass accepted — full VIP unlocked, no card needed.');
+    }
+
     /* Modal System */
     function openModal(id) {
       document.getElementById(id).classList.remove('hidden');
@@ -4946,9 +5751,15 @@
       renderPastEntries();
       renderFlareTrackerForm();
       initRituals();
+      applyBetaInviteFromUrl();
       updateVipStatusPill();
       hydrateDailyEnergyUi();
       finalizeStripeVipReturn();
+      loadPersistedGlamourGallery().then((count) => {
+        if (count > 0) {
+          showToast(`Restored ${count} saved Glamour photo${count === 1 ? '' : 's'} from this device`);
+        }
+      }).catch(() => {});
       navigateTo('lounge');
       if (window.lucide) lucide.createIcons();
       const footerYear = document.getElementById('site-footer-year');

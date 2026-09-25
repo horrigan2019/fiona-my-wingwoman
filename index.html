@@ -455,7 +455,7 @@
             </div>
             <div class="space-y-1">
               <h4 class="font-serif text-lg font-bold text-gray-900 dark:text-white">The Glamour Suite</h4>
-              <p class="text-xs text-gray-600 dark:text-gray-300">Effortless wardrobe styling recommendations and hair & makeup vanity mirror.</p>
+              <p class="text-xs text-gray-600 dark:text-gray-300">One Glamour Suite look: outfit + hair + makeup, with an AI photo of you in the recommendation.</p>
             </div>
           </div>
 
@@ -1000,18 +1000,8 @@
           The Glamour Suite
         </h2>
         <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">
-          Feel-good style advice and customized beauty palettes. No body shaming, just pure plumage celebration.
+          One full look from Fiona — outfit, hair, and makeup together — plus a generated photo of you in the recommendation.
         </p>
-
-        <!-- Clean Sub-Tabs (No Double Pill Overlap) -->
-        <div class="mt-4 inline-flex max-w-full flex-wrap items-center gap-1 p-1 rounded-full bg-pink-50/90 dark:bg-purple-950/50 border border-pink-100 dark:border-purple-900/60">
-          <button onclick="switchGlamourTab('wardrobe')" id="subtab-wardrobe" class="px-4 py-2 text-sm font-medium rounded-full transition bg-spa-plum text-white shadow-sm">
-            👗 The Wardrobe
-          </button>
-          <button onclick="switchGlamourTab('hairmakeup')" id="subtab-hairmakeup" class="px-4 py-2 text-sm font-medium rounded-full transition text-purple-900/70 dark:text-pink-100/80 hover:bg-white/70 dark:hover:bg-purple-900/40">
-            💄 Hair & Makeup
-          </button>
-        </div>
       </div>
 
       <!-- Start My Day — morning energy check-in (feeds Style Me); top of Glamour Suite -->
@@ -1047,18 +1037,18 @@
         </div>
       </div>
 
-      <!-- SUB-CHAMBER 1: The Wardrobe -->
+      <!-- Glamour Suite — unified outfit + hair + makeup (no separate Wardrobe / Hair tabs) -->
       <div id="glamour-wardrobe-view" class="space-y-6">
         <div class="bg-white dark:bg-spa-darkcard p-6 sm:p-7 rounded-2xl border border-pink-100 dark:border-purple-900/40 shadow-sm space-y-5">
           <h3 class="font-serif text-xl font-bold text-gray-900 dark:text-white">What's the Occasion, Gorgeous?</h3>
-          <p class="text-xs text-gray-600 dark:text-gray-300 -mt-2">Give Fiona a little context — and optionally a photo of you or an outfit — and she’ll find the magic in what you already have.</p>
+          <p class="text-xs text-gray-600 dark:text-gray-300 -mt-2">Tell Fiona the vibe (or that you feel frumpy). Upload a photo of you — she'll prescribe outfit + hair + makeup as one look, then generate a photo of you wearing it.</p>
           
-          <!-- Wardrobe photo canvas -->
+          <!-- Glamour photo canvas -->
           <div class="space-y-3">
             <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
               <div>
                 <h4 class="font-serif text-base font-bold text-gray-900 dark:text-white">Your Look Canvas</h4>
-                <p class="text-xs text-gray-600 dark:text-gray-300">Upload or snap up to 10 photos of you / your outfit so Fiona can style from what’s real. Shared with Hair & Makeup.</p>
+                <p class="text-xs text-gray-600 dark:text-gray-300">Upload or snap up to 10 photos of you so Fiona can style hair, makeup, and wardrobe from what's real.</p>
               </div>
               <span class="text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-1 rounded-full shrink-0">🔒 Local Only</span>
             </div>
@@ -1110,8 +1100,8 @@
           </div>
 
           <div class="space-y-2">
-            <label for="wardrobe-vibe" class="text-xs font-semibold text-gray-700 dark:text-gray-300">Or tell Fiona the exact vibe / event:</label>
-            <textarea id="wardrobe-vibe" rows="3" placeholder="e.g., brunch with the girls, first day back at the office, gallery opening…" class="w-full p-3 rounded-xl border border-pink-100 dark:border-purple-900/60 bg-spa-cream/40 dark:bg-spa-darkbg/40 focus:outline-none focus:ring-2 focus:ring-purple-300 text-sm"></textarea>
+            <label for="wardrobe-vibe" class="text-xs font-semibold text-gray-700 dark:text-gray-300">Or tell Fiona the exact vibe / event (even “I feel frumpy”):</label>
+            <textarea id="wardrobe-vibe" rows="3" placeholder="e.g., brunch with the girls, first day back at the office, gallery opening, or I feel frumpy and need help…" class="w-full p-3 rounded-xl border border-pink-100 dark:border-purple-900/60 bg-spa-cream/40 dark:bg-spa-darkbg/40 focus:outline-none focus:ring-2 focus:ring-purple-300 text-sm"></textarea>
           </div>
 
           <!-- Figure & color harmony (wardrobe only) -->
@@ -1148,17 +1138,30 @@
 
           <!-- Outfit Recommendation Trigger -->
           <button onclick="generateWardrobeAdvice()" class="px-6 py-2.5 rounded-xl bg-spa-plum text-white text-xs font-bold hover:bg-spa-plumdark active:scale-95 transition shadow-sm">
-            Style Me, Fiona ✨
+            Style My Full Look, Fiona ✨
           </button>
 
-          <!-- Wardrobe Recommendation Card — editorial luxury moodboard -->
+          <!-- Glamour Recommendation Card — editorial luxury moodboard -->
           <div id="wardrobe-recommendation-box" class="hidden p-5 sm:p-6 rounded-2xl bg-spa-cream dark:bg-spa-darkcard border border-spa-plum/25 dark:border-purple-800 space-y-5 shadow-sm">
             <div class="flex flex-wrap items-end justify-between gap-2 border-b border-spa-plum/15 dark:border-purple-900/60 pb-3">
               <div>
-                <span class="text-[10px] font-bold uppercase tracking-[0.18em] text-spa-plum dark:text-pink-300">✨ Fiona's Curated Look</span>
+                <span class="text-[10px] font-bold uppercase tracking-[0.18em] text-spa-plum dark:text-pink-300">✨ Fiona's Full Glamour Look</span>
                 <h4 id="wardrobe-look-title" class="font-serif text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mt-1">The Effortless Boss Silhouette</h4>
               </div>
               <p id="wardrobe-visual-caption" class="text-[10px] font-semibold uppercase tracking-wider text-spa-plum/70 dark:text-pink-300/70"></p>
+            </div>
+
+            <p id="wardrobe-compliment" class="hidden text-sm font-medium text-spa-plumdark dark:text-pink-100 bg-white/80 dark:bg-spa-darkbg/50 border border-spa-plum/20 dark:border-purple-800 rounded-xl px-3.5 py-3"></p>
+
+            <!-- AI-generated look of the user -->
+            <div id="wardrobe-ai-look-panel" class="hidden space-y-2">
+              <div class="flex items-center justify-between gap-2">
+                <p class="text-[10px] font-bold uppercase tracking-[0.16em] text-spa-plum dark:text-pink-300">Your Look — Generated</p>
+                <span id="wardrobe-ai-look-status" class="text-[10px] font-semibold text-gray-500 dark:text-gray-400"></span>
+              </div>
+              <div class="max-w-sm mx-auto lg:mx-0 rounded-2xl overflow-hidden border border-spa-plum/25 dark:border-purple-800 bg-spa-blush/40 shadow-sm">
+                <img id="wardrobe-ai-look-img" src="" alt="You in Fiona's recommended look" class="w-full h-auto object-cover">
+              </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.35fr)] gap-5 lg:gap-6 items-start">
@@ -1204,11 +1207,11 @@
               </div>
             </div>
 
-            <!-- Hair & Makeup Glow panel -->
+            <!-- Hair & Makeup Glow panel (bundled with outfit — no separate tab) -->
             <section class="pt-2 border-t border-spa-plum/15 dark:border-purple-900/60 space-y-3">
               <div class="flex items-baseline justify-between gap-2">
-                <h5 class="font-serif text-lg font-bold text-gray-900 dark:text-white">Hair &amp; Makeup Glow</h5>
-                <span class="text-[10px] font-semibold uppercase tracking-wider text-spa-plum/70 dark:text-pink-300/70">Paired finishing</span>
+                <h5 class="font-serif text-lg font-bold text-gray-900 dark:text-white">Hair &amp; Makeup (included)</h5>
+                <span class="text-[10px] font-semibold uppercase tracking-wider text-spa-plum/70 dark:text-pink-300/70">Part of your full look</span>
               </div>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <article class="p-4 bg-white/90 dark:bg-spa-darkbg/50 border border-spa-plum/20 dark:border-purple-800 space-y-2">
@@ -1245,8 +1248,8 @@
         </div>
       </div>
 
-      <!-- SUB-CHAMBER 2: Hair & Makeup (With Photo / Selfie Upload & Color Swatches) -->
-      <div id="glamour-hairmakeup-view" class="hidden space-y-6">
+      <!-- Hair & Makeup is now bundled into the Glamour Suite Style flow above (kept hidden for legacy deep-links). -->
+      <div id="glamour-hairmakeup-view" class="hidden space-y-6" aria-hidden="true" hidden>
         <div class="bg-white dark:bg-spa-darkcard p-6 sm:p-7 rounded-2xl border border-pink-100 dark:border-purple-900/40 shadow-sm space-y-6">
           
           <!-- Photo Upload / Selfie Canvas -->
@@ -1936,32 +1939,17 @@
     }
 
     function switchGlamourTab(subtab) {
+      // Glamour Suite is unified — outfit + hair + makeup live in one view.
       stopSelfieCamera(false);
       const wardrobeView = document.getElementById('glamour-wardrobe-view');
       const hairmakeupView = document.getElementById('glamour-hairmakeup-view');
-      const btnWardrobe = document.getElementById('subtab-wardrobe');
-      const btnHair = document.getElementById('subtab-hairmakeup');
-
-      const setActive = (btn, on) => {
-        if (on) {
-          btn.classList.add('bg-spa-plum', 'text-white', 'shadow-sm');
-          btn.classList.remove('text-purple-900/70', 'dark:text-pink-100/80');
-        } else {
-          btn.classList.remove('bg-spa-plum', 'text-white', 'shadow-sm');
-          btn.classList.add('text-purple-900/70', 'dark:text-pink-100/80');
-        }
-      };
-
-      if (subtab === 'wardrobe') {
-        wardrobeView.classList.remove('hidden');
+      if (wardrobeView) wardrobeView.classList.remove('hidden');
+      if (hairmakeupView) {
         hairmakeupView.classList.add('hidden');
-        setActive(btnWardrobe, true);
-        setActive(btnHair, false);
-      } else {
-        hairmakeupView.classList.remove('hidden');
-        wardrobeView.classList.add('hidden');
-        setActive(btnHair, true);
-        setActive(btnWardrobe, false);
+        hairmakeupView.setAttribute('hidden', 'hidden');
+      }
+      if (subtab && subtab !== 'wardrobe') {
+        showToast('Hair & makeup now come with your full Glamour look — no separate tab needed ✨');
       }
     }
 
@@ -2537,37 +2525,52 @@
       btn.querySelector('span').innerText = 'Fiona is fluffing…';
       box.classList.add('hidden');
 
-      fetch('https://fiona-your-wingwoman.polsia.io/api/fiona/roost/reflect', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          journalEntry: text,
-          moods,
-          // Append-only personality guidelines for the live model (does not replace EQ rules).
-          systemPromptAppendix: fionaSystemPromptAppendix(),
-          fionaGuidelines: FIONA_CORE_GUIDELINES
-        })
-      })
-        .then(r => r.json().then(data => ({ ok: r.ok, data })))
-        .then(({ ok, data }) => {
-          if (!ok || !data.clarityRefocus) throw new Error('bad response');
-          showStructuredReflection(data);
-          showToast("Fiona finished your reflection ✨");
-        })
-        .catch(() => {
-          // Offline / API hiccup — still give the same 3-part shape locally
-          showStructuredReflection(fionaReflectStructured(text, moods));
-          showToast("Fiona reflected locally — still got you ✨");
-        })
-        .finally(() => {
-          btn.disabled = false;
-          btn.querySelector('span').innerText = 'Reflect with Fiona';
-        });
+      const reflectBody = {
+        journalEntry: text,
+        moods,
+        mode: 'reflect',
+        systemPromptAppendix: fionaSystemPromptAppendix(),
+        fionaGuidelines: FIONA_CORE_GUIDELINES
+      };
+
+      const endpoints = [
+        '/api/fiona/glamour/style',
+        'https://fiona-your-wingwoman.polsia.io/api/fiona/roost/reflect'
+      ];
+
+      (async () => {
+        let lastErr = null;
+        for (const url of endpoints) {
+          try {
+            const r = await fetch(url, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(reflectBody)
+            });
+            const data = await r.json().catch(() => ({}));
+            if (r.ok && data.clarityRefocus) {
+              showStructuredReflection(data);
+              showToast("Fiona finished your reflection ✨");
+              return;
+            }
+            lastErr = new Error(data.error || `HTTP ${r.status}`);
+          } catch (e) {
+            lastErr = e;
+          }
+        }
+        console.warn('[Journal Reflect] falling back locally', lastErr);
+        showStructuredReflection(fionaReflectStructured(text, moods));
+        showToast("Fiona reflected locally — still got you ✨");
+      })().finally(() => {
+        btn.disabled = false;
+        btn.querySelector('span').innerText = 'Reflect with Fiona';
+      });
     }
 
     function showStructuredReflection(data) {
       document.getElementById('reflect-clarity').innerText = data.clarityRefocus || '';
-      document.getElementById('reflect-anchor').innerText = data.confidenceAnchor || '';
+      const anchor = [data.confidenceAnchor, data.compliment].filter(Boolean).join(' ');
+      document.getElementById('reflect-anchor').innerText = anchor || '';
       document.getElementById('reflect-quip').innerText = data.wingwomanQuip || '';
       document.getElementById('fiona-reflection-box').classList.remove('hidden');
       window.lastFionaReflection = data;
@@ -2595,54 +2598,68 @@
       return selectedDiaryMoods.slice();
     }
 
-    /** Local 3-part fallback matching live Fiona product shape */
+    /** Local 3-part fallback matching live Fiona product shape — always grounded in her words + a compliment */
     function fionaReflectStructured(text, moods) {
       const sentiment = detectSentiment(text);
       const themes = detectThemes(text);
       const moodHint = (moods && moods[0]) || '';
-      const echo = snippetEcho(text, 60).replace(/[.!?]+$/, '');
+      const echo = snippetEcho(text, 110).replace(/[.!?]+$/, '');
+      const firstSentence = (text || '').trim().split(/(?<=[.!?])\s+/)[0] || echo;
+      const shortEcho = snippetEcho(firstSentence, 80).replace(/[.!?]+$/, '');
 
-      let clarity, anchor, quip;
+      let clarity, anchor, quip, compliment;
 
       if (moodHint === 'Proud of Myself' || sentiment === 'up' || themes.includes('confidence')) {
-        clarity = `You're standing in a moment of self-recognition — letting your strengths take center stage without a "but" or "maybe."`;
-        anchor = `Own this without shrinking. Name one specific choice today that reflects this version of you, and keep it in your pocket for heavier days.`;
+        clarity = `You're standing in a moment of self-recognition in "${shortEcho}" — letting your strengths take center stage without a "but" or "maybe."`;
+        compliment = `That honesty about what's working is a flex — most people skip past their wins, and you didn't.`;
+        anchor = `Own this without shrinking. Name one specific choice today that reflects this version of you, and keep it in your pocket for heavier days. ${compliment}`;
         quip = pick([
-          `Well, it's about time the internal memo went out! You're absolutely right — and honestly? It's a great look on you.`,
+          `Well, it's about time the internal memo went out on "${shortEcho}." You're absolutely right — and honestly? It's a great look on you.`,
           `The secret's out. I'd tell you to stay humble, but you're pulling off legendary way too well to stop now.`
         ]);
       } else if (moodHint === 'Drained' || themes.includes('exhaustion') || themes.includes('pain')) {
-        clarity = `Your body and battery are telling the truth about capacity. Pushing through isn't strength here — honesty is.`;
-        anchor = `You have the right to prioritize comfort without apology. One step: Do Not Disturb, nest up, and let rest count as care.`;
+        clarity = `When you write "${shortEcho}," your body and battery are telling the truth about capacity. Pushing through isn't strength here — honesty is.`;
+        compliment = `It takes real self-respect to name the drain instead of performing "fine." That awareness is a strength.`;
+        anchor = `You have the right to prioritize comfort without apology. One step: Do Not Disturb, nest up, and let rest count as care. ${compliment}`;
         quip = pick([
           `Real friends want the version of you that isn't in pain — not a forced RSVP. Go get cozy and let the guilt evaporate.`,
           `Low battery isn't lazy. Lie down like the queen you are and recharge. The world can wait.`
         ]);
       } else if (moodHint === 'Overwhelmed' || moodHint === 'Second-Guessing' || themes.includes('anxiety') || themes.includes('work')) {
-        clarity = `When things feel loud, your mind fills the silence with worst-case scripts — though delay and doubt are often logistics, not a verdict on you.`;
-        anchor = `You have agency to step away from the spiral. Set a short no-check window and give your nervous system a break.`;
+        clarity = `I hear the spiral in "${shortEcho}." When things feel loud, your mind fills silence with worst-case scripts — though delay and doubt are often logistics, not a verdict on you.`;
+        compliment = `The fact that you can name the story spinning in your head means you're already halfway out of it — that's sharp self-awareness.`;
+        anchor = `You have agency to step away from the spiral. Set a short no-check window and give your nervous system a break. ${compliment}`;
         quip = pick([
           `If silence is golden, that inbox is trying to be a billionaire. Let them be rich while you go be fabulous and unbothered.`,
-          `Spiral detected. Anxiety doesn't get the Wi-Fi password today — camera facts only, gorgeous.`
+          `Spiral detected around "${shortEcho}." Anxiety doesn't get the Wi-Fi password today — camera facts only, gorgeous.`
         ]);
       } else if (moodHint === 'People-Pleasing' || themes.includes('guilt') || themes.includes('boundary')) {
-        clarity = `It sounds like you're carrying other people's comfort as if it were your job description. It isn't.`;
-        anchor = `No is a complete sentence. Drop one obligation that was never yours and keep the kindness you'd give a best friend.`;
+        clarity = `In "${shortEcho}," it sounds like you're carrying other people's comfort as if it were your job description. It isn't.`;
+        compliment = `Wanting people to feel okay doesn't make you weak — it makes you kind. Kindness with a boundary is even stronger.`;
+        anchor = `No is a complete sentence. Drop one obligation that was never yours and keep the kindness you'd give a best friend. ${compliment}`;
         quip = pick([
           `You are a woman, not a bowl of warm queso. Stop plating yourself for everyone else's appetite.`,
           `Boundaries aren't rude — they're velvet-rope energy. Keep the fence; skip the apology essay.`
         ]);
       } else if (moodHint === 'Fired Up') {
-        clarity = `There's fire in what you wrote — momentum wanting somewhere useful to land.`;
-        anchor = `Aim that heat at one bold next move: a boundary, a send, or a celebration. Don't scatter it.`;
+        clarity = `There's fire in "${shortEcho}" — momentum wanting somewhere useful to land.`;
+        compliment = `That heat you're feeling is charisma with a purpose — don't dim it.`;
+        anchor = `Aim that heat at one bold next move: a boundary, a send, or a celebration. Don't scatter it. ${compliment}`;
         quip = `THERE she is. Sass is proof the fire's still lit — spend it like it's limited edition, because it is.`;
       } else if (moodHint === 'Imposter Syndrome') {
-        clarity = `Imposter thoughts love to edit your resume mid-sentence. The doubt is loud; the evidence of you showing up is louder.`;
-        anchor = `List two receipts of competence from this week — then read them like a contract you already signed.`;
+        clarity = `Imposter thoughts love to edit your resume mid-sentence — I hear that in "${shortEcho}." The doubt is loud; the evidence of you showing up is louder.`;
+        compliment = `People who are actually impostors never worry this carefully. Your care is a receipt of competence.`;
+        anchor = `List two receipts of competence from this week — then read them like a contract you already signed. ${compliment}`;
         quip = `You're not an impostor. You're a woman mid-upgrade. Act like the role already fits — because it does.`;
+      } else if (themes.includes('body_image') || /frump|outfit|wear|makeup|mirror|ugly|looks/i.test(text)) {
+        clarity = `When you say "${shortEcho}," this isn't vanity — it's you noticing a disconnect between how you feel and how you want to show up.`;
+        compliment = `Caring how you present yourself is self-respect, not shallow — and you deserve a look that matches your energy.`;
+        anchor = `Pick one upgrade today: a cleaner neckline, soft hair, or a color that loves your face. Then take yourself to the Glamour Suite and let Fiona finish the look. ${compliment}`;
+        quip = `Frumpy is a feeling, not a life sentence. We're not doing a makeover marathon — just one polished cuff at a time, darling.`;
       } else {
         clarity = `I hear you in "${echo}." You're naming what's real, and that alone shifts the room.`;
-        anchor = `You don't have to tidy this into a perfect lesson. Choose what you need: a cheer, a reframe, or quiet company — then take one kind next step.`;
+        compliment = `The way you put this into words already shows clarity most people skip — that counts.`;
+        anchor = `You don't have to tidy this into a perfect lesson. Choose what you need: a cheer, a reframe, or quiet company — then take one kind next step. ${compliment}`;
         quip = `I've got you either way. Soft landing, high standards, zero guilt. That's the wingwoman deal.`;
       }
 
@@ -2651,7 +2668,12 @@
         anchor = `${anchor} ${marathon}`;
       }
 
-      return { clarityRefocus: clarity, confidenceAnchor: anchor, wingwomanQuip: quip };
+      return {
+        clarityRefocus: clarity,
+        confidenceAnchor: anchor,
+        wingwomanQuip: quip,
+        compliment
+      };
     }
 
     function saveDiaryEntry() {
@@ -4625,18 +4647,104 @@
         ? `"${alignFionaTextToLocalWeekday(look.quote).replace(/^"|"$/g, '')}"`
         : '';
 
+      const complimentEl = document.getElementById('wardrobe-compliment');
+      if (complimentEl) {
+        if (look.compliment) {
+          complimentEl.classList.remove('hidden');
+          complimentEl.innerText = `💕 ${look.compliment}`;
+        } else {
+          complimentEl.classList.add('hidden');
+          complimentEl.innerText = '';
+        }
+      }
+
       renderWardrobeVisualLook(look, silhouette, harmony);
 
       const note = document.getElementById('wardrobe-photo-note');
       if (photoCount > 0) {
         note.classList.remove('hidden');
-        note.innerText = `📸 Spotted your look canvas (${photoCount} photo${photoCount === 1 ? '' : 's'}) — ${sourceLabel} Fiona pulled from what’s already in the frame, then tuned fit and color to your silhouette and undertones. Keep the pieces that feel like you; elevate with one polished layer.`;
+        note.innerText = `📸 Spotted your look canvas (${photoCount} photo${photoCount === 1 ? '' : 's'}) — ${sourceLabel} Fiona pulled outfit + hair + makeup from what’s already in the frame, then tuned fit and color to your silhouette and undertones.`;
       } else {
         note.classList.add('hidden');
         note.innerText = '';
       }
 
       document.getElementById('wardrobe-recommendation-box').classList.remove('hidden');
+      window.lastGlamourLook = {
+        look,
+        occasionLabel,
+        vibe,
+        silhouette,
+        harmony,
+        photoCount
+      };
+    }
+
+    function resetAiLookPanel(statusText) {
+      const panel = document.getElementById('wardrobe-ai-look-panel');
+      const img = document.getElementById('wardrobe-ai-look-img');
+      const status = document.getElementById('wardrobe-ai-look-status');
+      if (!panel || !img) return;
+      panel.classList.remove('hidden');
+      img.removeAttribute('src');
+      img.alt = 'Generating your Glamour look…';
+      if (status) status.innerText = statusText || 'Generating your look photo…';
+    }
+
+    function showAiLookPanel(dataUrl, statusText) {
+      const panel = document.getElementById('wardrobe-ai-look-panel');
+      const img = document.getElementById('wardrobe-ai-look-img');
+      const status = document.getElementById('wardrobe-ai-look-status');
+      if (!panel || !img || !dataUrl) return;
+      panel.classList.remove('hidden');
+      img.src = dataUrl;
+      img.alt = 'You in Fiona\'s recommended look';
+      if (status) status.innerText = statusText || 'AI look ready';
+    }
+
+    function hideAiLookPanel(optionalStatus) {
+      const panel = document.getElementById('wardrobe-ai-look-panel');
+      const status = document.getElementById('wardrobe-ai-look-status');
+      if (optionalStatus && panel && status) {
+        panel.classList.remove('hidden');
+        status.innerText = optionalStatus;
+        return;
+      }
+      if (panel) panel.classList.add('hidden');
+    }
+
+    async function generateGlamourLookPhoto(look, images, occasionLabel, vibe) {
+      if (!images || !images.length) {
+        hideAiLookPanel('Add a selfie to generate a photo of you in this look.');
+        return null;
+      }
+      resetAiLookPanel('Fiona is generating your look photo…');
+      try {
+        const res = await fetch(GLAMOUR_STYLE_API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            mode: 'look',
+            generateLook: true,
+            occasion: occasionLabel,
+            vibe,
+            look,
+            images: images.slice(0, 2)
+          })
+        });
+        const payload = await res.json().catch(() => ({}));
+        if (!res.ok || !payload.image || !payload.image.dataUrl) {
+          const hint = payload.hint || payload.error || 'Look photo unavailable';
+          hideAiLookPanel(hint);
+          return null;
+        }
+        showAiLookPanel(payload.image.dataUrl, payload.provider === 'openai' ? 'Generated look' : 'Generated look');
+        return payload.image.dataUrl;
+      } catch (err) {
+        console.error('[Glamour Look Photo]', err);
+        hideAiLookPanel('Look photo could not start — text recommendation is still ready.');
+        return null;
+      }
     }
 
     /** Offline-only emergency fallback — varied by occasion, vibe, energy, silhouette, harmony. */
@@ -4715,10 +4823,10 @@
       const occasionLabel = selectedOccasion;
       const btn = document.querySelector('button[onclick="generateWardrobeAdvice()"]');
       const previousLabel = btn ? btn.innerText : '';
-      if (btn) {
-        btn.disabled = true;
-        btn.innerText = 'Fiona is reading your photos…';
-      }
+        if (btn) {
+          btn.disabled = true;
+          btn.innerText = 'Fiona is building your full look…';
+        }
 
       try {
         const images = await collectGlamourApiImages(MAX_CANVAS_PHOTOS);
@@ -4790,6 +4898,12 @@
           payload.data.facePalette = sanitizeFacePalette(null, detectedHarmony);
         }
 
+        if (!payload.data.compliment) {
+          payload.data.compliment = inferFromPhotos
+            ? `Your coloring and presence already do half the styling — Fiona just finished the sentence.`
+            : `You asking for a full look is already a confidence move. Let's make it visible.`;
+        }
+
         applyWardrobeLookToUi(
           payload.data,
           occasionLabel,
@@ -4800,8 +4914,15 @@
           inferFromPhotos ? 'Live Fiona · photo-read figure & skin tone —' : 'Live Fiona —'
         );
         showToast(inferFromPhotos
-          ? `Fiona read your photos → ${detectedSilhouette} · ${detectedHarmony} ✨`
-          : 'Fiona tailored a live look ✨');
+          ? `Full Glamour look ready → ${detectedSilhouette} · ${detectedHarmony} ✨`
+          : 'Fiona tailored a full Glamour look ✨');
+
+        if (images.length) {
+          if (btn) btn.innerText = 'Generating your look photo…';
+          await generateGlamourLookPhoto(payload.data, images, occasionLabel, vibe);
+        } else {
+          hideAiLookPanel('Add a selfie above, then Style again to generate a photo of you in this look.');
+        }
       } catch (err) {
         console.error('[Glamour Style] wardrobe fallback', err && err.fionaMeta ? err.fionaMeta : err);
         const silhouette = (!isAutoSilhouette(selectedWardrobeSilhouette) && selectedWardrobeSilhouette)
@@ -4811,6 +4932,7 @@
           || lastDetectedHarmony
           || 'Warm & Golden';
         const offline = buildOfflineWardrobeLook(occasionLabel, vibe, silhouette, harmony);
+        offline.compliment = offline.compliment || 'Even offline, Fiona sees the woman who showed up asking for better — that counts.';
         applyWardrobeLookToUi(
           offline,
           occasionLabel,
@@ -4820,11 +4942,12 @@
           getCanvasImages('wardrobe').length,
           'Offline draft —'
         );
+        hideAiLookPanel('Live look photo needs the style API online.');
         showToast((err && err.fionaToast) || `Live styling unavailable (${err && err.message ? err.message : 'unknown error'}). Showing offline draft.`);
       } finally {
         if (btn) {
           btn.disabled = false;
-          btn.innerText = previousLabel || 'Style Me, Fiona ✨';
+          btn.innerText = previousLabel || 'Style My Full Look, Fiona ✨';
         }
       }
     }

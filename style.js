@@ -1,11 +1,13 @@
 /**
- * Fiona Glamour Suite — live Anthropic style analysis
+ * Fiona Glamour Suite — live Anthropic style analysis + journal reflect + look photo
  * ALSO handles Stripe Checkout when body includes { priceId }
  * and session verify on GET ?session_id=cs_...
  *
  * POST /api/fiona/glamour/style
  *   - { priceId } → Stripe Checkout (7-day trial)
- *   - style body → Anthropic wardrobe/palette
+ *   - { journalEntry } → Anthropic journal reflection
+ *   - { mode: "look" } → generate styled look photo of the user
+ *   - style body → Anthropic wardrobe/palette (full glam: outfit + hair + makeup)
  * GET /api/fiona/glamour/style?session_id=cs_... → verify checkout session
  */
 
@@ -16,8 +18,11 @@ Philosophy: It's a marathon, not a sprint. Motto: "It's a marathon, not a sprint
 Celebrate 1% micro-wins. Preserve EQ rules: count wins, unruffled feathers, zero-penalty rest days.
 
 CRITICAL STYLING RULES:
+- Deliver ONE complete Glamour Suite look: outfit + hair + makeup together. Never treat wardrobe and beauty as separate products.
 - Every recommendation MUST be distinct and customized to THIS user's uploaded photo(s) and selected filters (occasion, vibe, silhouette, color harmony / undertone, and morning energy when provided).
+- Always include at least one sincere, specific compliment about her presence, coloring, figure, energy, or taste — grounded in the photo or what she wrote (never generic "you're beautiful").
 - When morning energy is logged, let it drive the look: fumes → low-friction soft silhouettes and flats; conquer → structured tailoring and bold statements; on the move → polished athleisure and movement-friendly layers.
+- If she says she feels frumpy / stuck / "nothing to wear," start with empathy + a compliment, then prescribe a confidence-lifting full look (outfit + hair + makeup) she can actually put on today.
 - NEVER return a generic default like "Tailored wide-leg trousers in rich plum with a tucked silk cami" unless that literally matches what you see and the filters demand it.
 - Reference visible garments, colors, body proportions, lighting, or accessories from the photo when images are provided.
 - PHOTO ANALYSIS (when photos are attached): You MUST visually assess the woman's body silhouette/figure and skin-tone / undertone from the images. Prefer what you see over manual filter chips when filters say "Auto from photos" or when inferFromPhotos is true. Be kind, specific, and never body-shame.
@@ -34,6 +39,24 @@ CALENDAR RULES:
 - When the user message includes Today's weekday, treat that as ground truth for the woman's local calendar.
 - If a quote/note mentions a day of the week, it MUST be today's weekday — never invent a random Monday/Tuesday/etc.
 - Prefer timeless wording when a weekday is not needed.`;
+
+const FIONA_REFLECT_SYSTEM = `You are Fiona, a high-EQ wingwoman reflecting on a private journal entry.
+Warm, grounded, stylishly witty — never a generic corporate life coach and never a therapist lecture.
+
+GROUNDING RULES (NON-NEGOTIABLE):
+- Your reflection MUST be about THIS specific journal entry. Quote or closely paraphrase her words.
+- Do NOT give a canned pep talk that could apply to anyone. If she wrote about work, answer work. If she wrote about feeling frumpy, answer feeling frumpy.
+- Include at least one sincere, specific compliment tied to what she shared (her honesty, grit, taste, tenderness, courage, humor — something real in the text).
+- Keep EQ rules: count wins, unruffled feathers, zero-penalty rest days. Marathon mindset — 1% better, not extreme overhauls.
+- Return ONLY valid JSON. No markdown fences.
+
+JSON shape:
+{
+  "clarityRefocus": "2-4 sentences that name what is really going on in HER words",
+  "confidenceAnchor": "1-3 sentences with a concrete next step + one specific compliment",
+  "wingwomanQuip": "1 punchy Fiona line that still references her situation",
+  "compliment": "One stand-alone compliment sentence grounded in the entry"
+}`;
 
 function cors(res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -242,6 +265,283 @@ function alignTextToWeekday(text, weekday) {
   );
 }
 
+async function callAnthropicJson({ apiKey, system, userContent, maxTokens = 1200, temperature = 0.7 }) {
+  const modelCandidates = [
+    process.env.ANTHROPIC_MODEL,
+    'claude-sonnet-4-6',
+    'claude-sonnet-4-5',
+    'claude-sonnet-4-5-20250929'
+  ].filter(Boolean).filter((m, i, arr) => arr.indexOf(m) === i);
+
+  let anthropicRes = null;
+  let payload = {};
+  let usedModel = modelCandidates[0];
+
+  for (const model of modelCandidates) {
+    usedModel = model;
+    anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model,
+        max_tokens: maxTokens,
+        temperature,
+        system,
+        messages: [{ role: 'user', content: userContent }]
+      })
+    });
+    payload = await anthropicRes.json().catch(() => ({}));
+    if (anthropicRes.ok) break;
+    const errType = payload && payload.error && payload.error.type;
+    const errMsg = String((payload && payload.error && payload.error.message) || '');
+    const modelMissing =
+      anthropicRes.status === 404 ||
+      (/model/i.test(errMsg) && /not_found|not found|invalid/i.test(`${errMsg} ${errType}`));
+    if (!modelMissing) break;
+  }
+
+  if (!anthropicRes || !anthropicRes.ok) {
+    const err = new Error('Anthropic request failed');
+    err.status = (anthropicRes && anthropicRes.status) || 502;
+    err.detail = (payload && payload.error) || payload;
+    err.model = usedModel;
+    throw err;
+  }
+
+  const text = (payload.content || [])
+    .filter((block) => block.type === 'text')
+    .map((block) => block.text)
+    .join('\n');
+  return { data: extractJson(text), model: usedModel, raw: text };
+}
+
+async function handleJournalReflect(req, res, body) {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    res.statusCode = 503;
+    res.setHeader('Content-Type', 'application/json');
+    return res.end(JSON.stringify({
+      error: 'ANTHROPIC_API_KEY is not configured',
+      code: 'missing_api_key'
+    }));
+  }
+
+  const journalEntry = String(body.journalEntry || body.text || '').trim();
+  if (!journalEntry) {
+    res.statusCode = 400;
+    res.setHeader('Content-Type', 'application/json');
+    return res.end(JSON.stringify({ error: 'Missing journalEntry' }));
+  }
+
+  const moods = Array.isArray(body.moods) ? body.moods.filter(Boolean).slice(0, 3) : [];
+  const appendix = body.systemPromptAppendix ? String(body.systemPromptAppendix) : '';
+  const userText = `JOURNAL ENTRY (respond ONLY to this):
+"""
+${journalEntry.slice(0, 6000)}
+"""
+
+Selected moods: ${moods.length ? moods.join(', ') : '(none)'}
+
+${appendix ? `Extra Fiona guidelines:\n${appendix}\n` : ''}
+Write clarityRefocus, confidenceAnchor, wingwomanQuip, and compliment that are unmistakably about THIS entry. Quote her at least once.`;
+
+  try {
+    const { data, model } = await callAnthropicJson({
+      apiKey,
+      system: FIONA_REFLECT_SYSTEM,
+      userContent: userText,
+      maxTokens: 900,
+      temperature: 0.65
+    });
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'application/json');
+    return res.end(JSON.stringify({
+      ok: true,
+      model,
+      clarityRefocus: data.clarityRefocus || '',
+      confidenceAnchor: data.confidenceAnchor || '',
+      wingwomanQuip: data.wingwomanQuip || '',
+      compliment: data.compliment || ''
+    }));
+  } catch (err) {
+    console.error('[fiona/glamour/style] reflect failure', err);
+    res.statusCode = err.status || 502;
+    res.setHeader('Content-Type', 'application/json');
+    return res.end(JSON.stringify({
+      error: 'Journal reflection failed',
+      detail: err.detail || (err && err.message) || String(err)
+    }));
+  }
+}
+
+function buildLookImagePrompt(look, occasion, vibe) {
+  const pieces = Array.isArray(look && look.pieces)
+    ? look.pieces.map((p) => `${p.name} (${p.fabric || ''} ${p.colorLabel || p.hex || ''})`.trim()).join('; ')
+    : '';
+  const hair = look && look.hairMove
+    ? `${look.hairMove.title || ''}: ${look.hairMove.body || ''} ${(look.hairMove.cues || []).join(', ')}`
+    : '';
+  const face = look && look.facePalette
+    ? `Lips ${((look.facePalette.lip || [])[1]) || ''}, cheeks ${((look.facePalette.cheek || [])[1]) || ''}. ${look.facePalette.note || ''}`
+    : '';
+  return [
+    'Photorealistic full-body fashion portrait of the SAME woman from the reference selfie.',
+    'Keep her exact face, facial features, skin tone, age, body shape, and identity — do not invent a different person.',
+    'Transform only hair, makeup, and clothing into this complete Glamour Suite recommendation:',
+    `Look title: ${(look && look.title) || 'Curated look'}`,
+    `Occasion: ${occasion || 'everyday'}`,
+    vibe ? `Vibe: ${vibe}` : '',
+    look && look.desc ? `Description: ${look.desc}` : '',
+    pieces ? `Outfit pieces: ${pieces}` : '',
+    hair ? `Hair: ${hair}` : '',
+    face ? `Makeup: ${face}` : '',
+    'Natural flattering light, elegant spa-luxe aesthetic, tasteful, confident, non-sexual, no text overlays, no logos.'
+  ].filter(Boolean).join('\n');
+}
+
+async function generateLookWithOpenAI(images, prompt) {
+  const key = process.env.OPENAI_API_KEY;
+  if (!key) return null;
+  const first = images && images[0];
+  if (!first || !first.data) return null;
+  const raw = String(first.data).replace(/^data:[^;]+;base64,/, '');
+  const bytes = Buffer.from(raw, 'base64');
+  const mediaType = first.mediaType || first.media_type || 'image/jpeg';
+  const form = new FormData();
+  form.append('model', process.env.OPENAI_IMAGE_MODEL || 'gpt-image-1');
+  form.append('prompt', prompt.slice(0, 3200));
+  form.append('size', process.env.OPENAI_IMAGE_SIZE || '1024x1536');
+  form.append('quality', process.env.OPENAI_IMAGE_QUALITY || 'medium');
+  form.append('image', new Blob([bytes], { type: mediaType }), 'selfie.jpg');
+
+  const res = await fetch('https://api.openai.com/v1/images/edits', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${key}` },
+    body: form
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const err = new Error((json && json.error && json.error.message) || 'OpenAI image edit failed');
+    err.status = res.status;
+    err.detail = json;
+    throw err;
+  }
+  const b64 = json.data && json.data[0] && (json.data[0].b64_json || json.data[0].b64);
+  if (!b64) return null;
+  return { mimeType: 'image/png', base64: b64, provider: 'openai' };
+}
+
+async function generateLookWithGemini(images, prompt) {
+  const key = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+  if (!key) return null;
+  const first = images && images[0];
+  if (!first || !first.data) return null;
+  const raw = String(first.data).replace(/^data:[^;]+;base64,/, '');
+  const mediaType = first.mediaType || first.media_type || 'image/jpeg';
+  const model = process.env.GEMINI_IMAGE_MODEL || 'gemini-2.0-flash-preview-image-generation';
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{
+        role: 'user',
+        parts: [
+          { text: prompt },
+          { inline_data: { mime_type: mediaType, data: raw } }
+        ]
+      }],
+      generationConfig: { responseModalities: ['TEXT', 'IMAGE'] }
+    })
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const err = new Error((json && json.error && json.error.message) || 'Gemini image generation failed');
+    err.status = res.status;
+    err.detail = json;
+    throw err;
+  }
+  const parts = (((json.candidates || [])[0] || {}).content || {}).parts || [];
+  for (const part of parts) {
+    const inline = part.inlineData || part.inline_data;
+    if (inline && inline.data) {
+      return {
+        mimeType: inline.mimeType || inline.mime_type || 'image/png',
+        base64: inline.data,
+        provider: 'gemini'
+      };
+    }
+  }
+  return null;
+}
+
+async function handleLookPhoto(req, res, body) {
+  const images = Array.isArray(body.images) ? body.images.filter((img) => img && img.data).slice(0, 3) : [];
+  if (!images.length) {
+    res.statusCode = 400;
+    res.setHeader('Content-Type', 'application/json');
+    return res.end(JSON.stringify({
+      error: 'A selfie/photo is required to generate your look',
+      code: 'missing_photo'
+    }));
+  }
+
+  const look = body.look || {};
+  const prompt = buildLookImagePrompt(look, body.occasion, body.vibe);
+  const hasOpenAI = Boolean(process.env.OPENAI_API_KEY);
+  const hasGemini = Boolean(process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY);
+  if (!hasOpenAI && !hasGemini) {
+    res.statusCode = 503;
+    res.setHeader('Content-Type', 'application/json');
+    return res.end(JSON.stringify({
+      error: 'Look photo generation is not configured',
+      code: 'missing_image_api_key',
+      hint: 'Add OPENAI_API_KEY (preferred) or GEMINI_API_KEY in Vercel, then redeploy.'
+    }));
+  }
+
+  try {
+    let result = null;
+    let lastErr = null;
+    if (hasOpenAI) {
+      try { result = await generateLookWithOpenAI(images, prompt); } catch (e) { lastErr = e; }
+    }
+    if (!result && hasGemini) {
+      try { result = await generateLookWithGemini(images, prompt); } catch (e) { lastErr = e; }
+    }
+    if (!result) {
+      res.statusCode = (lastErr && lastErr.status) || 502;
+      res.setHeader('Content-Type', 'application/json');
+      return res.end(JSON.stringify({
+        error: 'Could not generate look photo',
+        detail: (lastErr && (lastErr.detail || lastErr.message)) || 'empty image response'
+      }));
+    }
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'application/json');
+    return res.end(JSON.stringify({
+      ok: true,
+      provider: result.provider,
+      image: {
+        mimeType: result.mimeType,
+        dataUrl: `data:${result.mimeType};base64,${result.base64}`
+      }
+    }));
+  } catch (err) {
+    console.error('[fiona/glamour/style] look photo failure', err);
+    res.statusCode = 500;
+    res.setHeader('Content-Type', 'application/json');
+    return res.end(JSON.stringify({
+      error: 'Look photo generation failed',
+      detail: err && err.message ? err.message : String(err)
+    }));
+  }
+}
+
 function buildUserContent(body) {
   const mode = body.mode === 'palette' ? 'palette' : 'wardrobe';
   const images = Array.isArray(body.images) ? body.images.slice(0, 10) : [];
@@ -316,7 +616,7 @@ Return JSON only:
   } else {
     content.push({
       type: 'text',
-      text: `Create a complete, distinct wardrobe + finishing look for THIS user.
+      text: `Create a complete Glamour Suite look for THIS user: outfit + hair + makeup in one recommendation (not separate products).
 
 Filters:
 - Today's weekday (her local calendar): ${localWeekday}
@@ -336,6 +636,8 @@ ${detectBlock}
 If morning energy is provided, weight the outfit toward that bias (fumes = soft/low-friction; conquer = structured/bold; move = polished athleisure).
 If photos are present, ground the look in her actual figure, coloring, and what she is wearing in frame.
 If no photos, still invent a fresh look from the filters — do not reuse a canned plum-cami-blazer default.
+If she feels frumpy or needs "what to wear" help, lead with empathy + a specific compliment, then the full look.
+Include field "compliment" with one sincere compliment grounded in her photo or vibe.
 If quote/note/desc mentions a weekday, it MUST say ${localWeekday} (today) — never invent a different day.
 
 Style the outfit for the DETECTED silhouette and DETECTED harmony when photos exist.
@@ -348,7 +650,8 @@ Return JSON only:
   "detectedUndertone": "Cool|Warm|Neutral|Deep Olive",
   "detectionNotes": "one kind sentence about figure + skin tone observed",
   "title": "Look title (unique)",
-  "desc": "2-4 sentences describing the full look, tailored to detected figure/skin tone and photo",
+  "desc": "2-4 sentences describing the full look (outfit + hair + makeup), tailored to detected figure/skin tone and photo",
+  "compliment": "One specific compliment about her",
   "quote": "One Fiona-voice line",
   "neckline": "short neckline note",
   "pieces": [
@@ -473,6 +776,8 @@ module.exports = async function handler(req, res) {
       route: '/api/fiona/glamour/style',
       hasAnthropicKey: Boolean(process.env.ANTHROPIC_API_KEY),
       hasStripeKey: Boolean(process.env.STRIPE_SECRET_KEY && /^sk_/.test(process.env.STRIPE_SECRET_KEY)),
+      hasOpenAIKey: Boolean(process.env.OPENAI_API_KEY),
+      hasGeminiKey: Boolean(process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY),
       weeklyPriceId: resolvePriceId(
         ['STRIPE_WEEKLY_PRICE_ID', 'NEXT_PUBLIC_STRIPE_WEEKLY_PRICE_ID', 'STRIPE_MONTHLY_PRICE_ID', 'NEXT_PUBLIC_STRIPE_MONTHLY_PRICE_ID'],
         'price_1UHfCx8MURYuyfuQfX02FkDg'
@@ -514,6 +819,16 @@ module.exports = async function handler(req, res) {
         detail: err && err.message ? err.message : String(err)
       }));
     }
+  }
+
+  // Journal reflection path
+  if (body && (body.journalEntry || body.mode === 'reflect')) {
+    return handleJournalReflect(req, res, body);
+  }
+
+  // AI look photo of the user in the recommended glam
+  if (body && (body.mode === 'look' || body.generateLook === true)) {
+    return handleLookPhoto(req, res, body);
   }
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
