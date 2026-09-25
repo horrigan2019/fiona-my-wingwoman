@@ -1,0 +1,9 @@
+Smoke test (JSDOM): single-look Style payload → Wardrobe A/B + Hair & Makeup A/B
+Result: SMOKE_OK
+- wCards: 2
+- bCards: 2
+- complimentVisible: true
+- scrolledTo: fiona-glamour-pickers
+- orderOk: photos → pickers → Generate → palette
+- pickersBanner: true
+- PWA cache: fiona-pwa-v11

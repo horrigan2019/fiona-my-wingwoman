@@ -1176,7 +1176,6 @@
                   </div>
                   <div id="wardrobe-moodboard-thumbs" class="hidden mt-3 flex gap-1.5 overflow-x-auto"></div>
                 </div>
-                <div id="wardrobe-palette-swatches" class="flex flex-wrap gap-2 justify-center lg:justify-start"></div>
               </aside>
 
               <!-- Fiona's Vision — AI virtual styling look -->
@@ -1206,9 +1205,12 @@
               </aside>
             </div>
 
-            <!-- Pickers sit HERE (below Canvas/Vision, above Generate) so first Style click can't hide them under sticky nav -->
-            <div id="fiona-glamour-pickers" class="space-y-4 rounded-2xl border-2 border-spa-plum/30 dark:border-pink-300/30 bg-white/90 dark:bg-spa-darkbg/60 p-4 sm:p-5 shadow-sm" style="scroll-margin-top: 7.5rem;">
-              <p class="text-[11px] font-bold uppercase tracking-[0.16em] text-spa-plum dark:text-pink-300 text-center sm:text-left">Your picks after Style — choose one of each</p>
+            <!-- MUST sit between photos and Generate — never above Canvas (sticky nav ate it) -->
+            <div id="fiona-glamour-pickers" class="space-y-4 rounded-2xl border-2 border-spa-plum dark:border-pink-300 bg-white dark:bg-spa-darkbg p-4 sm:p-5 shadow-md" style="scroll-margin-top: 6.5rem;" data-fiona-pickers="v11">
+              <div class="rounded-xl bg-spa-plum text-white px-3.5 py-3 text-center sm:text-left space-y-0.5">
+                <p class="text-[11px] font-bold uppercase tracking-[0.16em]">Your picks — one Style = four options</p>
+                <p class="text-[12px] font-medium text-pink-100/95">Choose Wardrobe A or B, then Hair &amp; Makeup A or B. Generate is next.</p>
+              </div>
 
               <section id="fiona-wardrobe-options-section" class="space-y-2">
                 <div class="flex flex-wrap items-baseline justify-between gap-2">
@@ -1231,7 +1233,7 @@
                 <p id="fiona-beauty-hint" class="text-[10px] text-gray-500 dark:text-gray-400 leading-snug">One Style click delivers both pairs. Face + body stay locked; hair may polish within your real length.</p>
               </section>
 
-              <div class="flex flex-wrap items-center justify-center gap-2 pt-1">
+              <div class="flex flex-wrap items-center justify-center gap-2 pt-1 border-t border-spa-plum/15 dark:border-purple-900/50">
                 <button type="button" id="fiona-vision-generate-btn" onclick="generateFionaVisionLook()" class="px-5 py-3 rounded-xl bg-spa-plum hover:bg-spa-plumdark text-white text-xs font-bold shadow-sm transition active:scale-95 disabled:opacity-60">
                   Generate My Look ✨
                 </button>
@@ -1245,6 +1247,9 @@
                   Share
                 </button>
               </div>
+
+              <!-- Palette AFTER picks + Generate so it never replaces the A/B dock on screen -->
+              <div id="wardrobe-palette-swatches" class="flex flex-wrap gap-3 justify-center pt-2 border-t border-spa-plum/15 dark:border-purple-900/50"></div>
             </div>
 
             <!-- Side-by-side compare strip -->
@@ -4547,7 +4552,7 @@
 
       if (swatchHost) {
         swatchHost.innerHTML = `
-          <p class="w-full text-[10px] font-bold uppercase tracking-[0.14em] text-spa-plum/70 dark:text-pink-300/70 mb-0.5">Curated color palette</p>
+          <p class="w-full text-[10px] font-bold uppercase tracking-[0.14em] text-spa-plum/70 dark:text-pink-300/70 mb-0.5 text-center">Curated color palette</p>
           ${palette.map((p) => `
             <div class="flex flex-col items-center gap-1">
               <span class="w-9 h-9 rounded-full border border-white shadow-sm ring-1 ring-spa-plum/15" style="background:${p.hex}" title="${p.label || ''}"></span>
@@ -4814,15 +4819,21 @@
       const silhouetteNote = WARDROBE_SILHOUETTE_NOTES[silhouette] || '';
       const harmonyNote = WARDROBE_HARMONY_NOTES[harmony] || '';
 
-      const dual = normalizeClientDualOptions(look, harmony);
+      // Always synthesize A/B client-side FIRST — never paint compliment/palette without pickers.
+      const dual = normalizeClientDualOptions(look || {}, harmony);
       const wardrobeOptions = dual.wardrobeOptions;
       const beautyOptions = dual.beautyOptions;
+      if (look && typeof look === 'object') {
+        look.wardrobeOptions = wardrobeOptions;
+        look.beautyOptions = beautyOptions;
+      }
 
+      ensureGlamourPickersMounted();
       document.getElementById('wardrobe-recommendation-box').classList.remove('hidden');
 
       const complimentEl = document.getElementById('wardrobe-compliment');
       if (complimentEl) {
-        if (look.compliment) {
+        if (look && look.compliment) {
           complimentEl.classList.remove('hidden');
           complimentEl.innerText = `💕 ${look.compliment}`;
         } else {
@@ -4832,12 +4843,14 @@
       }
 
       const note = document.getElementById('wardrobe-photo-note');
-      if (photoCount > 0) {
-        note.classList.remove('hidden');
-        note.innerText = `📸 Spotted your look canvas (${photoCount} photo${photoCount === 1 ? '' : 's'}) — ${sourceLabel} Fiona built two wardrobe picks and two hair & makeup picks from what’s in the frame.`;
-      } else {
-        note.classList.add('hidden');
-        note.innerText = '';
+      if (note) {
+        if (photoCount > 0) {
+          note.classList.remove('hidden');
+          note.innerText = `📸 Spotted your look canvas (${photoCount} photo${photoCount === 1 ? '' : 's'}) — ${sourceLabel} Fiona built two wardrobe picks and two hair & makeup picks from what’s in the frame.`;
+        } else {
+          note.classList.add('hidden');
+          note.innerText = '';
+        }
       }
 
       fionaSelectedWardrobeId = 'A';
@@ -4853,8 +4866,8 @@
         photoCount,
         silhouetteNote,
         harmonyNote,
-        quote: look.quote || '',
-        compliment: look.compliment || '',
+        quote: (look && look.quote) || '',
+        compliment: (look && look.compliment) || '',
         suggestedHairStyleId: (beautyOptions[0] && beautyOptions[0].hairStyleId) || 'keep-mine',
         cacheKey: null
       };
@@ -4864,6 +4877,8 @@
       // If DOM still empty (stale HTML / escaped render miss), force offline-quality cards.
       ensureGlamourPickersVisible();
       applySelectedGlamourPicksToUi({ refreshVision: true });
+      // Guard: compliment/palette must never appear without 2+2 option cards.
+      ensureGlamourPickersVisible();
       revealGlamourPickersIntoView();
     }
 
@@ -4876,44 +4891,113 @@
         .replace(/'/g, '&#39;');
     }
 
+    /** If an old cached HTML shell is missing the dock, inject it after Canvas/Vision. */
+    function ensureGlamourPickersMounted() {
+      let pickers = document.getElementById('fiona-glamour-pickers');
+      if (pickers && document.getElementById('fiona-wardrobe-options') && document.getElementById('fiona-beauty-options')) {
+        return pickers;
+      }
+      const box = document.getElementById('wardrobe-recommendation-box');
+      if (!box) return null;
+      const visionCard = document.getElementById('fiona-vision-card');
+      const anchorParent = visionCard && visionCard.parentElement;
+      const dock = document.createElement('div');
+      dock.id = 'fiona-glamour-pickers';
+      dock.setAttribute('data-fiona-pickers', 'v11-injected');
+      dock.className = 'space-y-4 rounded-2xl border-2 border-spa-plum dark:border-pink-300 bg-white dark:bg-spa-darkbg p-4 sm:p-5 shadow-md';
+      dock.style.scrollMarginTop = '6.5rem';
+      dock.innerHTML = `
+        <div class="rounded-xl bg-spa-plum text-white px-3.5 py-3 text-center sm:text-left space-y-0.5">
+          <p class="text-[11px] font-bold uppercase tracking-[0.16em]">Your picks — one Style = four options</p>
+          <p class="text-[12px] font-medium text-pink-100/95">Choose Wardrobe A or B, then Hair &amp; Makeup A or B. Generate is next.</p>
+        </div>
+        <section id="fiona-wardrobe-options-section" class="space-y-2">
+          <div class="flex flex-wrap items-baseline justify-between gap-2">
+            <p class="text-[10px] font-bold uppercase tracking-[0.14em] text-spa-plum dark:text-pink-300">Wardrobe — Option A / B</p>
+            <p id="fiona-wardrobe-pick-status" class="text-[10px] font-semibold text-spa-plum/70 dark:text-pink-300/70">Pick one</p>
+          </div>
+          <div id="fiona-wardrobe-options" class="grid grid-cols-1 sm:grid-cols-2 gap-3 min-h-[5.5rem]" role="radiogroup" aria-label="Wardrobe options"></div>
+        </section>
+        <section id="fiona-beauty-options-section" class="space-y-2">
+          <div class="flex flex-wrap items-baseline justify-between gap-2">
+            <p class="text-[10px] font-bold uppercase tracking-[0.14em] text-spa-plum dark:text-pink-300">Hair &amp; Makeup — Option A / B</p>
+            <p id="fiona-beauty-pick-status" class="text-[10px] font-semibold text-spa-plum/70 dark:text-pink-300/70">Pick one</p>
+          </div>
+          <div id="fiona-beauty-options" class="grid grid-cols-1 sm:grid-cols-2 gap-3 min-h-[5.5rem]" role="radiogroup" aria-label="Hair and makeup options"></div>
+          <p id="fiona-beauty-hint" class="text-[10px] text-gray-500 dark:text-gray-400 leading-snug">One Style click delivers both pairs.</p>
+        </section>
+        <div class="flex flex-wrap items-center justify-center gap-2 pt-1 border-t border-spa-plum/15">
+          <button type="button" id="fiona-vision-generate-btn" onclick="generateFionaVisionLook()" class="px-5 py-3 rounded-xl bg-spa-plum hover:bg-spa-plumdark text-white text-xs font-bold shadow-sm transition active:scale-95 disabled:opacity-60">Generate My Look ✨</button>
+        </div>
+        <div id="wardrobe-palette-swatches" class="flex flex-wrap gap-3 justify-center pt-2 border-t border-spa-plum/15"></div>
+      `;
+      if (pickers && pickers.parentNode) {
+        pickers.parentNode.replaceChild(dock, pickers);
+      } else if (anchorParent && anchorParent.parentNode) {
+        anchorParent.parentNode.insertBefore(dock, anchorParent.nextSibling);
+      } else {
+        box.appendChild(dock);
+      }
+      // Relocate Generate button from legacy under-Vision placement if it still exists elsewhere.
+      const legacyGen = box.querySelector('#fiona-vision-card #fiona-vision-generate-btn, aside #fiona-vision-generate-btn');
+      if (legacyGen && !dock.contains(legacyGen)) {
+        legacyGen.classList.add('hidden');
+      }
+      return dock;
+    }
+
     function revealGlamourPickersIntoView() {
-      try {
-        const pickers = document.getElementById('fiona-glamour-pickers');
-        if (!pickers) return;
-        pickers.classList.remove('ring-2', 'ring-spa-plum/50');
-        // Force reflow so the highlight animation restarts each Style click.
-        void pickers.offsetWidth;
-        pickers.classList.add('ring-2', 'ring-spa-plum/50');
-        if (typeof pickers.scrollIntoView === 'function') {
-          pickers.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-        setTimeout(() => pickers.classList.remove('ring-2', 'ring-spa-plum/50'), 1600);
-      } catch (_) {}
+      const run = () => {
+        try {
+          ensureGlamourPickersMounted();
+          const pickers = document.getElementById('fiona-glamour-pickers');
+          if (!pickers) return;
+          pickers.classList.remove('hidden');
+          pickers.classList.remove('ring-4', 'ring-spa-plum/60');
+          void pickers.offsetWidth;
+          pickers.classList.add('ring-4', 'ring-spa-plum/60');
+          if (typeof pickers.scrollIntoView === 'function') {
+            pickers.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+          setTimeout(() => pickers.classList.remove('ring-4', 'ring-spa-plum/60'), 2200);
+        } catch (_) {}
+      };
+      run();
+      requestAnimationFrame(run);
+      setTimeout(run, 120);
+      setTimeout(run, 450);
+      setTimeout(run, 900);
     }
 
     function ensureGlamourPickersVisible() {
+      ensureGlamourPickersMounted();
       const wHost = document.getElementById('fiona-wardrobe-options');
       const bHost = document.getElementById('fiona-beauty-options');
       const meta = window.lastGlamourLook;
       if (!meta) return;
+      // Always re-normalize so a single API look becomes Option A + B immediately.
+      const dual = normalizeClientDualOptions({
+        ...(meta.look || {}),
+        wardrobeOptions: meta.wardrobeOptions,
+        beautyOptions: meta.beautyOptions,
+        title: (meta.look && meta.look.title) || (meta.wardrobeOptions && meta.wardrobeOptions[0] && meta.wardrobeOptions[0].title) || 'Curated look',
+        desc: (meta.look && meta.look.desc) || '',
+        pieces: (meta.look && meta.look.pieces) || (meta.wardrobeOptions && meta.wardrobeOptions[0] && meta.wardrobeOptions[0].pieces) || [],
+        palette: (meta.look && meta.look.palette) || (meta.wardrobeOptions && meta.wardrobeOptions[0] && meta.wardrobeOptions[0].palette) || [],
+        facePalette: (meta.look && meta.look.facePalette) || (meta.beautyOptions && meta.beautyOptions[0] && meta.beautyOptions[0].facePalette) || null,
+        hairMove: (meta.look && meta.look.hairMove) || (meta.beautyOptions && meta.beautyOptions[0] && meta.beautyOptions[0].hairMove) || null,
+        suggestedHairStyleId: meta.suggestedHairStyleId
+      }, meta.harmony);
+      meta.wardrobeOptions = dual.wardrobeOptions;
+      meta.beautyOptions = dual.beautyOptions;
+
       const wCount = wHost ? wHost.querySelectorAll('[data-wardrobe-option]').length : 0;
       const bCount = bHost ? bHost.querySelectorAll('[data-beauty-option]').length : 0;
-      if (wCount < 2 || bCount < 2) {
-        console.warn('[Glamour] pickers missing after render — rebuilding', { wCount, bCount });
-        const dual = normalizeClientDualOptions({
-          ...(meta.look || {}),
-          wardrobeOptions: meta.wardrobeOptions,
-          beautyOptions: meta.beautyOptions,
-          title: (meta.look && meta.look.title) || 'Curated look',
-          pieces: (meta.look && meta.look.pieces) || [],
-          facePalette: (meta.look && meta.look.facePalette) || null,
-          hairMove: (meta.look && meta.look.hairMove) || null
-        }, meta.harmony);
-        meta.wardrobeOptions = dual.wardrobeOptions;
-        meta.beautyOptions = dual.beautyOptions;
-        renderFionaWardrobeOptions();
-        renderFionaBeautyOptions();
+      if (wCount < 2 || bCount < 2 || (meta.wardrobeOptions || []).length < 2 || (meta.beautyOptions || []).length < 2) {
+        console.warn('[Glamour] pickers missing after render — rebuilding', { wCount, bCount, wOpts: (meta.wardrobeOptions || []).length, bOpts: (meta.beautyOptions || []).length });
       }
+      renderFionaWardrobeOptions();
+      renderFionaBeautyOptions();
       const wStatus = document.getElementById('fiona-wardrobe-pick-status');
       const bStatus = document.getElementById('fiona-beauty-pick-status');
       if (wStatus) wStatus.textContent = `Selected ${fionaSelectedWardrobeId}`;
@@ -4928,7 +5012,7 @@
       { id: 'subtle-volume', label: 'Subtle volume', short: 'Lifted crown, soft body' },
       { id: 'tousled-texture', label: 'Tousled texture', short: 'Lived-in piecey finish' }
     ];
-    const FIONA_VISION_CACHE_PREFIX = 'fiona_vision_look_v8:';
+    const FIONA_VISION_CACHE_PREFIX = 'fiona_vision_look_v9:';
     let fionaVisionSideBySide = false;
     let fionaVisionGenerating = false;
     let fionaSelectedWardrobeId = 'A';
@@ -5732,6 +5816,7 @@
 
       // Reveal results shell immediately so Debra sees the picker dock on the FIRST click.
       try {
+        ensureGlamourPickersMounted();
         const box = document.getElementById('wardrobe-recommendation-box');
         if (box) box.classList.remove('hidden');
         const wHost = document.getElementById('fiona-wardrobe-options');
@@ -6681,7 +6766,24 @@
 
       // Progressive Web App — register service worker for Add to Home Screen
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js').catch((err) => {
+        navigator.serviceWorker.register('/sw.js').then((reg) => {
+          try {
+            if (reg && typeof reg.update === 'function') reg.update();
+          } catch (_) {}
+          if (reg && reg.waiting) {
+            try { reg.waiting.postMessage({ type: 'SKIP_WAITING' }); } catch (_) {}
+          }
+          reg.addEventListener('updatefound', () => {
+            const worker = reg.installing;
+            if (!worker) return;
+            worker.addEventListener('statechange', () => {
+              if (worker.state === 'installed' && navigator.serviceWorker.controller) {
+                // New SW ready — claim on next load via skipWaiting in sw.js install.
+                console.info('[Fiona PWA] Updated shell available (v11 pickers harden)');
+              }
+            });
+          });
+        }).catch((err) => {
           console.warn('[Fiona PWA] service worker registration failed', err);
         });
       }
