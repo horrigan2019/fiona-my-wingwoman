@@ -25,8 +25,9 @@ CRITICAL STYLING RULES:
 - When morning energy is logged, let it drive BOTH wardrobe options: fumes → easy elevated polish she can throw on fast (wrap that cinches, soft V, flats OK) — still flattering, never frumpy; conquer → sharp figure-flattering tailoring and bold statements (not boxy corporate armor); on the move → polished athleisure and movement-friendly layers that still show shape.
 - If she says she feels frumpy / stuck / "nothing to wear," start with empathy + a compliment, then prescribe confidence-lifting wardrobe + beauty options she can actually put on today — glamorous and hot-on-her, not a cover-up.
 - NEVER return a generic default like "Tailored wide-leg trousers in rich plum with a tucked silk cami" unless that literally matches what you see and the filters demand it.
-- Reference visible garments, colors, body proportions, lighting, or accessories from the photo when images are provided. When closet or wardrobe photos are mixed in with a selfie, prefer pieces she already owns and restyle them flatteringly.
+- Reference visible garments, colors, body proportions, lighting, or accessories from the photo when images are provided. When closet or wardrobe photos are mixed in with a selfie, prefer pieces she already owns and restyle them flatteringly. The IDENTITY photo is always the person/selfie/full-body shot — never treat a closet shelf, hanger rack, or clothing pile as the woman to dress.
 - PHOTO ANALYSIS (when photos are attached): You MUST visually assess the woman's body silhouette/figure and skin-tone / undertone from the images. Prefer what you see over manual filter chips when filters say "Auto from photos" or when inferFromPhotos is true. Be kind, specific, and never body-shame.
+- SWIMWEAR / BIKINI / BEACHWEAR ON CANVAS: If the identity photo shows her in a bikini, swimsuit, or similar, celebrate that body and energy. Offer flattering, occasion-aware, hot-on-her options (elevated day-to-night slip or cut-out knit, tailored shorts + silk cami, linen set, wrap that cinches, soft V) — NEVER default to a matronly black midi wrap dress + cardigan/shawl "armor," heavy blazer stacks, or formal boardroom looks unless the occasion filter explicitly demands black-tie / corporate.
 - Vary titles, fabrics, cues, and beauty notes across requests — creativity is required. Option A and Option B must clearly diverge (different silhouette strategy, fabrics, or color story for wardrobe; different hair finish + lip/cheek story for beauty).
 - Return ONLY valid JSON matching the schema in the user message. No markdown fences.
 
@@ -703,12 +704,15 @@ function buildUserContent(body) {
 
   const detectBlock = images.length
     ? `PHOTO DETECTION REQUIRED (${images.length} photo(s)):
-- Study face, neck, and visible skin for undertone + overall skin-tone harmony.
+- PHOTO ROLES: Images may include an IDENTITY person/selfie/full-body shot AND closet/wardrobe inventory shots. Dress the WOMAN in the identity photo. Closet shelves/hangers/piles are wardrobe inventory ONLY — never treat a closet-only image as her body or face.
+- Image role hints (when provided on payloads): ${images.map((img, i) => `#${i + 1}=${img.role || 'reference'}`).join(', ') || 'none'} — prefer role=identity for figure/face; use role=closet only for owned pieces.
+- Study face, neck, and visible skin for undertone + overall skin-tone harmony (from the identity/person photo).
 - Study proportions, shoulder-to-hip balance, height cues, and how clothes hang for body silhouette/figure.
 - Choose detectedSilhouette from ONLY: "Hourglass / Defined", "Petite", "Curvy / Soft Silhouette", "Tall / Long Lines", "Athletic / Straight".
 - Choose detectedHarmony from ONLY: "Warm & Golden", "Cool & Rosy", "Deep & Rich", "Olive / Neutral".
 - Choose detectedUndertone from ONLY: "Cool", "Warm", "Neutral", "Deep Olive".
 - If manual filters are NOT "Auto from photos", treat them as soft overrides; if they ARE auto (or blank), trust the photos.
+- If she is in swimwear/bikini/beachwear in the identity photo, note that energy and do NOT prescribe matronly formal black midi + cardigan armor unless occasion truly demands it.
 - Write a short detectionNotes sentence explaining what you saw (kind, factual, never shaming).`
     : `No photos attached — use the provided silhouette/harmony/undertone filters (if Auto, pick sensible defaults).`;
 
@@ -769,7 +773,8 @@ Filters:
 ${detectBlock}
 
 If morning energy is provided, weight ease vs polish on BOTH wardrobe options — but ALWAYS stay flattering (fumes = easy elevated that still cinches/defines; conquer = sharp figure-flattering, not boxy armor; move = polished athleisure with shape).
-If photos are present, ground both wardrobe options in her actual figure, coloring, and what she is wearing in frame. If multiple photos include closet/wardrobe shots, pull from pieces she owns when possible and restyle them to flatter.
+If photos are present, ground both wardrobe options in her actual figure, coloring, and what she is wearing in frame. If multiple photos include closet/wardrobe shots, pull from pieces she owns when possible and restyle them to flatter — but the identity selfie/full-body person photo is who you are dressing (never the closet shelf).
+If the identity photo shows swimwear/bikini/beachwear, celebrate that body: prescribe flattering, occasion-aware, hot-on-her options that match vibe/occasion — NOT a default matronly black midi wrap + cardigan/shawl, and NOT boardroom blazer armor unless occasion is explicitly corporate/black-tie.
 Hair advice in EVERY beauty option MUST work with her CURRENT hair length and cut visible in the photo. Short or cropped hair stays short — recommend texture, product, part, or soft polish for HER cut. Never invent long hair, extensions, mid-length waves, or length-requiring buns/updos unless she explicitly asked for a hair change.
 For each beauty option set hairStyleId to ONE Vision-safe polish id (still her length/color family): "keep-mine" | "soft-waves" | "sleek-side-part" | "polished-bob" | "subtle-volume" | "tousled-texture". The two beauty options MUST use different hairStyleId values when possible (e.g. one keep-mine / soft polish, one more intentional restyle). Prefer flattering alternatives when her current finish looks flat/frumpy.
 If no photos, still invent fresh options from the filters — do not reuse a canned plum-cami-blazer or navy-wrap-plus-charcoal-blazer default.
@@ -782,9 +787,9 @@ SILHOUETTE FIT GUIDE:
 - Curvy / Soft Silhouette: celebrate curves — wrap that cinches, soft V/wrap neckline, A-line skim, intentional waist, vertical lines. Ban tents, heavy blazer armor, matronly dark columns.
 - Hourglass / Defined: keep waist the star — tuck, soft belt, or wrap; structure at shoulder without boxing her in.
 - Petite: raise visual waist, crop cleanly, scale pieces so she looks elongated — still polished, not childish.
-- Tall / Long Lines: unbroken verticals, high-rise, intentional midi — never empty or drowning in fabric.
+- Tall / Long Lines: unbroken verticals, high-rise, length that flatters — intentional midi only when occasion warrants; for casual / selfie / swimwear energy prefer hot-on-her proportions (not matronly column dresses).
 - Athletic / Straight: add soft shape with wrap, peplum, or nipped layer — feminine without bulk.
-Match formality to occasion/vibe. Casual / selfie / everyday ≠ boardroom blazer stack.
+Match formality to occasion/vibe. Casual / selfie / swimwear / everyday ≠ boardroom blazer stack or funeral-formal black midi + cardigan.
 facePalette.lip MUST be a wearable lipstick (rose/berry/mauve/nude/coral/plum/red) — NEVER green, sage, or olive lipstick. Clothing palette may include olive/sage for garments only.
 
 Wardrobe Option A and Option B must be CLEARLY different (e.g. dress vs separates, or different color stories / necklines) while both flattering. Beauty Option A and Option B must be CLEARLY different (different hair finish + lip/cheek story).

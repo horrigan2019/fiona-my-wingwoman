@@ -1,0 +1,19 @@
+Prefer person over closet — smoke notes
+=====================================
+Root cause: moodboard hero + Vision selfie defaulted to images[length-1] (latest upload).
+Uploading bikini then closet made the closet the Canvas hero and Vision edit input, while Style still saw the person (legs compliment) via multi-image analysis.
+
+Fixes verified locally:
+1. Preference helper: [person, closet] and [closet, person] both resolve to person.
+2. Closet-only gallery still resolves to closet.
+3. Unknown preferred over closet when mixed.
+4. Style prompts: swimwear/bikini → no matronly black midi+cardigan default; photo roles identity vs closet.
+5. PWA cache bumped fiona-pwa-v13; Vision cache fiona_vision_look_v11; pickers data attr v12.
+
+Debra retest:
+1. Hard refresh Glamour (or reinstall PWA) so v13 SW loads.
+2. Clear canvas, upload bikini person photo, then closet shelf.
+3. Expect Your Canvas hero = bikini (not closet). Thumb ring on bikini.
+4. Tap closet thumb → hero switches; tap bikini thumb → hero back to bikini.
+5. Style My Full Look → Wardrobe A/B + Beauty A/B still appear; recommendations not matronly formal by default for swimwear canvas.
+6. Generate My Look → Vision edits the bikini person identity photo (not closet).

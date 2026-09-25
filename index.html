@@ -1206,7 +1206,7 @@
             </div>
 
             <!-- MUST sit between photos and Generate — never above Canvas (sticky nav ate it) -->
-            <div id="fiona-glamour-pickers" class="space-y-4 rounded-2xl border-2 border-spa-plum dark:border-pink-300 bg-white dark:bg-spa-darkbg p-4 sm:p-5 shadow-md" style="scroll-margin-top: 6.5rem;" data-fiona-pickers="v11">
+            <div id="fiona-glamour-pickers" class="space-y-4 rounded-2xl border-2 border-spa-plum dark:border-pink-300 bg-white dark:bg-spa-darkbg p-4 sm:p-5 shadow-md" style="scroll-margin-top: 6.5rem;" data-fiona-pickers="v12">
               <div class="rounded-xl bg-spa-plum text-white px-3.5 py-3 text-center sm:text-left space-y-0.5">
                 <p class="text-[11px] font-bold uppercase tracking-[0.16em]">Your picks — one Style = four options</p>
                 <p class="text-[12px] font-medium text-pink-100/95">Choose Wardrobe A or B, then Hair &amp; Makeup A or B. Generate is next.</p>
@@ -3438,6 +3438,10 @@
     let preferredCameraFacing = 'user';
     let glamourPhotosSaved = false;
     let glamourPersistTimer = null;
+    /** Moodboard hero URL — survives Style re-renders; thumb click sets this. */
+    let moodboardHeroUrl = null;
+    /** True when Debra explicitly picked a thumb (do not auto-steal hero until new person upload). */
+    let moodboardHeroManual = false;
     const GLAMOUR_PHOTO_DB = 'fiona-glamour-canvas-v1';
     const GLAMOUR_PHOTO_STORE = 'photos';
 
@@ -3465,6 +3469,213 @@
     function getCanvasImages(_target) {
       // Wardrobe and glam share one gallery — target kept for call-site compatibility.
       return sharedGlamourImages;
+    }
+
+    function isLikelySkinTone(r, g, b) {
+      // YCbCr skin gate — rejects coral piles / beige fleece that fool naive RGB checks.
+      const y = 0.299 * r + 0.587 * g + 0.114 * b;
+      const cb = 128 - 0.168736 * r - 0.331264 * g + 0.5 * b;
+      const cr = 128 + 0.5 * r - 0.418688 * g - 0.081312 * b;
+      if (!(cb >= 77 && cb <= 127 && cr >= 133 && cr <= 173)) return false;
+      if (y < 40 || y > 230) return false;
+      const sat = Math.max(r, g, b) - Math.min(r, g, b);
+      if (sat > 95 && r > 170 && g < 120) return false; // coral / neon fabric
+      if (Math.abs(r - g) < 18 && Math.abs(g - b) < 25 && y > 140) return false; // beige fleece
+      return true;
+    }
+
+    function isLikelyWoodShelf(r, g, b) {
+      return r > 90 && r < 210 && g > 60 && g < 170 && b > 30 && b < 130
+        && r > g && g >= b && (r - b) > 25 && (r - g) < 55;
+    }
+
+    function guessKindFromName(name) {
+      const n = String(name || '').toLowerCase();
+      if (/closet|wardrobe|shelf|hanger|rack|drawer|clothes|garment.?pile|hanging/.test(n)) return 'closet';
+      if (/selfie|portrait|person|face|body|bikini|swim|mirror|fit.?check|selfie-capture|camera-capture/.test(n)) {
+        return 'person';
+      }
+      return null;
+    }
+
+    function analyzeImagePersonVsCloset(url) {
+      return new Promise((resolve) => {
+        if (!url) {
+          resolve('unknown');
+          return;
+        }
+        const image = new Image();
+        image.onload = () => {
+          try {
+            const size = 96;
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            if (!ctx) {
+              resolve('unknown');
+              return;
+            }
+            ctx.drawImage(image, 0, 0, size, size);
+            const data = ctx.getImageData(0, 0, size, size).data;
+            let skin = 0;
+            let samples = 0;
+            let centerSkin = 0;
+            let centerSamples = 0;
+            let wood = 0;
+            const buckets = new Set();
+            const colSkin = new Array(size).fill(0);
+            for (let y = 0; y < size; y += 1) {
+              for (let x = 0; x < size; x += 1) {
+                const i = (y * size + x) * 4;
+                const r = data[i];
+                const g = data[i + 1];
+                const b = data[i + 2];
+                samples += 1;
+                if (isLikelySkinTone(r, g, b)) {
+                  skin += 1;
+                  colSkin[x] += 1;
+                }
+                if (isLikelyWoodShelf(r, g, b)) wood += 1;
+                buckets.add(`${r >> 5},${g >> 5},${b >> 5}`);
+                // Center band — full-body / selfie subjects are usually centered.
+                if (x >= 28 && x <= 68 && y >= 8 && y <= 88) {
+                  centerSamples += 1;
+                  if (isLikelySkinTone(r, g, b)) centerSkin += 1;
+                }
+              }
+            }
+            const skinRatio = samples ? skin / samples : 0;
+            const centerSkinRatio = centerSamples ? centerSkin / centerSamples : 0;
+            const woodRatio = samples ? wood / samples : 0;
+            const diversity = buckets.size;
+            let midSkin = 0;
+            for (let x = 30; x < 66; x += 1) midSkin += colSkin[x];
+            const mid = skin ? midSkin / skin : 0;
+            // Person: skin concentrated in a central vertical band (not fabric spread across shelves).
+            if (mid >= 0.48 && (centerSkinRatio >= 0.035 || skinRatio >= 0.025)) {
+              resolve('person');
+            } else if (mid < 0.42 && (diversity >= 45 || woodRatio >= 0.035 || skinRatio >= 0.05)) {
+              resolve('closet');
+            } else if (skinRatio < 0.018 && diversity >= 30) {
+              resolve('closet');
+            } else if (skinRatio < 0.012) {
+              resolve('closet');
+            } else {
+              resolve('unknown');
+            }
+          } catch (_) {
+            resolve('unknown');
+          }
+        };
+        image.onerror = () => resolve('unknown');
+        image.src = url;
+      });
+    }
+
+    async function classifyCanvasImageKind(img) {
+      if (!img) return 'unknown';
+      if (img.kind === 'person' || img.kind === 'closet') return img.kind;
+      const fromName = guessKindFromName(img.name);
+      if (fromName) {
+        img.kind = fromName;
+        return fromName;
+      }
+      try {
+        const kind = await analyzeImagePersonVsCloset(img.url || img.dataUrl);
+        img.kind = kind;
+        return kind;
+      } catch (_) {
+        img.kind = 'unknown';
+        return 'unknown';
+      }
+    }
+
+    async function ensureCanvasImagesClassified() {
+      const images = getCanvasImages('wardrobe');
+      await Promise.all(images.map((img) => classifyCanvasImageKind(img)));
+      return images;
+    }
+
+    function pickPreferredCanvasPersonPhoto(images) {
+      const list = Array.isArray(images) ? images : getCanvasImages('wardrobe');
+      if (!list.length) return null;
+      // Latest explicit person/selfie/full-body photo wins over any closet shelf.
+      for (let i = list.length - 1; i >= 0; i -= 1) {
+        if (list[i] && list[i].kind === 'person') return list[i];
+      }
+      // Prefer unknowns over closet when a closet exists (unknown may still be a person).
+      const hasCloset = list.some((img) => img && img.kind === 'closet');
+      if (hasCloset) {
+        for (let i = list.length - 1; i >= 0; i -= 1) {
+          if (list[i] && list[i].kind !== 'closet') return list[i];
+        }
+      }
+      return list[list.length - 1];
+    }
+
+    function resolveMoodboardHeroImage(images) {
+      const list = Array.isArray(images) ? images : getCanvasImages('wardrobe');
+      if (!list.length) return null;
+      if (moodboardHeroUrl) {
+        const match = list.find((img) => img && img.url === moodboardHeroUrl);
+        if (match) {
+          // Never keep a closet as hero when a person photo exists — unless Debra just clicked it.
+          const person = pickPreferredCanvasPersonPhoto(list);
+          if (
+            match.kind === 'closet'
+            && person
+            && person !== match
+            && person.kind === 'person'
+            && !moodboardHeroManual
+          ) {
+            return person;
+          }
+          return match;
+        }
+      }
+      return pickPreferredCanvasPersonPhoto(list);
+    }
+
+    function setMoodboardHeroFromImage(img, { manual = false } = {}) {
+      if (!img || !img.url) return;
+      moodboardHeroUrl = img.url;
+      moodboardHeroManual = !!manual;
+      const hero = document.getElementById('wardrobe-moodboard-hero');
+      const placeholder = document.getElementById('wardrobe-moodboard-placeholder');
+      if (hero) {
+        hero.src = img.url;
+        hero.classList.remove('hidden');
+      }
+      if (placeholder) placeholder.classList.add('hidden');
+    }
+
+    async function classifyAndPreferNewPhoto(img) {
+      if (!img) return;
+      const kind = await classifyCanvasImageKind(img);
+      // New person/selfie always becomes the Canvas hero (even if a closet was uploaded last).
+      if (kind === 'person') {
+        setMoodboardHeroFromImage(img, { manual: false });
+        try {
+          const box = document.getElementById('wardrobe-recommendation-box');
+          if (box && !box.classList.contains('hidden')) {
+            renderWardrobeMoodboardCanvas(
+              (window.lastGlamourLook && window.lastGlamourLook.silhouette) || selectedWardrobeSilhouette
+            );
+          }
+        } catch (_) {}
+        return;
+      }
+      // Closet-only upload: keep existing person hero if one exists.
+      const images = getCanvasImages('wardrobe');
+      const person = pickPreferredCanvasPersonPhoto(images);
+      if (person && person.kind === 'person') {
+        if (!moodboardHeroManual || !moodboardHeroUrl) {
+          setMoodboardHeroFromImage(person, { manual: false });
+        }
+      } else if (!moodboardHeroUrl) {
+        setMoodboardHeroFromImage(img, { manual: false });
+      }
     }
 
     function updateGlamourSaveUi() {
@@ -3596,11 +3807,24 @@
             lastModified: rec.savedAt || Date.now()
           });
           const url = URL.createObjectURL(file);
-          sharedGlamourImages.push({ url, name: file.name, file, persisted: true });
+          sharedGlamourImages.push({ url, name: file.name, file, persisted: true, kind: null });
         }
         glamourPhotosSaved = sharedGlamourImages.length > 0;
         syncCanvasPhotoState('wardrobe');
         updateGlamourSaveUi();
+        // Classify saved gallery and prefer person/selfie as Canvas hero.
+        ensureCanvasImagesClassified().then((imgs) => {
+          const preferred = pickPreferredCanvasPersonPhoto(imgs);
+          if (preferred) setMoodboardHeroFromImage(preferred, { manual: false });
+          try {
+            const box = document.getElementById('wardrobe-recommendation-box');
+            if (box && !box.classList.contains('hidden')) {
+              renderWardrobeMoodboardCanvas(
+                (window.lastGlamourLook && window.lastGlamourLook.silhouette) || selectedWardrobeSilhouette
+              );
+            }
+          } catch (_) {}
+        });
         return sharedGlamourImages.length;
       } catch (err) {
         console.warn('[Glamour] load persisted photos failed', err);
@@ -3643,7 +3867,10 @@
       const thumbs = document.getElementById(ids.thumbs);
 
       if (preview) {
-        preview.src = images.length ? images[images.length - 1].url : CANVAS_PLACEHOLDERS[ids.target];
+        const preferred = pickPreferredCanvasPersonPhoto(images);
+        preview.src = preferred && preferred.url
+          ? preferred.url
+          : (images.length ? images[images.length - 1].url : CANVAS_PLACEHOLDERS[ids.target]);
       }
       if (clearBtn) {
         if (images.length) clearBtn.classList.remove('hidden');
@@ -3726,7 +3953,11 @@
         return false;
       }
       const url = URL.createObjectURL(file);
-      images.push({ url, name: file.name || 'photo', file });
+      const entry = { url, name: file.name || 'photo', file, kind: null };
+      images.push(entry);
+      // Optimistic hero: newest upload, then classify async and prefer person over closet.
+      setMoodboardHeroFromImage(entry, { manual: false });
+      classifyAndPreferNewPhoto(entry);
       // Syncing into the other tab is NOT a photo analysis / trial scan.
       syncCanvasPhotoState(ids.target);
       setCanvasError('wardrobe', '');
@@ -3747,6 +3978,12 @@
       if (index < 0 || index >= images.length) return;
       const [removed] = images.splice(index, 1);
       if (removed && removed.url) URL.revokeObjectURL(removed.url);
+      if (removed && removed.url && moodboardHeroUrl === removed.url) {
+        moodboardHeroUrl = null;
+        moodboardHeroManual = false;
+        const next = pickPreferredCanvasPersonPhoto(images);
+        if (next) setMoodboardHeroFromImage(next, { manual: false });
+      }
       syncCanvasPhotoState(ids.target);
       setCanvasError('wardrobe', '');
       setCanvasError('glam', '');
@@ -4035,6 +4272,8 @@
         if (img && img.url) URL.revokeObjectURL(img.url);
       });
       sharedGlamourImages.length = 0;
+      moodboardHeroUrl = null;
+      moodboardHeroManual = false;
       canvasPhotos.wardrobe.hasPhoto = false;
       canvasPhotos.glam.hasPhoto = false;
       syncCanvasPhotoState(ids.target);
@@ -4490,6 +4729,8 @@
       if (!hero || !placeholder) return;
 
       if (!images.length) {
+        moodboardHeroUrl = null;
+        moodboardHeroManual = false;
         hero.classList.add('hidden');
         // Keep a harmless src — removeAttribute('src') can leave a broken icon in some browsers.
         hero.src = CANVAS_PLACEHOLDERS.wardrobe;
@@ -4501,8 +4742,11 @@
         return;
       }
 
-      const heroUrl = images[images.length - 1] && images[images.length - 1].url;
+      // Prefer latest person/selfie over closet shelf — never let a closet steal the hero by upload order.
+      const heroImg = resolveMoodboardHeroImage(images);
+      const heroUrl = heroImg && heroImg.url;
       if (heroUrl) {
+        moodboardHeroUrl = heroUrl;
         hero.src = heroUrl;
         hero.classList.remove('hidden');
         placeholder.classList.add('hidden');
@@ -4516,15 +4760,22 @@
 
       if (images.length > 1) {
         thumbs.classList.remove('hidden');
-        thumbs.innerHTML = images.map((img, i) => `
-          <button type="button" class="shrink-0 w-11 h-11 border border-spa-plum/25 overflow-hidden bg-spa-blush/40 focus:outline-none focus:ring-2 focus:ring-spa-plum/40" data-moodboard-thumb="${i}" aria-label="Show canvas photo ${i + 1}">
+        thumbs.innerHTML = images.map((img, i) => {
+          const selected = heroUrl && img.url === heroUrl;
+          return `
+          <button type="button" class="shrink-0 w-11 h-11 border overflow-hidden bg-spa-blush/40 focus:outline-none focus:ring-2 focus:ring-spa-plum/40 ${selected ? 'border-spa-plum ring-2 ring-spa-plum/50' : 'border-spa-plum/25'}" data-moodboard-thumb="${i}" aria-label="Show canvas photo ${i + 1}" aria-pressed="${selected ? 'true' : 'false'}">
             <img src="${img.url}" alt="" class="w-full h-full object-cover">
           </button>
-        `).join('');
+        `;
+        }).join('');
         thumbs.querySelectorAll('[data-moodboard-thumb]').forEach((btn) => {
           btn.addEventListener('click', () => {
             const idx = Number(btn.getAttribute('data-moodboard-thumb'));
-            if (images[idx] && images[idx].url) hero.src = images[idx].url;
+            if (images[idx] && images[idx].url) {
+              setMoodboardHeroFromImage(images[idx], { manual: true });
+              // Refresh ring highlight without resetting selection.
+              renderWardrobeMoodboardCanvas(silhouette || selectedWardrobeSilhouette);
+            }
           });
         });
       } else {
@@ -4841,39 +5092,75 @@
     }
 
     async function collectGlamourApiImages(limit = MAX_CANVAS_PHOTOS) {
-      const images = getCanvasImages('wardrobe');
+      const images = await ensureCanvasImagesClassified();
       const maxCount = Math.min(Math.max(1, limit || MAX_CANVAS_PHOTOS), MAX_CANVAS_PHOTOS);
-      const selected = images.slice(0, maxCount);
+      // Identity person photos first (latest person leading), closet shots after as wardrobe inventory only.
+      const people = [];
+      const closets = [];
+      const other = [];
+      images.forEach((img) => {
+        if (!img) return;
+        if (img.kind === 'person') people.push(img);
+        else if (img.kind === 'closet') closets.push(img);
+        else other.push(img);
+      });
+      people.reverse(); // latest person first
+      closets.reverse();
+      other.reverse();
+      const ordered = [...people, ...other, ...closets].slice(0, maxCount);
       // More photos → tighter compression so all 10 can travel safely.
-      const count = selected.length;
+      const count = ordered.length;
       const maxDim = count >= 7 ? 900 : count >= 4 ? 1100 : 1280;
       const quality = count >= 7 ? 0.55 : count >= 4 ? 0.65 : 0.72;
       const out = [];
-      for (const img of selected) {
+      for (const img of ordered) {
         const payload = await canvasImageToApiPayload(img, { maxDim, quality });
-        if (payload && payload.data) out.push(payload);
+        if (payload && payload.data) {
+          payload.role = img.kind === 'closet' ? 'closet' : (img.kind === 'person' ? 'identity' : 'reference');
+          out.push(payload);
+        }
       }
       return out;
     }
 
-    /** Canvas selfie for Vision: prefer moodboard hero, else most recent upload (not closet/first). */
+    /** Canvas selfie for Vision: person/selfie/full-body ONLY — never a closet shelf when a person exists. */
     function resolveCanvasSelfieForLook() {
       const images = getCanvasImages('wardrobe');
       if (!images.length) return null;
+      // Honor explicit thumb selection when it is a person (or the only shot).
+      if (moodboardHeroUrl) {
+        const byUrl = images.find((img) => img && img.url && img.url === moodboardHeroUrl);
+        if (byUrl) {
+          const person = pickPreferredCanvasPersonPhoto(images);
+          if (byUrl.kind === 'closet' && person && person.kind === 'person') {
+            return person;
+          }
+          return byUrl;
+        }
+      }
+      const preferred = pickPreferredCanvasPersonPhoto(images);
+      if (preferred) return preferred;
       const hero = document.getElementById('wardrobe-moodboard-hero');
       if (hero && hero.src && !hero.classList.contains('hidden')) {
         const byUrl = images.find((img) => img && img.url && img.url === hero.src);
-        if (byUrl) return byUrl;
+        if (byUrl && byUrl.kind !== 'closet') return byUrl;
       }
-      // Moodboard defaults to last upload — match that, never images[0] (often an older closet shot).
       return images[images.length - 1];
     }
 
     async function collectCanvasSelfieForLook() {
+      await ensureCanvasImagesClassified();
       const selfie = resolveCanvasSelfieForLook();
       if (!selfie) return null;
+      // Guard: if somehow still a closet while a person exists, force the person.
+      const images = getCanvasImages('wardrobe');
+      const person = pickPreferredCanvasPersonPhoto(images);
+      const identity = (selfie.kind === 'closet' && person && person.kind === 'person') ? person : selfie;
+      if (identity && identity.url) {
+        setMoodboardHeroFromImage(identity, { manual: moodboardHeroManual && moodboardHeroUrl === identity.url });
+      }
       // Higher-res input helps gpt-image edit keep face + short hair + body type.
-      return canvasImageToApiPayload(selfie, {
+      return canvasImageToApiPayload(identity, {
         maxDim: 1536,
         quality: 0.9,
         softLimit: 520000,
@@ -4970,7 +5257,7 @@
       const anchorParent = visionCard && visionCard.parentElement;
       const dock = document.createElement('div');
       dock.id = 'fiona-glamour-pickers';
-      dock.setAttribute('data-fiona-pickers', 'v11-injected');
+      dock.setAttribute('data-fiona-pickers', 'v12-injected');
       dock.className = 'space-y-4 rounded-2xl border-2 border-spa-plum dark:border-pink-300 bg-white dark:bg-spa-darkbg p-4 sm:p-5 shadow-md';
       dock.style.scrollMarginTop = '6.5rem';
       dock.innerHTML = `
@@ -5079,7 +5366,7 @@
       { id: 'subtle-volume', label: 'Subtle volume', short: 'Lifted crown, soft body' },
       { id: 'tousled-texture', label: 'Tousled texture', short: 'Lived-in piecey finish' }
     ];
-    const FIONA_VISION_CACHE_PREFIX = 'fiona_vision_look_v10:';
+    const FIONA_VISION_CACHE_PREFIX = 'fiona_vision_look_v11:';
     let fionaVisionSideBySide = false;
     let fionaVisionGenerating = false;
     let fionaSelectedWardrobeId = 'A';
