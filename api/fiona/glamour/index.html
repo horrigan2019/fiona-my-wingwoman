@@ -3852,6 +3852,7 @@
       });
       const video = document.getElementById('selfie-video');
       const panel = document.getElementById('camera-capture-panel');
+      if (!video || !panel) throw new Error('camera UI missing');
       video.srcObject = selfieMediaStream;
       panel.classList.remove('hidden');
       updateCameraFacingUi();
