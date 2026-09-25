@@ -1146,7 +1146,7 @@
             <div class="flex flex-wrap items-end justify-between gap-2 border-b border-spa-plum/15 dark:border-purple-900/60 pb-3">
               <div>
                 <span class="text-[10px] font-bold uppercase tracking-[0.18em] text-spa-plum dark:text-pink-300">✨ Fiona's Full Glamour Look</span>
-                <h4 id="wardrobe-look-title" class="font-serif text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mt-1">The Effortless Boss Silhouette</h4>
+                <h4 id="wardrobe-look-title" class="font-serif text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mt-1">The Cinched Confidence Wrap</h4>
               </div>
               <p id="wardrobe-visual-caption" class="text-[10px] font-semibold uppercase tracking-wider text-spa-plum/70 dark:text-pink-300/70"></p>
             </div>
@@ -1237,7 +1237,7 @@
               <!-- Look narrative + wardrobe piece cards -->
               <div class="space-y-4 min-w-0">
                 <p id="wardrobe-look-desc" class="text-xs sm:text-sm text-gray-700 dark:text-gray-200 leading-relaxed">
-                  Tailored wide-leg trousers in rich plum with a tucked silk cami and an unstructured soft blazer. Polished, completely comfortable around the waist, and commands respect.
+                  A soft V-neck wrap that ties at the waist, fluid A-line that skims the hip, and a single polished layer worn open. Curves celebrated, not covered — polish that feels hot-on-you.
                 </p>
 
                 <div>
@@ -1246,7 +1246,7 @@
                 </div>
 
                 <p id="wardrobe-look-quote" class="text-xs italic text-spa-plum dark:text-pink-300 border-l-2 border-spa-plum/40 pl-3">
-                  "When you feel comfortable in your clothes, you stop thinking about your clothes and start owning the room."
+                  "When the waist is intentional, the whole room notices you — not the outfit."
                 </p>
               </div>
             </div>
@@ -2327,7 +2327,7 @@
       fumes: {
         id: 'fumes',
         label: 'Running on fumes',
-        styleBias: 'Prioritize low-friction soft silhouettes, forgiving waistlines, and flats or soft soles.',
+        styleBias: 'Prioritize easy elevated polish she can throw on fast — wrap that cinches, soft V, flats OK — still flattering and gorgeous, never frumpy or tented.',
         microlifts: [
           'Micro-lift: one full glass of water before you negotiate with the day — hydration is a soft power move.',
           'Micro-lift: 90 seconds of morning light at a window if you can — let your nervous system clock in gently.',
@@ -2337,7 +2337,7 @@
       conquer: {
         id: 'conquer',
         label: 'Ready to conquer',
-        styleBias: 'Prioritize structured tailoring, clean lines, and one bold statement piece.',
+        styleBias: 'Prioritize sharp figure-flattering tailoring, clean vertical lines, and one bold statement — not boxy corporate armor.',
         microlifts: [
           'Micro-lift: sip water like it’s part of your armor — then pick one bold intention for the first hour.',
           'Micro-lift: 90 seconds of sunlight or bright light — crown up, then go claim the room.',
@@ -2347,7 +2347,7 @@
       move: {
         id: 'move',
         label: 'On the move',
-        styleBias: 'Prioritize polished athleisure, movement-friendly layers, and pieces that travel well.',
+        styleBias: 'Prioritize polished athleisure with visible shape, movement-friendly layers, and pieces that travel well.',
         microlifts: [
           'Micro-lift: water in the bag before you leave — future-you will thank present-you.',
           'Micro-lift: 90 seconds outdoors or by a bright window between transitions.',
@@ -2697,8 +2697,8 @@
         quip = `You're not an impostor. You're a woman mid-upgrade. Act like the role already fits — because it does.`;
       } else if (themes.includes('body_image') || /frump|outfit|wear|makeup|mirror|ugly|looks/i.test(text)) {
         clarity = `When you say "${shortEcho}," this isn't vanity — it's you noticing a disconnect between how you feel and how you want to show up.`;
-        compliment = `Caring how you present yourself is self-respect, not shallow — and you deserve a look that matches your energy.`;
-        anchor = `Pick one upgrade today: a cleaner neckline, soft hair, or a color that loves your face. Then take yourself to the Glamour Suite and let Fiona finish the look. ${compliment}`;
+        compliment = `Caring how you present yourself is self-respect, not shallow — and you deserve a look that celebrates your body and matches your energy.`;
+        anchor = `Pick one upgrade today: a clean V or wrap neckline, soft hair polish, or a color that loves your face. Then take yourself to the Glamour Suite and let Fiona finish a look that flatters you. ${compliment}`;
         quip = `Frumpy is a feeling, not a life sentence. We're not doing a makeover marathon — just one polished cuff at a time, darling.`;
       } else {
         clarity = `I hear you in "${echo}." You're naming what's real, and that alone shifts the room.`;
@@ -4088,67 +4088,67 @@
 
     const WARDROBE_LOOKS = {
       'Desk to Dinner': {
-        title: 'The Effortless Boss Silhouette',
-        desc: 'Tailored wide-leg trousers in rich plum with a tucked silk cami and an unstructured soft blazer. Polished, completely comfortable around the waist, and commands respect.',
-        quote: 'When you feel comfortable in your clothes, you stop thinking about your clothes and start owning the room.',
-        neckline: 'clean scoop / soft V',
+        title: 'The Cinched Confidence Wrap',
+        desc: 'A soft V-neck wrap top that ties at the waist, fluid A-line midi or wide-leg trousers that skim the hip, and a single polished layer worn open. Curves celebrated, not covered — desk-to-dinner polish that feels hot-on-you.',
+        quote: 'When the waist is intentional, the whole room notices you — not the outfit.',
+        neckline: 'soft V / wrap',
         pieces: [
-          { name: 'Soft blazer', fabric: 'Unstructured soft weave', cue: 'Drape open so the waist can breathe' },
-          { name: 'Silk cami', fabric: 'Soft sheen silk', cue: 'Tuck cleanly into high waist' },
-          { name: 'Wide-leg trouser', fabric: 'Fluid crepe', cue: 'Break lightly at the shoe for long lines' }
+          { name: 'Wrap top', fabric: 'Fluid jersey or soft satin', cue: 'Tie snug at the true waist — cinch, don’t tent' },
+          { name: 'A-line midi or wide-leg', fabric: 'Drapey crepe', cue: 'Skim the hip; keep the vertical clean' },
+          { name: 'Open soft layer', fabric: 'Light unstructured weave', cue: 'Wear open or skip — never armor the waist away' }
         ]
       },
       'Casual Comfort Chic': {
         title: 'Soft Street Royalty',
-        desc: 'Elevated knit set in dusty rose, clean white sneakers, and a structured tote. Add a silk scarf at the neck for that quiet Fiona polish.',
+        desc: 'Elevated knit set in dusty rose with a defined waist (soft belt or tuck), clean white sneakers, and a silk scarf at the neck for that quiet Fiona polish.',
         quote: 'Casual does not mean careless, darling. Soft fabrics, sharp intention.',
         neckline: 'crew / soft scarf frame',
         pieces: [
-          { name: 'Knit top', fabric: 'Fine-gauge cotton knit', cue: 'Keep the hem neat — no bunching' },
+          { name: 'Knit top', fabric: 'Fine-gauge cotton knit', cue: 'Tuck or half-tuck so the waist reads' },
           { name: 'Matching pant', fabric: 'Relaxed stretch knit', cue: 'High rise to lengthen the leg line' },
           { name: 'Silk scarf', fabric: 'Light silk twill', cue: 'Knot once at the collarbone for polish' }
         ]
       },
       'Power Meeting': {
         title: 'Boardroom Plumage',
-        desc: 'Column dress or sharp trousers with a jewel-tone blouse, structured shoulders, and a single bold accessory. Keep jewelry minimal and intentional.',
+        desc: 'Figure-flattering column or sharp trousers with a jewel-tone blouse, soft structure at the shoulder, and a single bold accessory. Authority with a waist — not boxy armor.',
         quote: 'Walk in like the agenda already belongs to you.',
-        neckline: 'structured jewel / boat',
+        neckline: 'soft V / structured jewel',
         pieces: [
-          { name: 'Column dress', fabric: 'Matte stretch crepe', cue: 'Seamless line from shoulder to hem' },
+          { name: 'Column dress or tailored trouser', fabric: 'Matte stretch crepe', cue: 'Seamless line with a visible waist' },
           { name: 'Jewel blouse', fabric: 'Satin-back crepe', cue: 'One statement color near the face' },
           { name: 'Bold earring', fabric: 'Polished metal', cue: 'Single pair — skip the rest' }
         ]
       },
       'Soft Evening Out': {
         title: 'Candlelight Curve',
-        desc: 'Bias-cut midi or satin slip layered under a cropped jacket, strappy heels or polished flats, and a berry lip that does half the talking.',
+        desc: 'Bias-cut midi or satin wrap that cinches the waist, strappy heels or polished flats, and a berry lip that does half the talking. Soft glam that celebrates her shape.',
         quote: 'You are the main course, not the appetizer. Dress like you know it.',
-        neckline: 'bias scoop / soft slip',
+        neckline: 'bias scoop / soft wrap V',
         pieces: [
-          { name: 'Satin midi', fabric: 'Bias satin with soft sheen', cue: 'Let the fabric skim — never cling' },
-          { name: 'Cropped jacket', fabric: 'Light structured weave', cue: 'Crop above the hip to show the curve' },
+          { name: 'Satin wrap or bias midi', fabric: 'Bias satin with soft sheen', cue: 'Cinch the waist; skim the curve — never tent' },
+          { name: 'Optional cropped layer', fabric: 'Light structured weave', cue: 'Crop above the hip only if needed — keep the waist visible' },
           { name: 'Berry lip', fabric: 'Creamy satin finish', cue: 'One bold lip; keep the rest soft' }
         ]
       },
       'Cozy Home Luxe': {
         title: 'Private Suite Loungewear',
-        desc: 'Cashmere-feel joggers, a buttery tank, and an oversized robe or wrap cardigan. Slippers optional; dignity mandatory.',
+        desc: 'Cashmere-feel joggers, a buttery tank, and a wrap cardigan you can belt softly. Slippers optional; dignity and a little shape mandatory.',
         quote: 'Resting at home is still a red-carpet event when you are the guest of honor.',
         neckline: 'soft scoop / wrap',
         pieces: [
           { name: 'Soft tank', fabric: 'Buttery modal', cue: 'Clean neckline, no logo noise' },
           { name: 'Luxe jogger', fabric: 'Cashmere-feel fleece', cue: 'Taper gently — still refined' },
-          { name: 'Wrap cardigan', fabric: 'Oversized knit wrap', cue: 'Belt loosely for easy elegance' }
+          { name: 'Wrap cardigan', fabric: 'Soft knit wrap', cue: 'Belt loosely so the waist still whispers' }
         ]
       }
     };
 
     const WARDROBE_SILHOUETTE_NOTES = {
-      'Hourglass / Defined': 'For your defined waist, we keep structure at the shoulder and a clean tuck or soft belt so your natural curve stays the star without squeezing.',
-      'Petite': 'For petite proportions, we raise the visual waist, crop hems cleanly, and keep pieces scaled so you look elongated—not overwhelmed by fabric.',
-      'Curvy / Soft Silhouette': 'For soft curves, we choose fluid draping with gentle shape—nothing clingy, nothing boxy—so the outfit skims and celebrates instead of fighting your lines.',
-      'Tall / Long Lines': 'For long lines, we lean into unbroken verticals—high-rise, midi lengths, and streamlined layers that look intentional, not empty.',
+      'Hourglass / Defined': 'For your defined waist, we keep structure at the shoulder and a clean tuck or soft belt so your natural curve stays the star — celebrated, never squeezed.',
+      'Petite': 'For petite proportions, we raise the visual waist, crop hems cleanly, and keep pieces scaled so you look elongated and polished—not overwhelmed by fabric.',
+      'Curvy / Soft Silhouette': 'For your soft curves, we celebrate — a wrap that cinches, soft V-neck, A-line skim, intentional waist, and vertical lines. Fitted through the waist, fluid through the hip: gorgeous, never tented, never covered up.',
+      'Tall / Long Lines': 'For long lines, we lean into unbroken verticals—high-rise, intentional midi lengths, and streamlined layers that look deliberate, not drowning.',
       'Athletic / Straight': 'For an athletic frame, we add soft shape with peplums, wrap details, or a nipped layer so the look feels feminine without bulk.'
     };
 
@@ -4755,7 +4755,7 @@
       prepareFionaVisionCard(window.lastGlamourLook);
     }
 
-    const FIONA_VISION_CACHE_PREFIX = 'fiona_vision_look_v3:';
+    const FIONA_VISION_CACHE_PREFIX = 'fiona_vision_look_v4:';
     let fionaVisionSideBySide = false;
     let fionaVisionGenerating = false;
 
@@ -5095,10 +5095,10 @@
         ? (morning.styleBias || START_ENERGY_META[morning.id]?.styleBias || morning.label)
         : 'balanced everyday polish';
       const energyLead = {
-        fumes: 'Keep every piece soft, low-friction, and flat-shoe friendly',
-        conquer: 'Add one structured layer and one bold statement near the face',
-        move: 'Choose movement-ready polished athleisure with clean lines'
-      }[energyId] || 'Keep the look intentional and wearable';
+        fumes: 'Keep every piece easy and elevated — cinch the waist, flats OK, still gorgeous',
+        conquer: 'Add one figure-flattering structured piece and one bold statement near the face — not boxy armor',
+        move: 'Choose movement-ready polished athleisure with visible shape and clean lines'
+      }[energyId] || 'Keep the look intentional, flattering, and wearable';
 
       const silShort = (silhouette || 'Hourglass / Defined').split('/')[0].trim();
       const titlePrefix = {

@@ -101,13 +101,15 @@ function buildEditorialPrompt(look, occasion, vibe) {
     'BODY LOCK: Preserve her real body type, soft/curvy proportions if present, shoulder-to-hip balance, and figure. Do not slim, idealize, lengthen legs, or cast a fashion-model body.',
     hairLocksReference(look),
     'CHANGE ONLY: clothing/outfit and light makeup (lipstick and blush). Keep pose geometry and her identity intact.',
-    `Dress her in: ${pieceLine || (look && look.desc) || 'the recommended outfit'}. Fit garments naturally to HER existing body with realistic fabric drape — not pasted on.`,
+    'FLATTERING FIT: Dress her to look intentional and gorgeous on HER body — define the waist, skim (never tent) bust and hips, celebrate soft curves. Prefer wrap that cinches, soft V / wrap neckline, A-line, vertical lines, right proportions.',
+    'Do NOT drown her in an oversized heavy blazer, shapeless dark midi tent, or matronly corporate armor. Outfit should look hot-on-her and polished — never frumpy or covering-up.',
+    `Dress her in: ${pieceLine || (look && look.desc) || 'the recommended outfit'}. Fit garments flatteringly to HER existing body with realistic fabric drape that cinches the waist and skims curves — not pasted on, not tented.`,
     `Light makeup only: ${lip} lipstick, ${cheek} blush — do not change facial structure or bone structure.`,
     occasion ? `Occasion: ${occasion}.` : '',
     vibe ? `Vibe: ${vibe}.` : '',
     look && look.title ? `Look title: ${look.title}.` : '',
     'Soft studio or wardrobe background is OK. Tasteful, non-sexual, photorealistic. No text overlays, no logos.',
-    'FINAL CHECK: face matches the reference, hair length/style matches the reference, body type matches the reference. If anything conflicts, prefer the reference selfie over the outfit description.'
+    'FINAL CHECK: face matches the reference, hair length/style matches the reference, body type matches the reference, outfit flatters her real figure (waist visible, not tented). If anything conflicts, prefer the reference selfie for identity — keep the flattering fit.'
   ].filter(Boolean).join(' ');
 }
 
