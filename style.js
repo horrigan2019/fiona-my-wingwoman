@@ -879,9 +879,34 @@ function extractJson(text) {
   const fence = raw.match(/```(?:json)?\s*([\s\S]*?)```/i);
   const candidate = fence ? fence[1].trim() : raw;
   const start = candidate.indexOf('{');
-  const end = candidate.lastIndexOf('}');
-  if (start === -1 || end === -1) throw new Error('No JSON object in model response');
-  return JSON.parse(candidate.slice(start, end + 1));
+  if (start === -1) throw new Error('No JSON object in model response');
+  const slice = candidate.slice(start);
+  try {
+    const end = slice.lastIndexOf('}');
+    if (end === -1) throw new Error('No closing brace');
+    return JSON.parse(slice.slice(0, end + 1));
+  } catch (firstErr) {
+    // Truncated dual-option payloads (hit max_tokens) — try to close open braces/brackets.
+    let repaired = slice.replace(/,\s*$/, '');
+    const opens = (repaired.match(/\{/g) || []).length;
+    const closes = (repaired.match(/\}/g) || []).length;
+    const openArr = (repaired.match(/\[/g) || []).length;
+    const closeArr = (repaired.match(/\]/g) || []).length;
+    // Trim a trailing incomplete key/value fragment after the last complete comma or brace.
+    repaired = repaired.replace(/,\s*"[^"]*":\s*("[^"]*)?$/g, '');
+    repaired = repaired.replace(/,\s*\{[^}]*$/g, '');
+    repaired = repaired.replace(/,\s*"[^"]*$/g, '');
+    repaired = repaired.replace(/,\s*$/, '');
+    let arrFix = Math.max(0, openArr - closeArr);
+    let objFix = Math.max(0, opens - closes);
+    while (arrFix--) repaired += ']';
+    while (objFix--) repaired += '}';
+    try {
+      return JSON.parse(repaired);
+    } catch (_) {
+      throw firstErr;
+    }
+  }
 }
 
 function hexToRgb(hex) {
@@ -959,6 +984,53 @@ function flattenSelectedGlamourLook(data, wardrobeOpt, beautyOpt) {
   return data;
 }
 
+function synthesizeWardrobeB(optA) {
+  const a = optA || {};
+  const baseTitle = String(a.title || 'Look').replace(/\s*[—-]\s*Soft Alternate\s*$/i, '').trim() || 'Look';
+  return {
+    id: 'B',
+    title: `${baseTitle} — Soft Alternate`,
+    desc: (a.desc || 'A flattering alternate wardrobe direction.')
+      + ' Alternate styling: swap the hero layer for a softer open finish and keep the waist intentional — still celebrate her curves, never tent.',
+    neckline: a.neckline || 'soft V / wrap',
+    pieces: Array.isArray(a.pieces) ? a.pieces.map((p) => (p && typeof p === 'object' ? { ...p } : p)) : [],
+    palette: Array.isArray(a.palette) ? a.palette.map((p) => (p && typeof p === 'object' ? { ...p } : p)) : []
+  };
+}
+
+function synthesizeBeautyPair(data, lipFallback, weekday, allowedHair) {
+  const hairA = String((data && data.suggestedHairStyleId) || 'keep-mine').trim().toLowerCase();
+  const altHair = hairA === 'soft-waves' ? 'sleek-side-part' : 'soft-waves';
+  const faceA = sanitizeFacePaletteObj(data && data.facePalette, lipFallback, weekday);
+  const moveA = sanitizeHairMoveObj(data && data.hairMove, weekday);
+  return [
+    {
+      id: 'A',
+      title: (moveA && moveA.title) || 'Beauty Option A',
+      summary: (moveA && moveA.body) || 'Polished hair and wearable makeup.',
+      hairMove: moveA,
+      facePalette: faceA,
+      hairStyleId: allowedHair.has(hairA) ? hairA : 'keep-mine'
+    },
+    {
+      id: 'B',
+      title: 'Soft Glow Alternate',
+      summary: 'A second beauty direction with a different hair polish and lip story — still her real length.',
+      hairMove: {
+        title: altHair === 'soft-waves' ? 'Soft wave polish' : 'Sleek side polish',
+        body: 'Same length family as her photo, different finish for a second mood.',
+        cues: ['Volume: intentional', 'Part: deliberate', 'Texture: polished']
+      },
+      facePalette: {
+        lip: lipFallback,
+        cheek: (faceA && faceA.cheek) || ['#E07A5F', 'Rose Radiance'],
+        note: 'Alternate wearable lip — still rose/berry/nude family.'
+      },
+      hairStyleId: altHair
+    }
+  ];
+}
+
 function ensureDualGlamourOptions(data, lipFallback, weekday) {
   if (!data || typeof data !== 'object') return data;
   const allowedHair = new Set(FIONA_HAIRSTYLE_OPTIONS.map((o) => o.id));
@@ -966,75 +1038,70 @@ function ensureDualGlamourOptions(data, lipFallback, weekday) {
   let wardrobeOptions = Array.isArray(data.wardrobeOptions) ? data.wardrobeOptions.filter(Boolean) : [];
   let beautyOptions = Array.isArray(data.beautyOptions) ? data.beautyOptions.filter(Boolean) : [];
 
-  // Legacy single-look response → wrap into dual options so older models still work.
-  if (wardrobeOptions.length < 2 && data.title && Array.isArray(data.pieces)) {
-    const baseWardrobe = {
+  // Legacy single-look OR truncated dual (only one wardrobe) → always end with A + B.
+  if (wardrobeOptions.length === 0 && data.title && Array.isArray(data.pieces)) {
+    wardrobeOptions = [{
       id: 'A',
       title: data.title,
       desc: data.desc || '',
       neckline: data.neckline || '',
       pieces: data.pieces,
       palette: Array.isArray(data.palette) ? data.palette : []
-    };
-    wardrobeOptions = [
-      baseWardrobe,
-      {
-        ...baseWardrobe,
-        id: 'B',
-        title: (data.title || 'Look') + ' — Soft Alternate',
-        desc: (data.desc || '') + ' Alternate styling: swap the hero layer for a softer open finish and keep the waist intentional.'
-      }
-    ];
+    }];
   }
-
-  if (beautyOptions.length < 2 && (data.hairMove || data.facePalette)) {
-    const hairA = String(data.suggestedHairStyleId || 'keep-mine').trim().toLowerCase();
-    const altHair = hairA === 'soft-waves' ? 'sleek-side-part' : 'soft-waves';
-    const faceA = sanitizeFacePaletteObj(data.facePalette, lipFallback, weekday);
-    const moveA = sanitizeHairMoveObj(data.hairMove, weekday);
-    beautyOptions = [
+  if (wardrobeOptions.length === 1) {
+    wardrobeOptions = [wardrobeOptions[0], synthesizeWardrobeB(wardrobeOptions[0])];
+  }
+  if (wardrobeOptions.length === 0) {
+    // Last-resort placeholders so the first Style click never returns zero wardrobe picks.
+    wardrobeOptions = [
       {
         id: 'A',
-        title: (moveA && moveA.title) || 'Beauty Option A',
-        summary: (moveA && moveA.body) || 'Polished hair and wearable makeup.',
-        hairMove: moveA,
-        facePalette: faceA,
-        hairStyleId: allowedHair.has(hairA) ? hairA : 'keep-mine'
+        title: data.title || 'Cinched Confidence Wrap',
+        desc: data.desc || 'A waist-defining wrap and clean vertical line — flattering, never tented.',
+        neckline: data.neckline || 'soft V / wrap',
+        pieces: Array.isArray(data.pieces) ? data.pieces : [],
+        palette: Array.isArray(data.palette) ? data.palette : []
       },
       {
         id: 'B',
-        title: 'Soft Glow Alternate',
-        summary: 'A second beauty direction with a different hair polish and lip story — still her real length.',
-        hairMove: {
-          title: altHair === 'soft-waves' ? 'Soft wave polish' : 'Sleek side polish',
-          body: 'Same length family as her photo, different finish for a second mood.',
-          cues: ['Volume: intentional', 'Part: deliberate', 'Texture: polished']
-        },
-        facePalette: {
-          lip: lipFallback,
-          cheek: (faceA && faceA.cheek) || ['#E07A5F', 'Rose Radiance'],
-          note: 'Alternate wearable lip — still rose/berry/nude family.'
-        },
-        hairStyleId: altHair
+        title: 'Soft Alternate Separates',
+        desc: 'Second wardrobe direction with an intentional waist and softer open layer — still celebrate her shape.',
+        neckline: 'soft scoop',
+        pieces: Array.isArray(data.pieces) ? data.pieces : [],
+        palette: Array.isArray(data.palette) ? data.palette : []
       }
     ];
   }
 
-  // Ensure exactly two labeled options when possible.
+  if (beautyOptions.length === 0) {
+    beautyOptions = synthesizeBeautyPair(data, lipFallback, weekday, allowedHair);
+  } else if (beautyOptions.length === 1) {
+    const pair = synthesizeBeautyPair({
+      ...data,
+      hairMove: beautyOptions[0].hairMove || data.hairMove,
+      facePalette: beautyOptions[0].facePalette || data.facePalette,
+      suggestedHairStyleId: beautyOptions[0].hairStyleId || data.suggestedHairStyleId
+    }, lipFallback, weekday, allowedHair);
+    beautyOptions = [beautyOptions[0], pair[1]];
+  }
+
+  // Ensure exactly two labeled options.
   wardrobeOptions = wardrobeOptions.slice(0, 2).map((opt, i) => {
-    const id = normalizeOptionId(opt && opt.id, i === 0 ? 'A' : 'B');
+    const id = i === 0 ? 'A' : 'B';
     const next = { ...(opt || {}), id };
     for (const key of ['title', 'desc', 'neckline']) {
       if (typeof next[key] === 'string') next[key] = alignTextToWeekday(next[key], weekday);
     }
     if (!Array.isArray(next.pieces)) next.pieces = data.pieces || [];
     if (!Array.isArray(next.palette)) next.palette = data.palette || [];
+    if (!next.title) next.title = id === 'A' ? 'Wardrobe Option A' : 'Wardrobe Option B';
     return next;
   });
 
   const usedHair = new Set();
   beautyOptions = beautyOptions.slice(0, 2).map((opt, i) => {
-    const id = normalizeOptionId(opt && opt.id, i === 0 ? 'A' : 'B');
+    const id = i === 0 ? 'A' : 'B';
     const next = { ...(opt || {}), id };
     if (typeof next.title === 'string') next.title = alignTextToWeekday(next.title, weekday);
     if (typeof next.summary === 'string') next.summary = alignTextToWeekday(next.summary, weekday);
@@ -1047,6 +1114,7 @@ function ensureDualGlamourOptions(data, lipFallback, weekday) {
     }
     usedHair.add(hairId);
     next.hairStyleId = hairId;
+    if (!next.title) next.title = id === 'A' ? 'Beauty Option A' : 'Beauty Option B';
     delete next.suggestedHairStyleId;
     return next;
   });
@@ -1055,9 +1123,7 @@ function ensureDualGlamourOptions(data, lipFallback, weekday) {
   data.beautyOptions = beautyOptions;
 
   // Flatten Option A onto legacy fields for any older clients / Vision payload builders.
-  if (wardrobeOptions[0] || beautyOptions[0]) {
-    flattenSelectedGlamourLook(data, wardrobeOptions[0], beautyOptions[0]);
-  }
+  flattenSelectedGlamourLook(data, wardrobeOptions[0], beautyOptions[0]);
   return data;
 }
 
@@ -1226,7 +1292,7 @@ module.exports = async function handler(req, res) {
         },
         body: JSON.stringify({
           model,
-          max_tokens: 1800,
+          max_tokens: 4500,
           temperature,
           system: FIONA_STYLE_SYSTEM,
           messages: [
@@ -1275,6 +1341,10 @@ module.exports = async function handler(req, res) {
       .filter((block) => block.type === 'text')
       .map((block) => block.text)
       .join('\n');
+
+    if (payload.stop_reason === 'max_tokens') {
+      console.warn('[fiona/glamour/style] Anthropic hit max_tokens — dual options may be truncated; sanitizer will pad to 2+2');
+    }
 
     const data = sanitizeBeautyData(extractJson(text), body);
     res.statusCode = 200;

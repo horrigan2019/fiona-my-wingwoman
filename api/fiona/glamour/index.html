@@ -1000,7 +1000,7 @@
           The Glamour Suite
         </h2>
         <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">
-          One full look from Fiona — outfit, hair, and makeup together — plus a generated photo of you in the recommendation.
+          One Style click gives you two wardrobe picks and two hair &amp; makeup picks — choose one of each, then Generate My Look.
         </p>
       </div>
 
@@ -1041,7 +1041,7 @@
       <div id="glamour-wardrobe-view" class="space-y-6">
         <div class="bg-white dark:bg-spa-darkcard p-6 sm:p-7 rounded-2xl border border-pink-100 dark:border-purple-900/40 shadow-sm space-y-5">
           <h3 class="font-serif text-xl font-bold text-gray-900 dark:text-white">What's the Occasion, Gorgeous?</h3>
-          <p class="text-xs text-gray-600 dark:text-gray-300 -mt-2">Tell Fiona the vibe (or that you feel frumpy). Upload a photo of you — she'll prescribe outfit + hair + makeup as one look, then generate a photo of you wearing it.</p>
+          <p class="text-xs text-gray-600 dark:text-gray-300 -mt-2">Tell Fiona the vibe (or that you feel frumpy). Upload a photo — one Style click returns Wardrobe A/B and Hair &amp; Makeup A/B. Pick one of each, then Generate My Look.</p>
           
           <!-- Glamour photo canvas -->
           <div class="space-y-3">
@@ -1162,6 +1162,16 @@
               <div id="fiona-wardrobe-options" class="grid grid-cols-1 sm:grid-cols-2 gap-3" role="radiogroup" aria-label="Wardrobe options"></div>
             </section>
 
+            <!-- Hair & Makeup — Option A / Option B (shown immediately after Style — no second request) -->
+            <section id="fiona-beauty-options-section" class="space-y-2">
+              <div class="flex flex-wrap items-baseline justify-between gap-2">
+                <p class="text-[10px] font-bold uppercase tracking-[0.14em] text-spa-plum dark:text-pink-300">Hair &amp; Makeup — pick one</p>
+                <p class="text-[10px] font-semibold text-spa-plum/70 dark:text-pink-300/70">Option A or B</p>
+              </div>
+              <div id="fiona-beauty-options" class="grid grid-cols-1 sm:grid-cols-2 gap-3" role="radiogroup" aria-label="Hair and makeup options"></div>
+              <p id="fiona-beauty-hint" class="text-[10px] text-gray-500 dark:text-gray-400 leading-snug">One Style click delivers both pairs. Face + body stay locked; hair may polish within your real length.</p>
+            </section>
+
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-6 items-start">
               <!-- Your Canvas — Polaroid / editorial frame -->
               <aside class="space-y-3">
@@ -1210,15 +1220,6 @@
                     </span>
                     <span id="fiona-vision-status" class="text-[10px] font-semibold text-gray-600 dark:text-gray-300"></span>
                   </div>
-                </div>
-
-                <div class="space-y-2 max-w-sm mx-auto lg:mx-0">
-                  <div class="flex flex-wrap items-baseline justify-between gap-2">
-                    <p class="text-[10px] font-bold uppercase tracking-[0.14em] text-spa-plum dark:text-pink-300">Hair &amp; Makeup — pick one</p>
-                    <p class="text-[10px] font-semibold text-spa-plum/70 dark:text-pink-300/70">Option A or B</p>
-                  </div>
-                  <div id="fiona-beauty-options" class="grid grid-cols-1 gap-2" role="radiogroup" aria-label="Hair and makeup options"></div>
-                  <p id="fiona-beauty-hint" class="text-[10px] text-gray-500 dark:text-gray-400 text-center lg:text-left leading-snug">Pick a beauty look. Face + body stay locked; hair may polish within your real length.</p>
                 </div>
 
                 <div class="flex flex-wrap items-center justify-center lg:justify-start gap-2">
@@ -4773,6 +4774,14 @@
       renderFionaWardrobeOptions();
       renderFionaBeautyOptions();
       applySelectedGlamourPicksToUi({ refreshVision: true });
+
+      // Debra: options must be visible after the FIRST Style click — bring them into view.
+      try {
+        const box = document.getElementById('wardrobe-recommendation-box');
+        if (box && typeof box.scrollIntoView === 'function') {
+          box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      } catch (_) {}
     }
 
     const FIONA_HAIRSTYLE_OPTIONS = [
@@ -4783,7 +4792,7 @@
       { id: 'subtle-volume', label: 'Subtle volume', short: 'Lifted crown, soft body' },
       { id: 'tousled-texture', label: 'Tousled texture', short: 'Lived-in piecey finish' }
     ];
-    const FIONA_VISION_CACHE_PREFIX = 'fiona_vision_look_v6:';
+    const FIONA_VISION_CACHE_PREFIX = 'fiona_vision_look_v7:';
     let fionaVisionSideBySide = false;
     let fionaVisionGenerating = false;
     let fionaSelectedWardrobeId = 'A';
@@ -4798,8 +4807,8 @@
         ? look.beautyOptions.filter(Boolean).slice(0, 2)
         : [];
 
-      if (wardrobeOptions.length < 2 && look && look.title) {
-        const base = {
+      if (wardrobeOptions.length < 2 && look && (look.title || wardrobeOptions[0])) {
+        const base = wardrobeOptions[0] || {
           id: 'A',
           title: look.title,
           desc: look.desc || '',
@@ -4807,13 +4816,34 @@
           pieces: look.pieces || [],
           palette: look.palette || []
         };
+        const baseTitle = String(base.title || look.title || 'Look').replace(/\s*[—-]\s*Soft Alternate\s*$/i, '').trim() || 'Look';
         wardrobeOptions = [
-          base,
+          { ...base, id: 'A', title: base.title || look.title || 'Wardrobe Option A' },
           {
             ...base,
             id: 'B',
-            title: (look.title || 'Look') + ' — Soft Alternate',
-            desc: (look.desc || '') + ' Alternate: softer open layer, same intentional waist.'
+            title: `${baseTitle} — Soft Alternate`,
+            desc: (base.desc || look.desc || '') + ' Alternate: softer open layer, same intentional waist.'
+          }
+        ];
+      }
+      if (wardrobeOptions.length === 0) {
+        wardrobeOptions = [
+          {
+            id: 'A',
+            title: (look && look.title) || 'Wardrobe Option A',
+            desc: (look && look.desc) || 'A flattering wardrobe direction with an intentional waist.',
+            neckline: (look && look.neckline) || 'soft V / wrap',
+            pieces: (look && look.pieces) || [],
+            palette: (look && look.palette) || []
+          },
+          {
+            id: 'B',
+            title: 'Wardrobe Option B — Soft Alternate',
+            desc: 'Second wardrobe direction — still celebrate her shape, never tent.',
+            neckline: 'soft scoop',
+            pieces: (look && look.pieces) || [],
+            palette: (look && look.palette) || []
           }
         ];
       }
@@ -5546,7 +5576,7 @@
       const previousLabel = btn ? btn.innerText : '';
         if (btn) {
           btn.disabled = true;
-          btn.innerText = 'Fiona is building your full look…';
+          btn.innerText = 'Fiona is building your 4 options…';
         }
 
       try {
@@ -5635,11 +5665,11 @@
           inferFromPhotos ? 'Live Fiona · photo-read figure & skin tone —' : 'Live Fiona —'
         );
         showToast(inferFromPhotos
-          ? `2 wardrobe + 2 beauty picks ready → ${detectedSilhouette} · ${detectedHarmony} ✨`
-          : 'Fiona built 2 wardrobe and 2 hair & makeup options ✨');
+          ? `Wardrobe A/B + Hair & Makeup A/B ready → ${detectedSilhouette} · ${detectedHarmony} ✨`
+          : 'Four options ready — pick Wardrobe + Hair & Makeup ✨');
 
         if (images.length) {
-          showToast('Pick Wardrobe + Hair & Makeup, then Generate My Look ✨');
+          showToast('Pick one of each, then Generate My Look ✨');
         }
       } catch (err) {
         console.error('[Glamour Style] wardrobe fallback', err && err.fionaMeta ? err.fionaMeta : err);
