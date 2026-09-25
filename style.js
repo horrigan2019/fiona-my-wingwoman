@@ -389,8 +389,10 @@ function buildLookImagePrompt(look, occasion, vibe) {
     ? `Lips ${((look.facePalette.lip || [])[1]) || ''}, cheeks ${((look.facePalette.cheek || [])[1]) || ''}. ${look.facePalette.note || ''}`
     : '';
   return [
-    'Photorealistic full-body fashion portrait of the SAME woman from the reference selfie.',
-    'Keep her exact face, facial features, skin tone, age, body shape, and identity — do not invent a different person.',
+    'IDENTITY LOCK: Edit the attached reference selfie of this exact woman — do not invent, replace, or cast a different model.',
+    'Preserve her exact face, facial geometry, eyes, nose, mouth, skin tone, age, body type/proportions, and hairline.',
+    'Only change outfit, hair styling, and makeup. Keep the same person recognizably identical to the reference.',
+    'Do not beautify into a generic fashion model. No face swap. No different ethnicity, age, or body shape.',
     'Transform only hair, makeup, and clothing into this complete Glamour Suite recommendation:',
     `Look title: ${(look && look.title) || 'Curated look'}`,
     `Occasion: ${occasion || 'everyday'}`,
@@ -411,28 +413,56 @@ async function generateLookWithOpenAI(images, prompt) {
   const raw = String(first.data).replace(/^data:[^;]+;base64,/, '');
   const bytes = Buffer.from(raw, 'base64');
   const mediaType = first.mediaType || first.media_type || 'image/jpeg';
-  const form = new FormData();
-  form.append('model', process.env.OPENAI_IMAGE_MODEL || 'gpt-image-1');
-  form.append('prompt', prompt.slice(0, 3200));
-  form.append('size', process.env.OPENAI_IMAGE_SIZE || '1024x1536');
-  form.append('quality', process.env.OPENAI_IMAGE_QUALITY || 'medium');
-  form.append('image', new Blob([bytes], { type: mediaType }), 'selfie.jpg');
+  const fidelity = String(process.env.OPENAI_INPUT_FIDELITY || 'high').toLowerCase() === 'low'
+    ? 'low'
+    : 'high';
+  const modelsToTry = [
+    process.env.OPENAI_IMAGE_MODEL || 'gpt-image-1',
+    'gpt-image-1.5',
+    'gpt-image-1'
+  ].filter((m, i, a) => a.indexOf(m) === i && !/^dall-e/i.test(m));
 
-  const res = await fetch('https://api.openai.com/v1/images/edits', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${key}` },
-    body: form
-  });
-  const json = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    const err = new Error((json && json.error && json.error.message) || 'OpenAI image edit failed');
-    err.status = res.status;
-    err.detail = json;
-    throw err;
+  let lastErr = null;
+  for (const model of modelsToTry) {
+    try {
+      const form = new FormData();
+      form.append('model', model);
+      form.append('prompt', prompt.slice(0, 3200));
+      form.append('size', process.env.OPENAI_IMAGE_SIZE || '1024x1536');
+      form.append('quality', process.env.OPENAI_IMAGE_QUALITY || 'high');
+      if (model === 'gpt-image-1' || model === 'gpt-image-1.5' || model.startsWith('gpt-image-1')) {
+        form.append('input_fidelity', fidelity);
+      }
+      form.append('image', new Blob([bytes], { type: mediaType }), 'canvas-selfie.jpg');
+
+      const res = await fetch('https://api.openai.com/v1/images/edits', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${key}` },
+        body: form
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        lastErr = new Error((json && json.error && json.error.message) || `OpenAI image edit failed (${model})`);
+        lastErr.status = res.status;
+        lastErr.detail = json;
+        continue;
+      }
+      const b64 = json.data && json.data[0] && (json.data[0].b64_json || json.data[0].b64);
+      if (!b64) {
+        lastErr = Object.assign(new Error('OpenAI returned no image'), { detail: json });
+        continue;
+      }
+      return {
+        mimeType: 'image/png',
+        base64: b64,
+        provider: `openai:${model}:edit:fidelity-${fidelity}`
+      };
+    } catch (e) {
+      lastErr = e;
+    }
   }
-  const b64 = json.data && json.data[0] && (json.data[0].b64_json || json.data[0].b64);
-  if (!b64) return null;
-  return { mimeType: 'image/png', base64: b64, provider: 'openai' };
+  if (lastErr) throw lastErr;
+  return null;
 }
 
 async function generateLookWithGemini(images, prompt) {
@@ -480,13 +510,21 @@ async function generateLookWithGemini(images, prompt) {
 }
 
 async function handleLookPhoto(req, res, body) {
-  const images = Array.isArray(body.images) ? body.images.filter((img) => img && img.data).slice(0, 3) : [];
+  // Prefer explicit canvas selfie (`photo`) over a multi-image closet dump.
+  const primary = body.photo && (body.photo.data || typeof body.photo === 'string')
+    ? (typeof body.photo === 'string' ? { data: body.photo } : body.photo)
+    : null;
+  const fromImages = Array.isArray(body.images)
+    ? body.images.filter((img) => img && img.data)
+    : [];
+  const images = (primary ? [primary, ...fromImages] : fromImages).slice(0, 1);
   if (!images.length) {
     res.statusCode = 400;
     res.setHeader('Content-Type', 'application/json');
     return res.end(JSON.stringify({
       error: 'A selfie/photo is required to generate your look',
-      code: 'missing_photo'
+      code: 'missing_photo',
+      fionaMessage: "Add a photo to Your Canvas first, gorgeous — Fiona needs a face to dress."
     }));
   }
 

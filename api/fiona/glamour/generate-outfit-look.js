@@ -81,8 +81,10 @@ function buildEditorialPrompt(look, occasion, vibe) {
     : 'soft flush';
 
   return [
-    'A high-fashion, realistic editorial photo of the SAME woman from the reference image.',
-    'Preserve her exact face, facial features, skin tone, age, body proportions, and identity — do not invent a different person.',
+    'IDENTITY LOCK: Edit the attached reference selfie of this exact woman — do not invent, replace, or cast a different model.',
+    'Preserve her exact face, facial geometry, eyes, nose, mouth, skin tone, age, body type/proportions, and hairline.',
+    'Only change outfit, hair styling, and makeup. Keep the same person recognizably identical to the reference.',
+    'Do not beautify into a generic fashion model. No face swap. No different ethnicity, age, or body shape.',
     `Dress her in: ${pieceLine || (look && look.desc) || 'the recommended outfit'}.`,
     `Hair: ${hair}.`,
     `Makeup: ${lip} lipstick, ${cheek} blush, natural polished finish.`,
@@ -95,6 +97,8 @@ function buildEditorialPrompt(look, occasion, vibe) {
 
 async function generateWithFal(apiKey, dataUrl, prompt) {
   const model = process.env.FAL_LOOK_MODEL || 'fal-ai/flux/dev/image-to-image';
+  // Lower strength = keep more of the selfie (face/body). 0.72 was inventing new people.
+  const strength = Number(process.env.FAL_LOOK_STRENGTH || 0.45);
   const res = await fetch(`https://fal.run/${model}`, {
     method: 'POST',
     headers: {
@@ -104,7 +108,7 @@ async function generateWithFal(apiKey, dataUrl, prompt) {
     body: JSON.stringify({
       image_url: dataUrl,
       prompt,
-      strength: Number(process.env.FAL_LOOK_STRENGTH || 0.72),
+      strength: Number.isFinite(strength) ? Math.min(0.65, Math.max(0.25, strength)) : 0.45,
       num_images: 1,
       enable_safety_checker: true
     })
@@ -146,7 +150,8 @@ async function generateWithReplicate(apiKey, dataUrl, prompt) {
       input: {
         prompt,
         image: dataUrl,
-        prompt_strength: Number(process.env.REPLICATE_LOOK_STRENGTH || 0.72),
+        // Lower prompt_strength preserves more identity from the input selfie.
+        prompt_strength: Number(process.env.REPLICATE_LOOK_STRENGTH || 0.45),
         num_outputs: 1
       }
     })
@@ -226,11 +231,17 @@ async function generateWithFashn(apiKey, dataUrl, prompt) {
 async function generateWithOpenAI(apiKey, photo, prompt) {
   const parsed = stripDataUrl(photo.data || photo);
   const bytes = Buffer.from(parsed.base64, 'base64');
+  // Identity-preserving edits only — never fall back to text-to-image (invents a different woman).
   const modelsToTry = [
     process.env.OPENAI_IMAGE_MODEL || 'gpt-image-1',
-    'gpt-image-1',
-    'dall-e-2'
-  ].filter((m, i, a) => a.indexOf(m) === i);
+    'gpt-image-1.5',
+    'gpt-image-1'
+  ].filter((m, i, a) => a.indexOf(m) === i && m !== 'dall-e-2' && m !== 'dall-e-3');
+
+  const fidelity = String(process.env.OPENAI_INPUT_FIDELITY || 'high').toLowerCase() === 'low'
+    ? 'low'
+    : 'high';
+  const quality = process.env.OPENAI_IMAGE_QUALITY || 'high';
 
   let lastErr = null;
   for (const model of modelsToTry) {
@@ -238,14 +249,17 @@ async function generateWithOpenAI(apiKey, photo, prompt) {
       const form = new FormData();
       form.append('model', model);
       form.append('prompt', prompt.slice(0, 3200));
-      if (model === 'dall-e-2') {
-        form.append('size', '1024x1024');
-        form.append('n', '1');
-      } else {
-        form.append('size', process.env.OPENAI_IMAGE_SIZE || '1024x1536');
-        form.append('quality', process.env.OPENAI_IMAGE_QUALITY || 'medium');
+      form.append('size', process.env.OPENAI_IMAGE_SIZE || '1024x1536');
+      form.append('quality', quality);
+      // Critical for face/body likeness on gpt-image-1 / 1.5 (default is low).
+      if (model === 'gpt-image-1' || model === 'gpt-image-1.5' || model.startsWith('gpt-image-1')) {
+        form.append('input_fidelity', fidelity);
       }
-      form.append('image', new Blob([bytes], { type: parsed.mediaType || 'image/jpeg' }), 'selfie.jpg');
+      form.append(
+        'image',
+        new Blob([bytes], { type: parsed.mediaType || 'image/jpeg' }),
+        'canvas-selfie.jpg'
+      );
 
       const res = await fetch('https://api.openai.com/v1/images/edits', {
         method: 'POST',
@@ -257,6 +271,7 @@ async function generateWithOpenAI(apiKey, photo, prompt) {
         lastErr = new Error((json && json.error && json.error.message) || `OpenAI edits failed (${model})`);
         lastErr.status = res.status;
         lastErr.detail = json;
+        console.error('[generate-outfit-look] OpenAI edit failed', model, lastErr.message);
         continue;
       }
       const b64 = json.data && json.data[0] && (json.data[0].b64_json || json.data[0].b64);
@@ -264,53 +279,18 @@ async function generateWithOpenAI(apiKey, photo, prompt) {
         lastErr = Object.assign(new Error('OpenAI returned no image'), { detail: json });
         continue;
       }
-      return { mimeType: 'image/png', base64: b64, provider: `openai:${model}` };
+      return {
+        mimeType: 'image/png',
+        base64: b64,
+        provider: `openai:${model}:edit:fidelity-${fidelity}`
+      };
     } catch (e) {
       lastErr = e;
     }
   }
 
-  // Last resort: text-to-image generations (weaker identity match, but better than total failure)
-  try {
-    const res = await fetch('https://api.openai.com/v1/images/generations', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: process.env.OPENAI_IMAGE_GEN_MODEL || 'gpt-image-1',
-        prompt: `${prompt}\nUse the reference woman's appearance from this description context; keep a realistic full-body editorial portrait.`,
-        size: process.env.OPENAI_IMAGE_SIZE || '1024x1536',
-        quality: process.env.OPENAI_IMAGE_QUALITY || 'medium'
-      })
-    });
-    const json = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      const err = new Error((json && json.error && json.error.message) || 'OpenAI generations failed');
-      err.status = res.status;
-      err.detail = json;
-      throw err;
-    }
-    const row = json.data && json.data[0];
-    if (row && row.b64_json) {
-      return { mimeType: 'image/png', base64: row.b64_json, provider: 'openai:generations' };
-    }
-    if (row && row.url) {
-      const imgRes = await fetch(row.url);
-      const buf = Buffer.from(await imgRes.arrayBuffer());
-      return {
-        mimeType: imgRes.headers.get('content-type') || 'image/png',
-        base64: buf.toString('base64'),
-        provider: 'openai:generations',
-        url: row.url
-      };
-    }
-  } catch (e) {
-    lastErr = e;
-  }
-
-  throw lastErr || new Error('OpenAI image generation failed');
+  // Do NOT call /v1/images/generations here — text-only invents a generic model.
+  throw lastErr || new Error('OpenAI identity-preserving image edit failed');
 }
 
 async function generateWithGemini(apiKey, photo, prompt) {
