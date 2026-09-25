@@ -1,0 +1,9 @@
+Smoke: blank canvas + Style recommendations regression
+Result: SMOKE_OK
+- previewBlob: true (wardrobe-preview shows uploaded photo)
+- moodboard blob visible after Style: true
+- Wardrobe A/B cards: 2
+- Beauty A/B cards: 2
+- Poisoned pieces object no longer blanks canvas or kills pickers
+- PWA cache: fiona-pwa-v12
+- Vision cache: fiona_vision_look_v10

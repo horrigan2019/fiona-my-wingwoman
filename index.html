@@ -3688,6 +3688,15 @@
       // Always refresh both tabs so the shared gallery stays in sync.
       syncOneCanvasUi('wardrobe');
       syncOneCanvasUi('glam');
+      // Keep Your Canvas polaroid in sync whenever photos change (even mid-Style).
+      try {
+        const box = document.getElementById('wardrobe-recommendation-box');
+        if (box && !box.classList.contains('hidden')) {
+          renderWardrobeMoodboardCanvas(
+            (window.lastGlamourLook && window.lastGlamourLook.silhouette) || selectedWardrobeSilhouette
+          );
+        }
+      } catch (_) {}
     }
 
     function setCanvasError(target, msg) {
@@ -3748,6 +3757,11 @@
       const ids = canvasIds(target || 'glam');
       setCanvasError(ids.target, '');
       const input = document.getElementById(ids.upload);
+      if (!input) {
+        setCanvasError(ids.target, 'Upload control missing — refresh the page (hard refresh) and try again.');
+        showToast('Upload control missing — hard refresh, then try Upload from Gallery.');
+        return;
+      }
       input.value = '';
       input.click();
     }
@@ -3862,9 +3876,12 @@
       panel.classList.remove('hidden');
       updateCameraFacingUi();
       try { await video.play(); } catch (_) {}
-      document.getElementById(ids.status).textContent = preferredCameraFacing === 'user'
-        ? 'Front camera live — capture your selfie when ready.'
-        : 'Rear camera live — capture when ready.';
+      const statusEl = document.getElementById(ids.status);
+      if (statusEl) {
+        statusEl.textContent = preferredCameraFacing === 'user'
+          ? 'Front camera live — capture your selfie when ready.'
+          : 'Rear camera live — capture when ready.';
+      }
     }
 
     async function flipCameraFacing() {
@@ -3923,7 +3940,8 @@
             panel.classList.remove('hidden');
             updateCameraFacingUi();
             try { await video.play(); } catch (_) {}
-            document.getElementById(ids.status).textContent = 'Camera live — capture when ready.';
+            const liveStatus = document.getElementById(ids.status);
+            if (liveStatus) liveStatus.textContent = 'Camera live — capture when ready.';
             showToast('Camera live — capture when ready ✨');
             return;
           } catch (_) {
@@ -3986,7 +4004,10 @@
         if (!keepCameraOpen || sharedGlamourImages.length >= MAX_CANVAS_PHOTOS) {
           stopSelfieCamera(false);
         } else {
-          document.getElementById(ids.status).textContent = `Front camera live — ${sharedGlamourImages.length}/${MAX_CANVAS_PHOTOS} photos. Capture again anytime.`;
+          const capStatus = document.getElementById(ids.status);
+          if (capStatus) {
+            capStatus.textContent = `Front camera live — ${sharedGlamourImages.length}/${MAX_CANVAS_PHOTOS} photos. Capture again anytime.`;
+          }
         }
       }, 'image/jpeg', 0.92);
     }
@@ -4466,20 +4487,32 @@
       }
       if (silEl) silEl.textContent = silhouette || selectedWardrobeSilhouette;
 
-      if (!hero || !placeholder || !thumbs) return;
+      if (!hero || !placeholder) return;
 
       if (!images.length) {
         hero.classList.add('hidden');
-        hero.removeAttribute('src');
+        // Keep a harmless src — removeAttribute('src') can leave a broken icon in some browsers.
+        hero.src = CANVAS_PLACEHOLDERS.wardrobe;
         placeholder.classList.remove('hidden');
-        thumbs.classList.add('hidden');
-        thumbs.innerHTML = '';
+        if (thumbs) {
+          thumbs.classList.add('hidden');
+          thumbs.innerHTML = '';
+        }
         return;
       }
 
-      hero.src = images[images.length - 1].url;
-      hero.classList.remove('hidden');
-      placeholder.classList.add('hidden');
+      const heroUrl = images[images.length - 1] && images[images.length - 1].url;
+      if (heroUrl) {
+        hero.src = heroUrl;
+        hero.classList.remove('hidden');
+        placeholder.classList.add('hidden');
+      } else {
+        hero.classList.add('hidden');
+        hero.src = CANVAS_PLACEHOLDERS.wardrobe;
+        placeholder.classList.remove('hidden');
+      }
+
+      if (!thumbs) return;
 
       if (images.length > 1) {
         thumbs.classList.remove('hidden');
@@ -4491,7 +4524,7 @@
         thumbs.querySelectorAll('[data-moodboard-thumb]').forEach((btn) => {
           btn.addEventListener('click', () => {
             const idx = Number(btn.getAttribute('data-moodboard-thumb'));
-            if (images[idx]) hero.src = images[idx].url;
+            if (images[idx] && images[idx].url) hero.src = images[idx].url;
           });
         });
       } else {
@@ -4542,67 +4575,101 @@
     }
 
     function renderWardrobeVisualLook(look, silhouette, harmony) {
-      const palette = (look && Array.isArray(look.palette) && look.palette.length)
+      // Canvas photo FIRST — never skip the polaroid if piece/palette cards throw.
+      try {
+        renderWardrobeMoodboardCanvas(silhouette);
+      } catch (err) {
+        console.warn('[Glamour] moodboard render failed', err);
+      }
+
+      const fallbackPalette = WARDROBE_HARMONY_PALETTES[harmony] || WARDROBE_HARMONY_PALETTES['Warm & Golden'];
+      const rawPalette = (look && Array.isArray(look.palette) && look.palette.length)
         ? look.palette
-        : (WARDROBE_HARMONY_PALETTES[harmony] || WARDROBE_HARMONY_PALETTES['Warm & Golden']);
+        : fallbackPalette;
+      const palette = (Array.isArray(rawPalette) ? rawPalette : fallbackPalette)
+        .map((p) => ({
+          hex: (p && p.hex) || '#5E2750',
+          label: (p && p.label) || 'Plum'
+        }));
+      if (!palette.length) {
+        palette.push({ hex: '#5E2750', label: 'Plum' }, { hex: '#E8A87C', label: 'Honey' }, { hex: '#9E2A2B', label: 'Berry' });
+      }
+
       const swatchHost = document.getElementById('wardrobe-palette-swatches');
       const cardsHost = document.getElementById('wardrobe-piece-cards');
       const caption = document.getElementById('wardrobe-visual-caption');
-      if (!cardsHost) return;
 
-      if (swatchHost) {
-        swatchHost.innerHTML = `
-          <p class="w-full text-[10px] font-bold uppercase tracking-[0.14em] text-spa-plum/70 dark:text-pink-300/70 mb-0.5 text-center">Curated color palette</p>
-          ${palette.map((p) => `
-            <div class="flex flex-col items-center gap-1">
-              <span class="w-9 h-9 rounded-full border border-white shadow-sm ring-1 ring-spa-plum/15" style="background:${p.hex}" title="${p.label || ''}"></span>
-              <span class="text-[9px] text-gray-500 dark:text-gray-400">${p.label || p.hex}</span>
-            </div>
-          `).join('')}
-        `;
+      try {
+        if (swatchHost) {
+          swatchHost.innerHTML = `
+            <p class="w-full text-[10px] font-bold uppercase tracking-[0.14em] text-spa-plum/70 dark:text-pink-300/70 mb-0.5 text-center">Curated color palette</p>
+            ${palette.map((p) => `
+              <div class="flex flex-col items-center gap-1">
+                <span class="w-9 h-9 rounded-full border border-white shadow-sm ring-1 ring-spa-plum/15" style="background:${escapeGlamourHtml(p.hex)}" title="${escapeGlamourHtml(p.label || '')}"></span>
+                <span class="text-[9px] text-gray-500 dark:text-gray-400">${escapeGlamourHtml(p.label || p.hex)}</span>
+              </div>
+            `).join('')}
+          `;
+        }
+      } catch (err) {
+        console.warn('[Glamour] palette swatches failed', err);
       }
 
-      const rawPieces = look.pieces || ['Layer', 'Core piece', 'Finish'];
-      const pieces = rawPieces.slice(0, 3).map((piece, i) => normalizeWardrobePiece(piece, i, palette));
+      try {
+        const rawPieces = (look && Array.isArray(look.pieces) && look.pieces.length)
+          ? look.pieces
+          : (look && typeof look.pieces === 'string' && look.pieces.trim())
+            ? [look.pieces.trim()]
+            : ['Layer', 'Core piece', 'Finish'];
+        const pieces = rawPieces.slice(0, 3).map((piece, i) => normalizeWardrobePiece(piece, i, palette));
 
-      cardsHost.innerHTML = pieces.map((piece, i) => `
-        <button type="button"
-          class="wardrobe-piece-card text-left p-3 bg-white dark:bg-spa-darkbg/50 border border-spa-plum/20 dark:border-purple-800 hover:border-spa-plum dark:hover:border-pink-300 focus:outline-none focus:ring-2 focus:ring-spa-plum/35 transition space-y-2"
-          data-piece-index="${i}"
-          aria-pressed="false">
-          <div class="h-14 border border-spa-plum/10" style="background: linear-gradient(145deg, ${piece.hex} 0%, ${palette[(i + 1) % palette.length].hex} 100%);"></div>
-          <div class="space-y-1">
-            <p class="font-serif text-sm font-bold text-gray-900 dark:text-white leading-snug">${piece.name}</p>
-            <p class="text-[10px] font-semibold text-spa-plum dark:text-pink-200">${piece.fabric}</p>
-            <div class="flex items-center gap-1.5 pt-0.5">
-              <span class="w-3.5 h-3.5 rounded-full border border-white ring-1 ring-spa-plum/20 shrink-0" style="background:${piece.hex}"></span>
-              <span class="text-[10px] text-gray-600 dark:text-gray-300 font-mono">${piece.hex} · ${piece.colorLabel}</span>
-            </div>
-            <p class="text-[11px] text-gray-600 dark:text-gray-300 leading-snug pt-0.5">${piece.cue}</p>
-          </div>
-        </button>
-      `).join('');
+        if (cardsHost) {
+          cardsHost.innerHTML = pieces.map((piece, i) => {
+            const nextHex = (palette[(i + 1) % palette.length] || palette[0] || {}).hex || '#5E2750';
+            return `<button type="button"
+              class="wardrobe-piece-card text-left p-3 bg-white dark:bg-spa-darkbg/50 border border-spa-plum/20 dark:border-purple-800 hover:border-spa-plum dark:hover:border-pink-300 focus:outline-none focus:ring-2 focus:ring-spa-plum/35 transition space-y-2"
+              data-piece-index="${i}"
+              aria-pressed="false">
+              <div class="h-14 border border-spa-plum/10" style="background: linear-gradient(145deg, ${escapeGlamourHtml(piece.hex)} 0%, ${escapeGlamourHtml(nextHex)} 100%);"></div>
+              <div class="space-y-1">
+                <p class="font-serif text-sm font-bold text-gray-900 dark:text-white leading-snug">${escapeGlamourHtml(piece.name)}</p>
+                <p class="text-[10px] font-semibold text-spa-plum dark:text-pink-200">${escapeGlamourHtml(piece.fabric)}</p>
+                <div class="flex items-center gap-1.5 pt-0.5">
+                  <span class="w-3.5 h-3.5 rounded-full border border-white ring-1 ring-spa-plum/20 shrink-0" style="background:${escapeGlamourHtml(piece.hex)}"></span>
+                  <span class="text-[10px] text-gray-600 dark:text-gray-300 font-mono">${escapeGlamourHtml(piece.hex)} · ${escapeGlamourHtml(piece.colorLabel)}</span>
+                </div>
+                <p class="text-[11px] text-gray-600 dark:text-gray-300 leading-snug pt-0.5">${escapeGlamourHtml(piece.cue)}</p>
+              </div>
+            </button>`;
+          }).join('');
 
-      cardsHost.querySelectorAll('.wardrobe-piece-card').forEach((card) => {
-        card.addEventListener('click', () => {
-          const pressed = card.getAttribute('aria-pressed') === 'true';
-          cardsHost.querySelectorAll('.wardrobe-piece-card').forEach((c) => {
-            c.setAttribute('aria-pressed', 'false');
-            c.classList.remove('ring-2', 'ring-spa-plum/40', 'border-spa-plum');
+          cardsHost.querySelectorAll('.wardrobe-piece-card').forEach((card) => {
+            card.addEventListener('click', () => {
+              const pressed = card.getAttribute('aria-pressed') === 'true';
+              cardsHost.querySelectorAll('.wardrobe-piece-card').forEach((c) => {
+                c.setAttribute('aria-pressed', 'false');
+                c.classList.remove('ring-2', 'ring-spa-plum/40', 'border-spa-plum');
+              });
+              if (!pressed) {
+                card.setAttribute('aria-pressed', 'true');
+                card.classList.add('ring-2', 'ring-spa-plum/40', 'border-spa-plum');
+              }
+            });
           });
-          if (!pressed) {
-            card.setAttribute('aria-pressed', 'true');
-            card.classList.add('ring-2', 'ring-spa-plum/40', 'border-spa-plum');
-          }
-        });
-      });
+        }
+      } catch (err) {
+        console.warn('[Glamour] wardrobe piece cards failed', err);
+      }
 
       if (caption) {
-        caption.textContent = `Silhouette · ${silhouette}`;
+        caption.textContent = `Silhouette · ${silhouette || ''}`.trim();
       }
 
-      renderWardrobeMoodboardCanvas(silhouette);
-      renderWardrobeHairMakeupGlow(look, silhouette, harmony);
+      try {
+        renderWardrobeHairMakeupGlow(look, silhouette, harmony);
+      } catch (err) {
+        console.warn('[Glamour] beauty glow render failed', err);
+      }
     }
 
     const GLAMOUR_STYLE_API = '/api/fiona/glamour/style';
@@ -5012,7 +5079,7 @@
       { id: 'subtle-volume', label: 'Subtle volume', short: 'Lifted crown, soft body' },
       { id: 'tousled-texture', label: 'Tousled texture', short: 'Lived-in piecey finish' }
     ];
-    const FIONA_VISION_CACHE_PREFIX = 'fiona_vision_look_v9:';
+    const FIONA_VISION_CACHE_PREFIX = 'fiona_vision_look_v10:';
     let fionaVisionSideBySide = false;
     let fionaVisionGenerating = false;
     let fionaSelectedWardrobeId = 'A';
@@ -5292,9 +5359,18 @@
       const beautyLabel = document.getElementById('wardrobe-beauty-option-label');
       if (beautyLabel) beautyLabel.textContent = `Option ${fionaSelectedBeautyId}`;
 
-      renderWardrobeVisualLook(composite, meta.silhouette, meta.harmony);
+      try {
+        renderWardrobeVisualLook(composite, meta.silhouette, meta.harmony);
+      } catch (err) {
+        console.warn('[Glamour] visual look render failed — canvas/pickers still shown', err);
+        try { renderWardrobeMoodboardCanvas(meta.silhouette); } catch (_) {}
+      }
       if (!opts || opts.refreshVision !== false) {
-        prepareFionaVisionCard(meta);
+        try {
+          prepareFionaVisionCard(meta);
+        } catch (err) {
+          console.warn('[Glamour] vision card prepare failed', err);
+        }
       }
     }
 
@@ -6779,7 +6855,7 @@
             worker.addEventListener('statechange', () => {
               if (worker.state === 'installed' && navigator.serviceWorker.controller) {
                 // New SW ready — claim on next load via skipWaiting in sw.js install.
-                console.info('[Fiona PWA] Updated shell available (v11 pickers harden)');
+                console.info('[Fiona PWA] Updated shell available (v12 blank-canvas + Style harden)');
               }
             });
           });
