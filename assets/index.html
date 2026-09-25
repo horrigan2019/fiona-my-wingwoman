@@ -1153,25 +1153,6 @@
 
             <p id="wardrobe-compliment" class="hidden text-sm font-medium text-spa-plumdark dark:text-pink-100 bg-white/80 dark:bg-spa-darkbg/50 border border-spa-plum/20 dark:border-purple-800 rounded-xl px-3.5 py-3"></p>
 
-            <!-- Wardrobe — Option A / Option B -->
-            <section id="fiona-wardrobe-options-section" class="space-y-2">
-              <div class="flex flex-wrap items-baseline justify-between gap-2">
-                <p class="text-[10px] font-bold uppercase tracking-[0.14em] text-spa-plum dark:text-pink-300">Wardrobe — pick one</p>
-                <p class="text-[10px] font-semibold text-spa-plum/70 dark:text-pink-300/70">Option A or B</p>
-              </div>
-              <div id="fiona-wardrobe-options" class="grid grid-cols-1 sm:grid-cols-2 gap-3" role="radiogroup" aria-label="Wardrobe options"></div>
-            </section>
-
-            <!-- Hair & Makeup — Option A / Option B (shown immediately after Style — no second request) -->
-            <section id="fiona-beauty-options-section" class="space-y-2">
-              <div class="flex flex-wrap items-baseline justify-between gap-2">
-                <p class="text-[10px] font-bold uppercase tracking-[0.14em] text-spa-plum dark:text-pink-300">Hair &amp; Makeup — pick one</p>
-                <p class="text-[10px] font-semibold text-spa-plum/70 dark:text-pink-300/70">Option A or B</p>
-              </div>
-              <div id="fiona-beauty-options" class="grid grid-cols-1 sm:grid-cols-2 gap-3" role="radiogroup" aria-label="Hair and makeup options"></div>
-              <p id="fiona-beauty-hint" class="text-[10px] text-gray-500 dark:text-gray-400 leading-snug">One Style click delivers both pairs. Face + body stay locked; hair may polish within your real length.</p>
-            </section>
-
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-6 items-start">
               <!-- Your Canvas — Polaroid / editorial frame -->
               <aside class="space-y-3">
@@ -1206,7 +1187,7 @@
                     <div id="fiona-vision-placeholder" class="px-5 text-center space-y-3">
                       <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-spa-plum/70 dark:text-pink-300/80">Fiona's Vision</p>
                       <p class="font-serif text-lg font-bold text-spa-plumdark dark:text-pink-100 leading-snug">Your Virtual Styling Look</p>
-                      <p class="text-[11px] text-gray-600 dark:text-gray-300 leading-relaxed">Pick Wardrobe + Hair &amp; Makeup, then see yourself in that combo.</p>
+                      <p class="text-[11px] text-gray-600 dark:text-gray-300 leading-relaxed">Pick Wardrobe + Hair &amp; Makeup below, then Generate My Look.</p>
                     </div>
                     <div id="fiona-vision-loading" class="hidden absolute inset-0 bg-spa-cream/90 dark:bg-spa-darkcard/90 backdrop-blur-sm flex flex-col items-center justify-center gap-3 px-6 text-center">
                       <div class="w-9 h-9 rounded-full border-2 border-spa-plum/30 border-t-spa-plum animate-spin" aria-hidden="true"></div>
@@ -1221,23 +1202,49 @@
                     <span id="fiona-vision-status" class="text-[10px] font-semibold text-gray-600 dark:text-gray-300"></span>
                   </div>
                 </div>
-
-                <div class="flex flex-wrap items-center justify-center lg:justify-start gap-2">
-                  <button type="button" id="fiona-vision-generate-btn" onclick="generateFionaVisionLook()" class="px-4 py-2.5 rounded-xl bg-spa-plum hover:bg-spa-plumdark text-white text-xs font-bold shadow-sm transition active:scale-95 disabled:opacity-60">
-                    Generate My Look ✨
-                  </button>
-                  <button type="button" id="fiona-vision-sidebyside-btn" onclick="toggleFionaVisionSideBySide()" class="hidden px-3 py-2.5 rounded-xl bg-pink-100 dark:bg-purple-900/50 text-spa-plum dark:text-pink-200 text-xs font-semibold hover:bg-pink-200 transition">
-                    Side-by-side
-                  </button>
-                  <button type="button" id="fiona-vision-download-btn" onclick="downloadFionaVisionLook()" class="hidden px-3 py-2.5 rounded-xl bg-white dark:bg-spa-darkbg border border-spa-plum/25 text-spa-plum dark:text-pink-200 text-xs font-semibold hover:bg-spa-blush/50 transition">
-                    Download
-                  </button>
-                  <button type="button" id="fiona-vision-share-btn" onclick="shareFionaVisionLook()" class="hidden px-3 py-2.5 rounded-xl bg-white dark:bg-spa-darkbg border border-spa-plum/25 text-spa-plum dark:text-pink-200 text-xs font-semibold hover:bg-spa-blush/50 transition">
-                    Share
-                  </button>
-                </div>
                 <p id="fiona-vision-error" class="hidden text-[11px] font-medium text-rose-700 dark:text-rose-300 text-center lg:text-left"></p>
               </aside>
+            </div>
+
+            <!-- Pickers sit HERE (below Canvas/Vision, above Generate) so first Style click can't hide them under sticky nav -->
+            <div id="fiona-glamour-pickers" class="space-y-4 rounded-2xl border-2 border-spa-plum/30 dark:border-pink-300/30 bg-white/90 dark:bg-spa-darkbg/60 p-4 sm:p-5 shadow-sm" style="scroll-margin-top: 7.5rem;">
+              <p class="text-[11px] font-bold uppercase tracking-[0.16em] text-spa-plum dark:text-pink-300 text-center sm:text-left">Your picks after Style — choose one of each</p>
+
+              <section id="fiona-wardrobe-options-section" class="space-y-2">
+                <div class="flex flex-wrap items-baseline justify-between gap-2">
+                  <p class="text-[10px] font-bold uppercase tracking-[0.14em] text-spa-plum dark:text-pink-300">Wardrobe — Option A / B</p>
+                  <p id="fiona-wardrobe-pick-status" class="text-[10px] font-semibold text-spa-plum/70 dark:text-pink-300/70">Pick one</p>
+                </div>
+                <div id="fiona-wardrobe-options" class="grid grid-cols-1 sm:grid-cols-2 gap-3 min-h-[5.5rem]" role="radiogroup" aria-label="Wardrobe options">
+                  <p class="text-[11px] text-gray-500 dark:text-gray-400 sm:col-span-2">Style My Full Look to reveal Wardrobe A and B.</p>
+                </div>
+              </section>
+
+              <section id="fiona-beauty-options-section" class="space-y-2">
+                <div class="flex flex-wrap items-baseline justify-between gap-2">
+                  <p class="text-[10px] font-bold uppercase tracking-[0.14em] text-spa-plum dark:text-pink-300">Hair &amp; Makeup — Option A / B</p>
+                  <p id="fiona-beauty-pick-status" class="text-[10px] font-semibold text-spa-plum/70 dark:text-pink-300/70">Pick one</p>
+                </div>
+                <div id="fiona-beauty-options" class="grid grid-cols-1 sm:grid-cols-2 gap-3 min-h-[5.5rem]" role="radiogroup" aria-label="Hair and makeup options">
+                  <p class="text-[11px] text-gray-500 dark:text-gray-400 sm:col-span-2">Style My Full Look to reveal Hair &amp; Makeup A and B.</p>
+                </div>
+                <p id="fiona-beauty-hint" class="text-[10px] text-gray-500 dark:text-gray-400 leading-snug">One Style click delivers both pairs. Face + body stay locked; hair may polish within your real length.</p>
+              </section>
+
+              <div class="flex flex-wrap items-center justify-center gap-2 pt-1">
+                <button type="button" id="fiona-vision-generate-btn" onclick="generateFionaVisionLook()" class="px-5 py-3 rounded-xl bg-spa-plum hover:bg-spa-plumdark text-white text-xs font-bold shadow-sm transition active:scale-95 disabled:opacity-60">
+                  Generate My Look ✨
+                </button>
+                <button type="button" id="fiona-vision-sidebyside-btn" onclick="toggleFionaVisionSideBySide()" class="hidden px-3 py-2.5 rounded-xl bg-pink-100 dark:bg-purple-900/50 text-spa-plum dark:text-pink-200 text-xs font-semibold hover:bg-pink-200 transition">
+                  Side-by-side
+                </button>
+                <button type="button" id="fiona-vision-download-btn" onclick="downloadFionaVisionLook()" class="hidden px-3 py-2.5 rounded-xl bg-white dark:bg-spa-darkbg border border-spa-plum/25 text-spa-plum dark:text-pink-200 text-xs font-semibold hover:bg-spa-blush/50 transition">
+                  Download
+                </button>
+                <button type="button" id="fiona-vision-share-btn" onclick="shareFionaVisionLook()" class="hidden px-3 py-2.5 rounded-xl bg-white dark:bg-spa-darkbg border border-spa-plum/25 text-spa-plum dark:text-pink-200 text-xs font-semibold hover:bg-spa-blush/50 transition">
+                  Share
+                </button>
+              </div>
             </div>
 
             <!-- Side-by-side compare strip -->
@@ -4773,15 +4780,63 @@
 
       renderFionaWardrobeOptions();
       renderFionaBeautyOptions();
+      // If DOM still empty (stale HTML / escaped render miss), force offline-quality cards.
+      ensureGlamourPickersVisible();
       applySelectedGlamourPicksToUi({ refreshVision: true });
+      revealGlamourPickersIntoView();
+    }
 
-      // Debra: options must be visible after the FIRST Style click — bring them into view.
+    function escapeGlamourHtml(value) {
+      return String(value == null ? '' : value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function revealGlamourPickersIntoView() {
       try {
-        const box = document.getElementById('wardrobe-recommendation-box');
-        if (box && typeof box.scrollIntoView === 'function') {
-          box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const pickers = document.getElementById('fiona-glamour-pickers');
+        if (!pickers) return;
+        pickers.classList.remove('ring-2', 'ring-spa-plum/50');
+        // Force reflow so the highlight animation restarts each Style click.
+        void pickers.offsetWidth;
+        pickers.classList.add('ring-2', 'ring-spa-plum/50');
+        if (typeof pickers.scrollIntoView === 'function') {
+          pickers.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
+        setTimeout(() => pickers.classList.remove('ring-2', 'ring-spa-plum/50'), 1600);
       } catch (_) {}
+    }
+
+    function ensureGlamourPickersVisible() {
+      const wHost = document.getElementById('fiona-wardrobe-options');
+      const bHost = document.getElementById('fiona-beauty-options');
+      const meta = window.lastGlamourLook;
+      if (!meta) return;
+      const wCount = wHost ? wHost.querySelectorAll('[data-wardrobe-option]').length : 0;
+      const bCount = bHost ? bHost.querySelectorAll('[data-beauty-option]').length : 0;
+      if (wCount < 2 || bCount < 2) {
+        console.warn('[Glamour] pickers missing after render — rebuilding', { wCount, bCount });
+        const dual = normalizeClientDualOptions({
+          ...(meta.look || {}),
+          wardrobeOptions: meta.wardrobeOptions,
+          beautyOptions: meta.beautyOptions,
+          title: (meta.look && meta.look.title) || 'Curated look',
+          pieces: (meta.look && meta.look.pieces) || [],
+          facePalette: (meta.look && meta.look.facePalette) || null,
+          hairMove: (meta.look && meta.look.hairMove) || null
+        }, meta.harmony);
+        meta.wardrobeOptions = dual.wardrobeOptions;
+        meta.beautyOptions = dual.beautyOptions;
+        renderFionaWardrobeOptions();
+        renderFionaBeautyOptions();
+      }
+      const wStatus = document.getElementById('fiona-wardrobe-pick-status');
+      const bStatus = document.getElementById('fiona-beauty-pick-status');
+      if (wStatus) wStatus.textContent = `Selected ${fionaSelectedWardrobeId}`;
+      if (bStatus) bStatus.textContent = `Selected ${fionaSelectedBeautyId}`;
     }
 
     const FIONA_HAIRSTYLE_OPTIONS = [
@@ -4792,7 +4847,7 @@
       { id: 'subtle-volume', label: 'Subtle volume', short: 'Lifted crown, soft body' },
       { id: 'tousled-texture', label: 'Tousled texture', short: 'Lived-in piecey finish' }
     ];
-    const FIONA_VISION_CACHE_PREFIX = 'fiona_vision_look_v7:';
+    const FIONA_VISION_CACHE_PREFIX = 'fiona_vision_look_v8:';
     let fionaVisionSideBySide = false;
     let fionaVisionGenerating = false;
     let fionaSelectedWardrobeId = 'A';
@@ -4964,22 +5019,29 @@
       const host = document.getElementById('fiona-wardrobe-options');
       if (!host) return;
       const list = (window.lastGlamourLook && window.lastGlamourLook.wardrobeOptions) || [];
+      if (!list.length) {
+        host.innerHTML = '<p class="text-[11px] text-gray-500 dark:text-gray-400 sm:col-span-2">Style My Full Look to reveal Wardrobe A and B.</p>';
+        return;
+      }
       host.innerHTML = list.map((opt) => {
         const isOn = opt.id === fionaSelectedWardrobeId;
         const pieces = Array.isArray(opt.pieces) ? opt.pieces.slice(0, 2).map((p) => (p && p.name) || p).filter(Boolean).join(' · ') : '';
         const base = isOn
           ? 'border-spa-plum bg-white dark:bg-spa-darkbg ring-2 ring-spa-plum/35 shadow-sm'
           : 'border-spa-plum/20 dark:border-purple-800 bg-white/80 dark:bg-spa-darkbg/40 hover:border-spa-plum/50';
-        return `<button type="button" role="radio" aria-checked="${isOn ? 'true' : 'false'}" data-wardrobe-option="${opt.id}" onclick="selectFionaWardrobeOption('${opt.id}')" class="text-left p-3.5 border transition active:scale-[0.99] space-y-1.5 ${base}">
+        const safeId = escapeGlamourHtml(opt.id || 'A');
+        return `<button type="button" role="radio" aria-checked="${isOn ? 'true' : 'false'}" data-wardrobe-option="${safeId}" onclick="selectFionaWardrobeOption('${safeId}')" class="text-left p-3.5 border transition active:scale-[0.99] space-y-1.5 ${base}">
           <div class="flex items-center justify-between gap-2">
-            <span class="text-[10px] font-bold uppercase tracking-[0.14em] text-spa-plum dark:text-pink-300">Option ${opt.id}</span>
+            <span class="text-[10px] font-bold uppercase tracking-[0.14em] text-spa-plum dark:text-pink-300">Option ${safeId}</span>
             ${isOn ? '<span class="text-[9px] font-bold uppercase tracking-wider text-white bg-spa-plum px-1.5 py-0.5">Selected</span>' : ''}
           </div>
-          <p class="font-serif text-base font-bold text-gray-900 dark:text-white leading-snug">${opt.title || 'Wardrobe look'}</p>
-          <p class="text-[11px] text-gray-600 dark:text-gray-300 leading-relaxed line-clamp-3">${opt.desc || ''}</p>
-          ${pieces ? `<p class="text-[10px] font-semibold text-spa-plum/80 dark:text-pink-300/80 pt-0.5">${pieces}</p>` : ''}
+          <p class="font-serif text-base font-bold text-gray-900 dark:text-white leading-snug">${escapeGlamourHtml(opt.title || 'Wardrobe look')}</p>
+          <p class="text-[11px] text-gray-600 dark:text-gray-300 leading-relaxed line-clamp-3">${escapeGlamourHtml(opt.desc || '')}</p>
+          ${pieces ? `<p class="text-[10px] font-semibold text-spa-plum/80 dark:text-pink-300/80 pt-0.5">${escapeGlamourHtml(pieces)}</p>` : ''}
         </button>`;
       }).join('');
+      const wStatus = document.getElementById('fiona-wardrobe-pick-status');
+      if (wStatus) wStatus.textContent = `Selected ${fionaSelectedWardrobeId}`;
     }
 
     function renderFionaBeautyOptions() {
@@ -4987,6 +5049,10 @@
       const hint = document.getElementById('fiona-beauty-hint');
       if (!host) return;
       const list = (window.lastGlamourLook && window.lastGlamourLook.beautyOptions) || [];
+      if (!list.length) {
+        host.innerHTML = '<p class="text-[11px] text-gray-500 dark:text-gray-400 sm:col-span-2">Style My Full Look to reveal Hair &amp; Makeup A and B.</p>';
+        return;
+      }
       host.innerHTML = list.map((opt) => {
         const isOn = opt.id === fionaSelectedBeautyId;
         const hair = getHairStyleOption(opt.hairStyleId);
@@ -4995,17 +5061,19 @@
         const base = isOn
           ? 'border-spa-plum bg-white dark:bg-spa-darkbg ring-2 ring-spa-plum/35 shadow-sm'
           : 'border-spa-plum/20 dark:border-purple-800 bg-white/80 dark:bg-spa-darkbg/40 hover:border-spa-plum/50';
-        return `<button type="button" role="radio" aria-checked="${isOn ? 'true' : 'false'}" data-beauty-option="${opt.id}" onclick="selectFionaBeautyOption('${opt.id}')" class="text-left p-3 border transition active:scale-[0.99] space-y-1.5 ${base}">
+        const safeId = escapeGlamourHtml(opt.id || 'A');
+        const summary = opt.summary || (opt.hairMove && opt.hairMove.body) || '';
+        return `<button type="button" role="radio" aria-checked="${isOn ? 'true' : 'false'}" data-beauty-option="${safeId}" onclick="selectFionaBeautyOption('${safeId}')" class="text-left p-3 border transition active:scale-[0.99] space-y-1.5 ${base}">
           <div class="flex items-center justify-between gap-2">
-            <span class="text-[10px] font-bold uppercase tracking-[0.14em] text-spa-plum dark:text-pink-300">Option ${opt.id}</span>
+            <span class="text-[10px] font-bold uppercase tracking-[0.14em] text-spa-plum dark:text-pink-300">Option ${safeId}</span>
             ${isOn ? '<span class="text-[9px] font-bold uppercase tracking-wider text-white bg-spa-plum px-1.5 py-0.5">Selected</span>' : ''}
           </div>
-          <p class="font-serif text-sm font-bold text-gray-900 dark:text-white leading-snug">${opt.title || 'Beauty look'}</p>
-          <p class="text-[11px] text-gray-600 dark:text-gray-300 leading-relaxed">${opt.summary || (opt.hairMove && opt.hairMove.body) || ''}</p>
+          <p class="font-serif text-sm font-bold text-gray-900 dark:text-white leading-snug">${escapeGlamourHtml(opt.title || 'Beauty look')}</p>
+          <p class="text-[11px] text-gray-600 dark:text-gray-300 leading-relaxed line-clamp-3">${escapeGlamourHtml(summary)}</p>
           <div class="flex flex-wrap items-center gap-2 pt-0.5">
-            <span class="text-[10px] font-semibold text-spa-plum dark:text-pink-200">${hair.label}</span>
-            ${lip[0] ? `<span class="inline-flex items-center gap-1 text-[10px] text-gray-600 dark:text-gray-300"><span class="w-3 h-3 rounded-full border border-white ring-1 ring-spa-plum/20" style="background:${lip[0]}"></span>${lip[1] || 'Lip'}</span>` : ''}
-            ${cheek[0] ? `<span class="inline-flex items-center gap-1 text-[10px] text-gray-600 dark:text-gray-300"><span class="w-3 h-3 rounded-full border border-white ring-1 ring-spa-plum/20" style="background:${cheek[0]}"></span>${cheek[1] || 'Cheek'}</span>` : ''}
+            <span class="text-[10px] font-semibold text-spa-plum dark:text-pink-200">${escapeGlamourHtml(hair.label)}</span>
+            ${lip[0] ? `<span class="inline-flex items-center gap-1 text-[10px] text-gray-600 dark:text-gray-300"><span class="w-3 h-3 rounded-full border border-white ring-1 ring-spa-plum/20" style="background:${escapeGlamourHtml(lip[0])}"></span>${escapeGlamourHtml(lip[1] || 'Lip')}</span>` : ''}
+            ${cheek[0] ? `<span class="inline-flex items-center gap-1 text-[10px] text-gray-600 dark:text-gray-300"><span class="w-3 h-3 rounded-full border border-white ring-1 ring-spa-plum/20" style="background:${escapeGlamourHtml(cheek[0])}"></span>${escapeGlamourHtml(cheek[1] || 'Cheek')}</span>` : ''}
           </div>
         </button>`;
       }).join('');
@@ -5016,6 +5084,8 @@
           ? `${hair.label}: face + body stay locked; hair stays in your length family.`
           : 'Pick a beauty look. Face + body stay locked; hair may polish within your real length.';
       }
+      const bStatus = document.getElementById('fiona-beauty-pick-status');
+      if (bStatus) bStatus.textContent = `Selected ${fionaSelectedBeautyId}`;
     }
 
     function applySelectedGlamourPicksToUi(opts) {
@@ -5578,6 +5648,21 @@
           btn.disabled = true;
           btn.innerText = 'Fiona is building your 4 options…';
         }
+
+      // Reveal results shell immediately so Debra sees the picker dock on the FIRST click.
+      try {
+        const box = document.getElementById('wardrobe-recommendation-box');
+        if (box) box.classList.remove('hidden');
+        const wHost = document.getElementById('fiona-wardrobe-options');
+        const bHost = document.getElementById('fiona-beauty-options');
+        if (wHost) {
+          wHost.innerHTML = '<p class="text-[11px] text-spa-plum dark:text-pink-200 sm:col-span-2 font-semibold">Building Wardrobe Option A and B…</p>';
+        }
+        if (bHost) {
+          bHost.innerHTML = '<p class="text-[11px] text-spa-plum dark:text-pink-200 sm:col-span-2 font-semibold">Building Hair &amp; Makeup Option A and B…</p>';
+        }
+        revealGlamourPickersIntoView();
+      } catch (_) {}
 
       try {
         const images = await collectGlamourApiImages(MAX_CANVAS_PHOTOS);
