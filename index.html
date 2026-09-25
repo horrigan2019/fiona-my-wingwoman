@@ -1153,18 +1153,7 @@
 
             <p id="wardrobe-compliment" class="hidden text-sm font-medium text-spa-plumdark dark:text-pink-100 bg-white/80 dark:bg-spa-darkbg/50 border border-spa-plum/20 dark:border-purple-800 rounded-xl px-3.5 py-3"></p>
 
-            <!-- AI-generated look of the user -->
-            <div id="wardrobe-ai-look-panel" class="hidden space-y-2">
-              <div class="flex items-center justify-between gap-2">
-                <p class="text-[10px] font-bold uppercase tracking-[0.16em] text-spa-plum dark:text-pink-300">Your Look — Generated</p>
-                <span id="wardrobe-ai-look-status" class="text-[10px] font-semibold text-gray-500 dark:text-gray-400"></span>
-              </div>
-              <div class="max-w-sm mx-auto lg:mx-0 rounded-2xl overflow-hidden border border-spa-plum/25 dark:border-purple-800 bg-spa-blush/40 shadow-sm">
-                <img id="wardrobe-ai-look-img" src="" alt="You in Fiona's recommended look" class="w-full h-auto object-cover">
-              </div>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.35fr)] gap-5 lg:gap-6 items-start">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-6 items-start">
               <!-- Your Canvas — Polaroid / editorial frame -->
               <aside class="space-y-3">
                 <div class="bg-white dark:bg-[#2a2430] p-3 pb-5 shadow-md border border-spa-plum/20 dark:border-purple-800 rotate-[-1deg] max-w-sm mx-auto lg:mx-0">
@@ -1190,6 +1179,61 @@
                 <div id="wardrobe-palette-swatches" class="flex flex-wrap gap-2 justify-center lg:justify-start"></div>
               </aside>
 
+              <!-- Fiona's Vision — AI virtual styling look -->
+              <aside id="fiona-vision-card" class="space-y-3">
+                <div class="bg-white dark:bg-[#2a2430] p-3 pb-5 shadow-md border border-spa-plum/20 dark:border-purple-800 rotate-[1deg] max-w-sm mx-auto lg:mx-0 relative overflow-hidden">
+                  <div id="fiona-vision-frame" class="aspect-[4/5] bg-gradient-to-br from-spa-blush via-[#F7E7CE]/50 to-spa-cream dark:from-purple-950/50 dark:via-spa-plum/20 dark:to-spa-darkcard overflow-hidden border border-spa-plum/10 dark:border-purple-900/50 flex items-center justify-center relative">
+                    <img id="fiona-vision-img" src="" alt="You in Fiona's recommended look" class="hidden w-full h-full object-cover">
+                    <div id="fiona-vision-placeholder" class="px-5 text-center space-y-3">
+                      <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-spa-plum/70 dark:text-pink-300/80">Fiona's Vision</p>
+                      <p class="font-serif text-lg font-bold text-spa-plumdark dark:text-pink-100 leading-snug">Your Virtual Styling Look</p>
+                      <p class="text-[11px] text-gray-600 dark:text-gray-300 leading-relaxed">See yourself dressed in this exact outfit, hair, and makeup.</p>
+                    </div>
+                    <div id="fiona-vision-loading" class="hidden absolute inset-0 bg-spa-cream/90 dark:bg-spa-darkcard/90 backdrop-blur-sm flex flex-col items-center justify-center gap-3 px-6 text-center">
+                      <div class="w-9 h-9 rounded-full border-2 border-spa-plum/30 border-t-spa-plum animate-spin" aria-hidden="true"></div>
+                      <p class="font-serif text-sm font-bold text-spa-plum dark:text-pink-200">Fiona is dressing you…</p>
+                      <p id="fiona-vision-loading-text" class="text-[11px] text-gray-600 dark:text-gray-300 leading-relaxed">in your custom palette — hang tight, gorgeous.</p>
+                    </div>
+                  </div>
+                  <div class="mt-3 flex flex-wrap items-center gap-2">
+                    <span class="inline-flex items-center gap-1.5 px-2 py-1 text-[10px] font-bold uppercase tracking-wider bg-gradient-to-r from-spa-plum to-[#7A3A68] text-white">
+                      Fiona's Vision
+                    </span>
+                    <span id="fiona-vision-status" class="text-[10px] font-semibold text-gray-600 dark:text-gray-300"></span>
+                  </div>
+                </div>
+
+                <div class="flex flex-wrap items-center justify-center lg:justify-start gap-2">
+                  <button type="button" id="fiona-vision-generate-btn" onclick="generateFionaVisionLook()" class="px-4 py-2.5 rounded-xl bg-spa-plum hover:bg-spa-plumdark text-white text-xs font-bold shadow-sm transition active:scale-95 disabled:opacity-60">
+                    Generate My Look ✨
+                  </button>
+                  <button type="button" id="fiona-vision-sidebyside-btn" onclick="toggleFionaVisionSideBySide()" class="hidden px-3 py-2.5 rounded-xl bg-pink-100 dark:bg-purple-900/50 text-spa-plum dark:text-pink-200 text-xs font-semibold hover:bg-pink-200 transition">
+                    Side-by-side
+                  </button>
+                  <button type="button" id="fiona-vision-download-btn" onclick="downloadFionaVisionLook()" class="hidden px-3 py-2.5 rounded-xl bg-white dark:bg-spa-darkbg border border-spa-plum/25 text-spa-plum dark:text-pink-200 text-xs font-semibold hover:bg-spa-blush/50 transition">
+                    Download
+                  </button>
+                  <button type="button" id="fiona-vision-share-btn" onclick="shareFionaVisionLook()" class="hidden px-3 py-2.5 rounded-xl bg-white dark:bg-spa-darkbg border border-spa-plum/25 text-spa-plum dark:text-pink-200 text-xs font-semibold hover:bg-spa-blush/50 transition">
+                    Share
+                  </button>
+                </div>
+                <p id="fiona-vision-error" class="hidden text-[11px] font-medium text-rose-700 dark:text-rose-300 text-center lg:text-left"></p>
+              </aside>
+            </div>
+
+            <!-- Side-by-side compare strip -->
+            <div id="fiona-vision-compare" class="hidden grid grid-cols-2 gap-3 max-w-2xl mx-auto">
+              <div class="rounded-xl overflow-hidden border border-spa-plum/20 bg-white dark:bg-spa-darkcard">
+                <p class="text-[9px] font-bold uppercase tracking-wider text-center py-1.5 bg-spa-plum text-white">Canvas</p>
+                <img id="fiona-vision-compare-canvas" src="" alt="Your canvas" class="w-full aspect-[3/4] object-cover">
+              </div>
+              <div class="rounded-xl overflow-hidden border border-spa-plum/20 bg-white dark:bg-spa-darkcard">
+                <p class="text-[9px] font-bold uppercase tracking-wider text-center py-1.5 bg-gradient-to-r from-spa-plum to-[#7A3A68] text-white">Fiona's Vision</p>
+                <img id="fiona-vision-compare-look" src="" alt="Styled look" class="w-full aspect-[3/4] object-cover">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-5 items-start">
               <!-- Look narrative + wardrobe piece cards -->
               <div class="space-y-4 min-w-0">
                 <p id="wardrobe-look-desc" class="text-xs sm:text-sm text-gray-700 dark:text-gray-200 leading-relaxed">
@@ -4676,75 +4720,312 @@
         vibe,
         silhouette,
         harmony,
-        photoCount
+        photoCount,
+        cacheKey: buildFionaVisionCacheKey(look, occasionLabel, vibe)
       };
+      prepareFionaVisionCard(window.lastGlamourLook);
     }
 
-    function resetAiLookPanel(statusText) {
-      const panel = document.getElementById('wardrobe-ai-look-panel');
-      const img = document.getElementById('wardrobe-ai-look-img');
-      const status = document.getElementById('wardrobe-ai-look-status');
-      if (!panel || !img) return;
-      panel.classList.remove('hidden');
-      img.removeAttribute('src');
-      img.alt = 'Generating your Glamour look…';
-      if (status) status.innerText = statusText || 'Generating your look photo…';
+    const FIONA_VISION_CACHE_PREFIX = 'fiona_vision_look_v1:';
+    let fionaVisionSideBySide = false;
+    let fionaVisionGenerating = false;
+
+    function buildFionaVisionCacheKey(look, occasionLabel, vibe) {
+      const pieces = Array.isArray(look && look.pieces)
+        ? look.pieces.map((p) => `${p.name}|${p.colorLabel || ''}|${p.hex || ''}`).join(';')
+        : '';
+      const hair = look && look.hairMove ? `${look.hairMove.title || ''}|${look.hairMove.body || ''}` : '';
+      const face = look && look.facePalette
+        ? `${(look.facePalette.lip || [])[1] || ''}|${(look.facePalette.cheek || [])[1] || ''}`
+        : '';
+      const canvas = (typeof getCanvasImages === 'function' ? getCanvasImages('wardrobe') : [])[0];
+      const photoSig = canvas && canvas.dataUrl
+        ? String(canvas.dataUrl).slice(-120)
+        : (canvas && canvas.id) || 'nophoto';
+      return [
+        look && look.title || '',
+        occasionLabel || '',
+        vibe || '',
+        pieces,
+        hair,
+        face,
+        photoSig
+      ].join('::');
     }
 
-    function showAiLookPanel(dataUrl, statusText) {
-      const panel = document.getElementById('wardrobe-ai-look-panel');
-      const img = document.getElementById('wardrobe-ai-look-img');
-      const status = document.getElementById('wardrobe-ai-look-status');
-      if (!panel || !img || !dataUrl) return;
-      panel.classList.remove('hidden');
+    function readFionaVisionCache(cacheKey) {
+      if (!cacheKey) return null;
+      try {
+        const raw = sessionStorage.getItem(FIONA_VISION_CACHE_PREFIX + cacheKey);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (parsed && parsed.dataUrl) return parsed;
+      } catch (_) {}
+      return null;
+    }
+
+    function writeFionaVisionCache(cacheKey, payload) {
+      if (!cacheKey || !payload || !payload.dataUrl) return;
+      try {
+        sessionStorage.setItem(FIONA_VISION_CACHE_PREFIX + cacheKey, JSON.stringify({
+          dataUrl: payload.dataUrl,
+          provider: payload.provider || null,
+          savedAt: Date.now()
+        }));
+      } catch (_) {
+        // Quota full — ignore; generation still works for this session in memory.
+      }
+    }
+
+    function setFionaVisionLoading(on, message) {
+      const loading = document.getElementById('fiona-vision-loading');
+      const loadingText = document.getElementById('fiona-vision-loading-text');
+      const btn = document.getElementById('fiona-vision-generate-btn');
+      if (loadingText && message) loadingText.innerText = message;
+      if (loading) loading.classList.toggle('hidden', !on);
+      if (btn) {
+        btn.disabled = !!on;
+        btn.innerText = on ? 'Dressing you…' : 'Generate My Look ✨';
+      }
+      fionaVisionGenerating = !!on;
+    }
+
+    function setFionaVisionError(msg) {
+      const err = document.getElementById('fiona-vision-error');
+      if (!err) return;
+      if (msg) {
+        err.classList.remove('hidden');
+        err.innerText = msg;
+      } else {
+        err.classList.add('hidden');
+        err.innerText = '';
+      }
+    }
+
+    function showFionaVisionResult(dataUrl, statusText) {
+      const img = document.getElementById('fiona-vision-img');
+      const placeholder = document.getElementById('fiona-vision-placeholder');
+      const status = document.getElementById('fiona-vision-status');
+      const sideBtn = document.getElementById('fiona-vision-sidebyside-btn');
+      const dlBtn = document.getElementById('fiona-vision-download-btn');
+      const shareBtn = document.getElementById('fiona-vision-share-btn');
+      if (!img || !dataUrl) return;
       img.src = dataUrl;
-      img.alt = 'You in Fiona\'s recommended look';
-      if (status) status.innerText = statusText || 'AI look ready';
+      img.classList.remove('hidden');
+      if (placeholder) placeholder.classList.add('hidden');
+      if (status) status.innerText = statusText || 'Look ready';
+      if (sideBtn) sideBtn.classList.remove('hidden');
+      if (dlBtn) dlBtn.classList.remove('hidden');
+      if (shareBtn) shareBtn.classList.remove('hidden');
+      window.lastFionaVisionDataUrl = dataUrl;
+      setFionaVisionError('');
+      if (fionaVisionSideBySide) renderFionaVisionCompare();
     }
 
-    function hideAiLookPanel(optionalStatus) {
-      const panel = document.getElementById('wardrobe-ai-look-panel');
-      const status = document.getElementById('wardrobe-ai-look-status');
-      if (optionalStatus && panel && status) {
-        panel.classList.remove('hidden');
-        status.innerText = optionalStatus;
+    function prepareFionaVisionCard(meta) {
+      const img = document.getElementById('fiona-vision-img');
+      const placeholder = document.getElementById('fiona-vision-placeholder');
+      const status = document.getElementById('fiona-vision-status');
+      const sideBtn = document.getElementById('fiona-vision-sidebyside-btn');
+      const dlBtn = document.getElementById('fiona-vision-download-btn');
+      const shareBtn = document.getElementById('fiona-vision-share-btn');
+      const compare = document.getElementById('fiona-vision-compare');
+      setFionaVisionLoading(false);
+      setFionaVisionError('');
+      fionaVisionSideBySide = false;
+      if (compare) compare.classList.add('hidden');
+
+      const cached = readFionaVisionCache(meta && meta.cacheKey);
+      if (cached && cached.dataUrl) {
+        showFionaVisionResult(cached.dataUrl, 'Cached look · no re-charge');
         return;
       }
-      if (panel) panel.classList.add('hidden');
+
+      if (img) {
+        img.classList.add('hidden');
+        img.removeAttribute('src');
+      }
+      if (placeholder) placeholder.classList.remove('hidden');
+      if (status) {
+        status.innerText = (meta && meta.photoCount > 0)
+          ? 'Ready when you are'
+          : 'Add a canvas photo first';
+      }
+      if (sideBtn) sideBtn.classList.add('hidden');
+      if (dlBtn) dlBtn.classList.add('hidden');
+      if (shareBtn) shareBtn.classList.add('hidden');
+      window.lastFionaVisionDataUrl = null;
     }
 
-    async function generateGlamourLookPhoto(look, images, occasionLabel, vibe) {
-      if (!images || !images.length) {
-        hideAiLookPanel('Add a selfie to generate a photo of you in this look.');
-        return null;
+    function renderFionaVisionCompare() {
+      const compare = document.getElementById('fiona-vision-compare');
+      const canvasImg = document.getElementById('fiona-vision-compare-canvas');
+      const lookImg = document.getElementById('fiona-vision-compare-look');
+      const hero = document.getElementById('wardrobe-moodboard-hero');
+      const vision = window.lastFionaVisionDataUrl;
+      if (!compare || !vision) return;
+      const canvasSrc = (hero && hero.src && !hero.classList.contains('hidden'))
+        ? hero.src
+        : ((typeof getCanvasImages === 'function' ? getCanvasImages('wardrobe') : [])[0] || {}).dataUrl;
+      if (canvasImg) canvasImg.src = canvasSrc || vision;
+      if (lookImg) lookImg.src = vision;
+      compare.classList.remove('hidden');
+    }
+
+    function toggleFionaVisionSideBySide() {
+      if (!window.lastFionaVisionDataUrl) {
+        showToast('Generate your look first, then we can compare.');
+        return;
       }
-      resetAiLookPanel('Fiona is generating your look photo…');
+      fionaVisionSideBySide = !fionaVisionSideBySide;
+      const compare = document.getElementById('fiona-vision-compare');
+      const btn = document.getElementById('fiona-vision-sidebyside-btn');
+      if (fionaVisionSideBySide) {
+        renderFionaVisionCompare();
+        if (btn) btn.innerText = 'Hide compare';
+      } else {
+        if (compare) compare.classList.add('hidden');
+        if (btn) btn.innerText = 'Side-by-side';
+      }
+    }
+
+    async function downloadFionaVisionLook() {
+      const dataUrl = window.lastFionaVisionDataUrl;
+      if (!dataUrl) return;
       try {
-        const res = await fetch(GLAMOUR_STYLE_API, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            mode: 'look',
-            generateLook: true,
-            occasion: occasionLabel,
-            vibe,
-            look,
-            images: images.slice(0, 2)
-          })
-        });
-        const payload = await res.json().catch(() => ({}));
-        if (!res.ok || !payload.image || !payload.image.dataUrl) {
-          const hint = payload.hint || payload.error || 'Look photo unavailable';
-          hideAiLookPanel(hint);
-          return null;
-        }
-        showAiLookPanel(payload.image.dataUrl, payload.provider === 'openai' ? 'Generated look' : 'Generated look');
-        return payload.image.dataUrl;
-      } catch (err) {
-        console.error('[Glamour Look Photo]', err);
-        hideAiLookPanel('Look photo could not start — text recommendation is still ready.');
-        return null;
+        const a = document.createElement('a');
+        a.href = dataUrl;
+        a.download = `fiona-vision-look-${Date.now()}.png`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        showToast('Look saved to your downloads ✨');
+      } catch (_) {
+        showToast('Could not download — try long-press / save image.');
       }
+    }
+
+    async function shareFionaVisionLook() {
+      const dataUrl = window.lastFionaVisionDataUrl;
+      if (!dataUrl) return;
+      try {
+        const res = await fetch(dataUrl);
+        const blob = await res.blob();
+        const file = new File([blob], 'fiona-vision-look.png', { type: blob.type || 'image/png' });
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: "Fiona's Vision",
+            text: 'My Glamour Suite look from Fiona: Your Wingwoman'
+          });
+          return;
+        }
+        await downloadFionaVisionLook();
+      } catch (err) {
+        if (err && err.name === 'AbortError') return;
+        await downloadFionaVisionLook();
+      }
+    }
+
+    async function generateFionaVisionLook() {
+      if (fionaVisionGenerating) return;
+      const meta = window.lastGlamourLook;
+      if (!meta || !meta.look) {
+        showToast('Style your full look first, then Generate My Look.');
+        return;
+      }
+
+      const cacheKey = meta.cacheKey || buildFionaVisionCacheKey(meta.look, meta.occasionLabel, meta.vibe);
+      const cached = readFionaVisionCache(cacheKey);
+      if (cached && cached.dataUrl) {
+        showFionaVisionResult(cached.dataUrl, 'Cached look · no re-charge');
+        showToast('Using your saved Vision look for this recommendation ✨');
+        return;
+      }
+
+      const images = await collectGlamourApiImages(2);
+      if (!images.length) {
+        setFionaVisionError("Add a photo to Your Canvas first, gorgeous — Fiona needs a face to dress.");
+        showToast('Add a canvas photo first.');
+        return;
+      }
+
+      setFionaVisionLoading(true, 'in your custom palette — hang tight, gorgeous.');
+      setFionaVisionError('');
+
+      const body = {
+        photo: images[0],
+        images: images.slice(0, 2),
+        look: meta.look,
+        occasion: meta.occasionLabel,
+        vibe: meta.vibe
+      };
+
+      try {
+        let payload = null;
+        let res = null;
+        for (const url of ['/api/generate-outfit-look', GLAMOUR_STYLE_API]) {
+          const requestBody = url === GLAMOUR_STYLE_API
+            ? { mode: 'look', generateLook: true, ...body }
+            : body;
+          res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestBody)
+          });
+          payload = await res.json().catch(() => ({}));
+          if (res.ok && payload.image && payload.image.dataUrl) break;
+          if (res.status !== 404) break;
+        }
+
+        if (!res || !res.ok || !payload.image || !payload.image.dataUrl) {
+          const msg = payload.fionaMessage
+            || payload.hint
+            || payload.error
+            || "That look got stuck in the dressing room, darling. Try again in a moment.";
+          setFionaVisionError(msg);
+          showToast(msg);
+          return;
+        }
+
+        writeFionaVisionCache(cacheKey, {
+          dataUrl: payload.image.dataUrl,
+          provider: payload.provider
+        });
+        showFionaVisionResult(payload.image.dataUrl, payload.provider ? `Ready · ${payload.provider}` : 'Look ready');
+        showToast("Fiona's Vision is ready ✨");
+      } catch (err) {
+        console.error('[Fiona Vision]', err);
+        const msg = "Fiona hit a tiny wardrobe snag. Refresh and try Generate My Look again.";
+        setFionaVisionError(msg);
+        showToast(msg);
+      } finally {
+        setFionaVisionLoading(false);
+      }
+    }
+
+    // Back-compat aliases used by older generateWardrobeAdvice path
+    function resetAiLookPanel(statusText) {
+      setFionaVisionLoading(true, statusText || 'in your custom palette — hang tight, gorgeous.');
+    }
+    function showAiLookPanel(dataUrl, statusText) {
+      showFionaVisionResult(dataUrl, statusText);
+      setFionaVisionLoading(false);
+    }
+    function hideAiLookPanel(optionalStatus) {
+      setFionaVisionLoading(false);
+      if (optionalStatus) setFionaVisionError(optionalStatus);
+    }
+    async function generateGlamourLookPhoto(look, images, occasionLabel, vibe) {
+      window.lastGlamourLook = {
+        ...(window.lastGlamourLook || {}),
+        look,
+        occasionLabel,
+        vibe,
+        photoCount: images ? images.length : 0,
+        cacheKey: buildFionaVisionCacheKey(look, occasionLabel, vibe)
+      };
+      return generateFionaVisionLook();
     }
 
     /** Offline-only emergency fallback — varied by occasion, vibe, energy, silhouette, harmony. */
@@ -4918,10 +5199,7 @@
           : 'Fiona tailored a full Glamour look ✨');
 
         if (images.length) {
-          if (btn) btn.innerText = 'Generating your look photo…';
-          await generateGlamourLookPhoto(payload.data, images, occasionLabel, vibe);
-        } else {
-          hideAiLookPanel('Add a selfie above, then Style again to generate a photo of you in this look.');
+          showToast('Tap Generate My Look ✨ to see yourself in this outfit');
         }
       } catch (err) {
         console.error('[Glamour Style] wardrobe fallback', err && err.fionaMeta ? err.fionaMeta : err);
@@ -4942,7 +5220,6 @@
           getCanvasImages('wardrobe').length,
           'Offline draft —'
         );
-        hideAiLookPanel('Live look photo needs the style API online.');
         showToast((err && err.fionaToast) || `Live styling unavailable (${err && err.message ? err.message : 'unknown error'}). Showing offline draft.`);
       } finally {
         if (btn) {
