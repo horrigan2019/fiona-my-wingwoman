@@ -389,7 +389,10 @@ Write clarityRefocus, confidenceAnchor, wingwomanQuip, and compliment that are u
   }
 }
 
-/** User-selected Vision hairstyles — polish within her real length/color; never invent a new woman. */
+/**
+ * Vision hair STYLING options only — texture / part / finish / polish.
+ * Never ship haircuts (bob, lob, crop, trim). Same cut + length as Canvas always.
+ */
 const FIONA_HAIRSTYLE_OPTIONS = [
   {
     id: 'keep-mine',
@@ -400,68 +403,85 @@ const FIONA_HAIRSTYLE_OPTIONS = [
   {
     id: 'soft-waves',
     label: 'Soft waves',
-    short: 'Gentle wave, same length',
-    vision: 'Restyle her EXISTING hair into soft, face-framing waves with natural movement — same color, density, hairline, and approximate length as the reference. Ends stay at her real length (chin/ear/as photographed).'
+    short: 'Gentle wave, same cut & length',
+    vision: 'STYLING ONLY — not a haircut. Restyle her EXISTING hair into soft, face-framing waves with natural movement. HARD LOCK: keep the EXACT same hair LENGTH and CUT/shape as the reference (waist-length stays waist-length; mid-back stays mid-back; short stays short). Same color, density, and hairline. NEVER shorten, bob, lob, trim, cut, or grow her hair.'
   },
   {
     id: 'sleek-side-part',
     label: 'Sleek side part',
-    short: 'Polished deep side part',
-    vision: 'Restyle her EXISTING hair with a polished deep side part and smooth, controlled finish — same color, density, hairline, and approximate length. Soft shine, not stiff; no added length.'
-  },
-  {
-    id: 'polished-bob',
-    label: 'Polished bob',
-    short: 'Smooth chin-length bob',
-    vision: 'Restyle her EXISTING cut into a polished chin-length bob with clean ends and soft face framing — keep her real color, density, and hairline. If her hair is already a bob/chin-length, refine it; never grow past chin length.'
+    short: 'Polished deep side part, same length',
+    vision: 'STYLING ONLY — not a haircut. Restyle her EXISTING hair with a polished deep side part and smooth, controlled finish. HARD LOCK: keep the EXACT same hair LENGTH and CUT/shape as the reference. Soft shine, not stiff. NEVER shorten, bob, lob, trim, cut, add length, or extensions.'
   },
   {
     id: 'subtle-volume',
     label: 'Subtle volume',
     short: 'Lifted crown, soft body',
-    vision: 'Keep her exact cut silhouette and length, but add subtle lifted crown volume and soft body through the mid-lengths — same color, density, and hairline. Polish only; no extensions or length change.'
+    vision: 'STYLING ONLY — not a haircut. Keep her EXACT cut silhouette and length, but add subtle lifted crown volume and soft body through the mid-lengths — same color, density, and hairline. Polish only; NEVER shorten, bob, trim, cut, or add extensions.'
   },
   {
     id: 'tousled-texture',
     label: 'Tousled texture',
-    short: 'Lived-in piecey finish',
-    vision: 'Restyle her EXISTING hair with soft tousled, piecey texture and a lived-in finish — same color, density, hairline, and approximate length. Flattering and intentional, still clearly HER cut family.'
+    short: 'Lived-in piecey finish, same length',
+    vision: 'STYLING ONLY — not a haircut. Restyle her EXISTING hair with soft tousled, piecey texture and a lived-in finish. HARD LOCK: EXACT same length and cut/shape as the reference. Same color, density, and hairline. NEVER shorten, bob, lob, trim, or cut her hair.'
   }
 ];
 
+/** Legacy / wrongly-shipped haircut ids → styling-only equivalents. */
+const LEGACY_HAIRCUT_STYLE_REMAP = {
+  'polished-bob': 'sleek-side-part',
+  bob: 'sleek-side-part',
+  lob: 'soft-waves',
+  'collarbone-lob': 'sleek-side-part',
+  'soft-long-layers': 'soft-waves',
+  'face-framing-layers': 'soft-waves',
+  'modern-shag': 'tousled-texture',
+  'sleek-long': 'sleek-side-part',
+  'new-haircut': 'keep-mine',
+  haircut: 'keep-mine'
+};
+
+function normalizeHairStyleId(hairStyleId) {
+  const raw = String(hairStyleId || '').trim().toLowerCase();
+  if (!raw) return 'keep-mine';
+  if (LEGACY_HAIRCUT_STYLE_REMAP[raw]) return LEGACY_HAIRCUT_STYLE_REMAP[raw];
+  return raw;
+}
+
 function resolveHairStyleOption(look, hairStyleId) {
-  const raw = String(
+  const raw = normalizeHairStyleId(
     hairStyleId
       || (look && (look.hairStyleId || look.hairstyleId || look.selectedHairStyleId))
       || 'keep-mine'
-  ).trim().toLowerCase();
+  );
   return FIONA_HAIRSTYLE_OPTIONS.find((o) => o.id === raw) || FIONA_HAIRSTYLE_OPTIONS[0];
 }
 
 function hairDirectionForVision(look, hairStyleId) {
-  // Intentional user pick is allowed; free-form hairMove text is still risky (long hair / buns).
+  // Intentional user pick is styling-only; free-form hairMove text is still risky (cuts / buns).
   const option = resolveHairStyleOption(look, hairStyleId);
   const lengthGuard = [
-    'HAIR IDENTITY GUARD: Keep her real hair COLOR, density, hairline, and approximate length from the reference selfie.',
-    'If her hair is short, textured, cropped, ear-length, or chin-length, it MUST stay in that length family. Never grow hair longer.',
-    'Do NOT invent a bun, updo, ponytail, chignon, top knot, long hair, extensions, weave, or mid-length past her real length.'
+    'HAIR CUT & LENGTH HARD LOCK: Match the reference selfie\'s EXACT hair length and cut/shape — ends must land at the same place on her body (waist-length stays waist-length; mid-back stays mid-back; shoulder stays shoulder; chin/ear-length stays chin/ear-length).',
+    'STYLING ONLY: you may change texture, part, polish, volume, shine, and finish. You may NEVER give her a new haircut, bob, lob, crop, trim, bangs she does not have, or shorten/cut/grow her hair.',
+    'Keep her real hair COLOR, density, and hairline from the reference.',
+    'Do NOT invent a bun, updo, ponytail, chignon, top knot, extensions, weave, or any length change.'
   ].join(' ');
 
   if (!option.vision || option.id === 'keep-mine') {
     return [
       'HAIR LOCK: Keep her exact hair from the reference selfie — same length, cut, color, texture, density, and hairline.',
       lengthGuard,
-      'Optional: light product polish of her EXISTING cut only (shine / soft tame) — do not invent a new silhouette.'
+      'Optional: light product polish of her EXISTING cut only (shine / soft tame) — do not invent a new silhouette or haircut.'
     ].join(' ');
   }
 
   return [
     lengthGuard,
-    `INTENTIONAL HAIRSTYLE (user selected "${option.label}"): ${option.vision}`,
-    'Ignore conflicting hairMove / outfit-desc hair notes that would change length drastically or create an updo.',
-    'She must still look like herself — face locked; only styling direction above within her real cut family.'
+    `INTENTIONAL HAIR STYLING (user selected "${option.label}" — STYLING ONLY, NOT a haircut): ${option.vision}`,
+    'Ignore conflicting hairMove / outfit-desc / beauty-title notes that would cut, bob, shorten, grow, or restyle into a different haircut length.',
+    'She must still look like herself — face locked; same haircut length as Canvas; only styling + makeup follow the pick.'
   ].join(' ');
 }
+
 
 function buildLookImagePrompt(look, occasion, vibe, hairStyleId) {
   const pieces = Array.isArray(look && look.pieces)
@@ -473,8 +493,8 @@ function buildLookImagePrompt(look, occasion, vibe, hairStyleId) {
   const hairOption = resolveHairStyleOption(look, hairStyleId);
   const allowHairRestyle = Boolean(hairOption.vision && hairOption.id !== 'keep-mine');
   const changeLine = allowHairRestyle
-    ? `CHANGE ALLOWED: clothing/outfit, light makeup (lipstick and blush), and the intentional "${hairOption.label}" hairstyle within her real length/color. Keep pose geometry, face, and body type intact.`
-    : 'CHANGE ONLY: clothing/outfit and light makeup (lipstick and blush). Keep pose geometry, exact hair, and her identity intact.';
+    ? `CHANGE ALLOWED: clothing/outfit, light makeup (lipstick and blush), and the intentional "${hairOption.label}" STYLING finish on her EXISTING cut — same exact length/shape as the reference. Keep pose geometry, face, body type, and haircut length intact. NEVER bob, shorten, or cut her hair.`
+    : 'CHANGE ONLY: clothing/outfit and light makeup (lipstick and blush). Keep pose geometry, exact hair (cut + length), and her identity intact.';
   return [
     'Edit the attached reference selfie of this exact woman. Virtual try-on only — same person, not a new model.',
     'IDENTITY LOCK — do not change: her exact face, facial geometry, eyes, nose, mouth, expression, skin tone, age, ethnicity, or likeness.',
@@ -491,8 +511,8 @@ function buildLookImagePrompt(look, occasion, vibe, hairStyleId) {
     face ? `Light makeup only: ${face}` : '',
     'Soft studio or wardrobe background OK. Tasteful, non-sexual, photorealistic. No text overlays, no logos.',
     allowHairRestyle
-      ? `FINAL CHECK: face matches the reference, hair stays in her real length/color family with the selected "${hairOption.label}" finish, body type matches the reference, outfit flatters her real figure (waist visible, not tented). If anything conflicts, prefer the reference selfie for face + body — keep the flattering fit and selected hair polish.`
-      : 'FINAL CHECK: face matches the reference, hair length/style matches the reference, body type matches the reference, outfit flatters her real figure (waist visible, not tented). If anything conflicts, prefer the reference selfie for identity — keep the flattering fit.'
+      ? `FINAL CHECK: face matches the reference; haircut LENGTH and CUT/shape match the reference exactly (no bobbing, no shortening); only the selected "${hairOption.label}" styling finish + makeup differ; body type matches the reference; outfit flatters her real figure (waist visible, not tented). If anything conflicts, prefer the reference selfie for face + body + hair length — keep the flattering fit and selected styling polish.`
+      : 'FINAL CHECK: face matches the reference, hair length/cut/style matches the reference, body type matches the reference, outfit flatters her real figure (waist visible, not tented). If anything conflicts, prefer the reference selfie for identity — keep the flattering fit.'
   ].filter(Boolean).join('\n');
 }
 
@@ -775,8 +795,8 @@ ${detectBlock}
 If morning energy is provided, weight ease vs polish on BOTH wardrobe options — but ALWAYS stay flattering (fumes = easy elevated that still cinches/defines; conquer = sharp figure-flattering, not boxy armor; move = polished athleisure with shape).
 If photos are present, ground both wardrobe options in her actual figure, coloring, and what she is wearing in frame. If multiple photos include closet/wardrobe shots, pull from pieces she owns when possible and restyle them to flatter — but the identity selfie/full-body person photo is who you are dressing (never the closet shelf).
 If the identity photo shows swimwear/bikini/beachwear, celebrate that body: prescribe flattering, occasion-aware, hot-on-her options that match vibe/occasion — NOT a default matronly black midi wrap + cardigan/shawl, and NOT boardroom blazer armor unless occasion is explicitly corporate/black-tie.
-Hair advice in EVERY beauty option MUST work with her CURRENT hair length and cut visible in the photo. Short or cropped hair stays short — recommend texture, product, part, or soft polish for HER cut. Never invent long hair, extensions, mid-length waves, or length-requiring buns/updos unless she explicitly asked for a hair change.
-For each beauty option set hairStyleId to ONE Vision-safe polish id (still her length/color family): "keep-mine" | "soft-waves" | "sleek-side-part" | "polished-bob" | "subtle-volume" | "tousled-texture". The two beauty options MUST use different hairStyleId values when possible (e.g. one keep-mine / soft polish, one more intentional restyle). Prefer flattering alternatives when her current finish looks flat/frumpy.
+Hair & Makeup options are STYLING + makeup only — NEVER haircuts. Advice in EVERY beauty option MUST keep her CURRENT haircut length and cut/shape visible in the photo. Recommend texture, part, polish, volume, or finish for HER existing cut. Never invent a bob, lob, crop, trim, long hair she does not have, extensions, or length-requiring buns/updos.
+For each beauty option set hairStyleId to ONE Vision-safe STYLING id (same cut/length as photo — never a new haircut): "keep-mine" | "soft-waves" | "sleek-side-part" | "subtle-volume" | "tousled-texture". Do NOT use polished-bob or any haircut id. The two beauty options MUST use different hairStyleId values when possible (e.g. one tousled-texture, one sleek-side-part). Prefer flattering styling alternatives when her current finish looks flat/frumpy.
 If no photos, still invent fresh options from the filters — do not reuse a canned plum-cami-blazer or navy-wrap-plus-charcoal-blazer default.
 If she feels frumpy or needs "what to wear" help, lead with empathy + a specific compliment that celebrates her body, then glamorous confidence-lifting options — never a cover-up.
 Include field "compliment" with one sincere compliment grounded in her photo or vibe — warm, specific, body-positive (curves as assets).
@@ -844,11 +864,11 @@ Return JSON only:
       "title": "Hair & makeup option A title",
       "summary": "1-2 sentences on this beauty look",
       "hairMove": {
-        "title": "Hair move title (compatible with her CURRENT length/cut)",
-        "body": "Advice based on her actual hair length in the photo — polish her existing cut; never recommend length she does not have",
+        "title": "Hair styling title (same cut/length as photo — texture/part/finish only)",
+        "body": "Styling advice for her actual haircut length in the photo — polish her existing cut; never recommend a new haircut, bob, or different length",
         "cues": ["Volume: ...", "Part: ...", "Texture: ..."]
       },
-      "hairStyleId": "keep-mine|soft-waves|sleek-side-part|polished-bob|subtle-volume|tousled-texture",
+      "hairStyleId": "keep-mine|soft-waves|sleek-side-part|subtle-volume|tousled-texture",
       "facePalette": {
         "lip": ["#HEX", "Name"],
         "cheek": ["#HEX", "Name"],
@@ -860,11 +880,11 @@ Return JSON only:
       "title": "Hair & makeup option B title (clearly different from A)",
       "summary": "1-2 sentences on this beauty look",
       "hairMove": {
-        "title": "Hair move title",
-        "body": "Different polish direction than option A — still her real length/cut family",
+        "title": "Hair styling title",
+        "body": "Different styling direction than option A — still her exact same haircut length (no bob/cut)",
         "cues": ["Volume: ...", "Part: ...", "Texture: ..."]
       },
-      "hairStyleId": "keep-mine|soft-waves|sleek-side-part|polished-bob|subtle-volume|tousled-texture",
+      "hairStyleId": "keep-mine|soft-waves|sleek-side-part|subtle-volume|tousled-texture",
       "facePalette": {
         "lip": ["#HEX", "Name"],
         "cheek": ["#HEX", "Name"],
@@ -1004,7 +1024,7 @@ function synthesizeWardrobeB(optA) {
 }
 
 function synthesizeBeautyPair(data, lipFallback, weekday, allowedHair) {
-  const hairA = String((data && data.suggestedHairStyleId) || 'keep-mine').trim().toLowerCase();
+  const hairA = normalizeHairStyleId((data && data.suggestedHairStyleId) || 'keep-mine');
   const altHair = hairA === 'soft-waves' ? 'sleek-side-part' : 'soft-waves';
   const faceA = sanitizeFacePaletteObj(data && data.facePalette, lipFallback, weekday);
   const moveA = sanitizeHairMoveObj(data && data.hairMove, weekday);
@@ -1012,7 +1032,7 @@ function synthesizeBeautyPair(data, lipFallback, weekday, allowedHair) {
     {
       id: 'A',
       title: (moveA && moveA.title) || 'Beauty Option A',
-      summary: (moveA && moveA.body) || 'Polished hair and wearable makeup.',
+      summary: (moveA && moveA.body) || 'Polished hair styling and wearable makeup — same cut length.',
       hairMove: moveA,
       facePalette: faceA,
       hairStyleId: allowedHair.has(hairA) ? hairA : 'keep-mine'
@@ -1020,10 +1040,10 @@ function synthesizeBeautyPair(data, lipFallback, weekday, allowedHair) {
     {
       id: 'B',
       title: 'Soft Glow Alternate',
-      summary: 'A second beauty direction with a different hair polish and lip story — still her real length.',
+      summary: 'A second beauty direction with different hair styling and lip story — same haircut length, never a new cut.',
       hairMove: {
         title: altHair === 'soft-waves' ? 'Soft wave polish' : 'Sleek side polish',
-        body: 'Same length family as her photo, different finish for a second mood.',
+        body: 'Same haircut length as her photo — different styling finish + makeup mood only.',
         cues: ['Volume: intentional', 'Part: deliberate', 'Texture: polished']
       },
       facePalette: {
@@ -1112,7 +1132,7 @@ function ensureDualGlamourOptions(data, lipFallback, weekday) {
     if (typeof next.summary === 'string') next.summary = alignTextToWeekday(next.summary, weekday);
     next.hairMove = sanitizeHairMoveObj(next.hairMove, weekday);
     next.facePalette = sanitizeFacePaletteObj(next.facePalette, lipFallback, weekday);
-    let hairId = String(next.hairStyleId || next.suggestedHairStyleId || '').trim().toLowerCase();
+    let hairId = normalizeHairStyleId(next.hairStyleId || next.suggestedHairStyleId || '');
     if (!allowedHair.has(hairId)) hairId = i === 0 ? 'keep-mine' : 'soft-waves';
     if (usedHair.has(hairId) && i === 1) {
       hairId = hairId === 'soft-waves' ? 'sleek-side-part' : 'soft-waves';
