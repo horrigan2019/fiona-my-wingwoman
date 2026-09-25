@@ -60,6 +60,23 @@ function toDataUrl(mediaType, base64) {
   return `data:${mediaType || 'image/png'};base64,${base64}`;
 }
 
+function hairLocksReference(look) {
+  // hairMove is user-facing advice. Feeding it into Vision often invents long hair / buns
+  // and destroys likeness — especially for short textured cuts. Lock hair to the selfie.
+  const raw = look && look.hairMove
+    ? `${look.hairMove.title || ''} ${look.hairMove.body || ''} ${(look.hairMove.cues || []).join(' ')}`
+    : '';
+  const risky = /bun|up-?do|chignon|ponytail|pony tail|extension|weave|long hair|longer|mid-?length|waves down|blowout|french twist|sleek bun|top knot|lengthen|grow(n|ing)?\s+out/i.test(raw);
+  return [
+    'HAIR LOCK: Keep her exact hair from the reference selfie — same length, cut, color, texture, density, and hairline.',
+    'If her hair is short, textured, cropped, or ear-length, it MUST stay that short. Never grow hair longer.',
+    'Do NOT invent a bun, updo, ponytail, long hair, waves past her real length, or extensions.',
+    risky
+      ? 'Ignore any hairstyle recommendation that would change length or create an updo; light polish of her CURRENT cut only (shine / soft tame).'
+      : 'Optional: light product polish of her EXISTING cut only — never restyle into a new length or silhouette.'
+  ].join(' ');
+}
+
 function buildEditorialPrompt(look, occasion, vibe) {
   const pieces = Array.isArray(look && look.pieces) ? look.pieces : [];
   const pieceLine = pieces
@@ -70,9 +87,6 @@ function buildEditorialPrompt(look, occasion, vibe) {
     .filter(Boolean)
     .join(', ');
 
-  const hair = look && look.hairMove
-    ? `${look.hairMove.title || 'styled hair'}${look.hairMove.body ? ` — ${look.hairMove.body}` : ''}`
-    : 'soft polished hair';
   const lip = look && look.facePalette && Array.isArray(look.facePalette.lip)
     ? look.facePalette.lip[1] || 'soft berry lip'
     : 'soft berry lip';
@@ -80,25 +94,28 @@ function buildEditorialPrompt(look, occasion, vibe) {
     ? look.facePalette.cheek[1] || 'soft flush'
     : 'soft flush';
 
+  // Virtual try-on pattern (OpenAI cookbook): lock person + hair; change garments (+ light makeup) only.
   return [
-    'IDENTITY LOCK: Edit the attached reference selfie of this exact woman — do not invent, replace, or cast a different model.',
-    'Preserve her exact face, facial geometry, eyes, nose, mouth, skin tone, age, body type/proportions, and hairline.',
-    'Only change outfit, hair styling, and makeup. Keep the same person recognizably identical to the reference.',
-    'Do not beautify into a generic fashion model. No face swap. No different ethnicity, age, or body shape.',
-    `Dress her in: ${pieceLine || (look && look.desc) || 'the recommended outfit'}.`,
-    `Hair: ${hair}.`,
-    `Makeup: ${lip} lipstick, ${cheek} blush, natural polished finish.`,
+    'Edit the attached reference selfie of this exact woman. Virtual try-on only — same person, not a new model.',
+    'IDENTITY LOCK — do not change: her exact face, facial geometry, eyes, nose, mouth, expression, skin tone, age, ethnicity, or likeness.',
+    'BODY LOCK: Preserve her real body type, soft/curvy proportions if present, shoulder-to-hip balance, and figure. Do not slim, idealize, lengthen legs, or cast a fashion-model body.',
+    hairLocksReference(look),
+    'CHANGE ONLY: clothing/outfit and light makeup (lipstick and blush). Keep pose geometry and her identity intact.',
+    `Dress her in: ${pieceLine || (look && look.desc) || 'the recommended outfit'}. Fit garments naturally to HER existing body with realistic fabric drape — not pasted on.`,
+    `Light makeup only: ${lip} lipstick, ${cheek} blush — do not change facial structure or bone structure.`,
     occasion ? `Occasion: ${occasion}.` : '',
     vibe ? `Vibe: ${vibe}.` : '',
     look && look.title ? `Look title: ${look.title}.` : '',
-    'Confident natural posture, chic soft-studio or wardrobe setting, tasteful non-sexual, no text overlays, no logos, magazine quality.'
+    'Soft studio or wardrobe background is OK. Tasteful, non-sexual, photorealistic. No text overlays, no logos.',
+    'FINAL CHECK: face matches the reference, hair length/style matches the reference, body type matches the reference. If anything conflicts, prefer the reference selfie over the outfit description.'
   ].filter(Boolean).join(' ');
 }
 
 async function generateWithFal(apiKey, dataUrl, prompt) {
+  // Prefer identity-friendly img2img when configured; flux/dev still needs low strength.
   const model = process.env.FAL_LOOK_MODEL || 'fal-ai/flux/dev/image-to-image';
-  // Lower strength = keep more of the selfie (face/body). 0.72 was inventing new people.
-  const strength = Number(process.env.FAL_LOOK_STRENGTH || 0.45);
+  // Lower strength = keep more of the selfie (face/body/hair). 0.45 still drifted identity.
+  const strength = Number(process.env.FAL_LOOK_STRENGTH || 0.35);
   const res = await fetch(`https://fal.run/${model}`, {
     method: 'POST',
     headers: {
@@ -108,7 +125,7 @@ async function generateWithFal(apiKey, dataUrl, prompt) {
     body: JSON.stringify({
       image_url: dataUrl,
       prompt,
-      strength: Number.isFinite(strength) ? Math.min(0.65, Math.max(0.25, strength)) : 0.45,
+      strength: Number.isFinite(strength) ? Math.min(0.5, Math.max(0.2, strength)) : 0.35,
       num_images: 1,
       enable_safety_checker: true
     })
@@ -151,7 +168,7 @@ async function generateWithReplicate(apiKey, dataUrl, prompt) {
         prompt,
         image: dataUrl,
         // Lower prompt_strength preserves more identity from the input selfie.
-        prompt_strength: Number(process.env.REPLICATE_LOOK_STRENGTH || 0.45),
+        prompt_strength: Number(process.env.REPLICATE_LOOK_STRENGTH || 0.35),
         num_outputs: 1
       }
     })
@@ -232,8 +249,9 @@ async function generateWithOpenAI(apiKey, photo, prompt) {
   const parsed = stripDataUrl(photo.data || photo);
   const bytes = Buffer.from(parsed.base64, 'base64');
   // Identity-preserving edits only — never fall back to text-to-image (invents a different woman).
+  // gpt-image-1.5 first: stronger identity / try-on preservation per OpenAI prompting guide.
   const modelsToTry = [
-    process.env.OPENAI_IMAGE_MODEL || 'gpt-image-1',
+    process.env.OPENAI_IMAGE_MODEL || 'gpt-image-1.5',
     'gpt-image-1.5',
     'gpt-image-1'
   ].filter((m, i, a) => a.indexOf(m) === i && m !== 'dall-e-2' && m !== 'dall-e-3');
@@ -255,6 +273,7 @@ async function generateWithOpenAI(apiKey, photo, prompt) {
       if (model === 'gpt-image-1' || model === 'gpt-image-1.5' || model.startsWith('gpt-image-1')) {
         form.append('input_fidelity', fidelity);
       }
+      // Mask-free full-image edit — model must follow IDENTITY/HAIR/BODY locks in the prompt.
       form.append(
         'image',
         new Blob([bytes], { type: parsed.mediaType || 'image/jpeg' }),
@@ -297,6 +316,7 @@ async function generateWithGemini(apiKey, photo, prompt) {
   const parsed = stripDataUrl(photo.data || photo);
   const model = process.env.GEMINI_IMAGE_MODEL || 'gemini-2.0-flash-preview-image-generation';
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+  const identityLead = 'You are editing the attached photo of a real woman. Keep her identical face, short-or-as-photographed hair length, and body type. Change clothes and light makeup only.\n\n';
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -304,7 +324,7 @@ async function generateWithGemini(apiKey, photo, prompt) {
       contents: [{
         role: 'user',
         parts: [
-          { text: prompt },
+          { text: identityLead + prompt },
           { inline_data: { mime_type: parsed.mediaType || 'image/jpeg', data: parsed.base64 } }
         ]
       }],
@@ -400,14 +420,18 @@ module.exports = async function handler(req, res) {
       return null;
     };
 
+    // VISION_PREFER_GEMINI=1 tries Gemini likeness path first when both keys exist.
+    const preferGemini = String(process.env.VISION_PREFER_GEMINI || '').toLowerCase() === '1'
+      || String(process.env.VISION_PREFER_GEMINI || '').toLowerCase() === 'true';
     const order = [
+      preferGemini && geminiKey ? 'gemini' : '',
       // Prefer OpenAI when configured — most common setup for Fiona right now
       openAiKey ? 'openai' : '',
       provider,
+      geminiKey ? 'gemini' : '',
       'fal',
       'replicate',
-      'fashn',
-      'gemini'
+      'fashn'
     ]
       .filter(Boolean)
       .filter((v, i, a) => a.indexOf(v) === i);
