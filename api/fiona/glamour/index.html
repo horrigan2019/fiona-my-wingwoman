@@ -4674,6 +4674,25 @@
       return out;
     }
 
+    /** Canvas selfie for Vision: prefer moodboard hero, else most recent upload (not closet/first). */
+    function resolveCanvasSelfieForLook() {
+      const images = getCanvasImages('wardrobe');
+      if (!images.length) return null;
+      const hero = document.getElementById('wardrobe-moodboard-hero');
+      if (hero && hero.src && !hero.classList.contains('hidden')) {
+        const byUrl = images.find((img) => img && img.url && img.url === hero.src);
+        if (byUrl) return byUrl;
+      }
+      // Moodboard defaults to last upload — match that, never images[0] (often an older closet shot).
+      return images[images.length - 1];
+    }
+
+    async function collectCanvasSelfieForLook() {
+      const selfie = resolveCanvasSelfieForLook();
+      if (!selfie) return null;
+      return canvasImageToApiPayload(selfie, { maxDim: 1280, quality: 0.78 });
+    }
+
     function applyWardrobeLookToUi(look, occasionLabel, vibe, silhouette, harmony, photoCount, sourceLabel) {
       const silhouetteNote = WARDROBE_SILHOUETTE_NOTES[silhouette] || '';
       const harmonyNote = WARDROBE_HARMONY_NOTES[harmony] || '';
@@ -4726,7 +4745,7 @@
       prepareFionaVisionCard(window.lastGlamourLook);
     }
 
-    const FIONA_VISION_CACHE_PREFIX = 'fiona_vision_look_v1:';
+    const FIONA_VISION_CACHE_PREFIX = 'fiona_vision_look_v2:';
     let fionaVisionSideBySide = false;
     let fionaVisionGenerating = false;
 
@@ -4738,9 +4757,13 @@
       const face = look && look.facePalette
         ? `${(look.facePalette.lip || [])[1] || ''}|${(look.facePalette.cheek || [])[1] || ''}`
         : '';
-      const canvas = (typeof getCanvasImages === 'function' ? getCanvasImages('wardrobe') : [])[0];
+      const canvas = (typeof resolveCanvasSelfieForLook === 'function'
+        ? resolveCanvasSelfieForLook()
+        : (typeof getCanvasImages === 'function' ? getCanvasImages('wardrobe') : []).slice(-1)[0]);
       const photoSig = canvas && canvas.dataUrl
         ? String(canvas.dataUrl).slice(-120)
+        : (canvas && canvas.url)
+          ? String(canvas.url).slice(-120)
         : (canvas && canvas.id) || 'nophoto';
       return [
         look && look.title || '',
@@ -4866,7 +4889,10 @@
       if (!compare || !vision) return;
       const canvasSrc = (hero && hero.src && !hero.classList.contains('hidden'))
         ? hero.src
-        : ((typeof getCanvasImages === 'function' ? getCanvasImages('wardrobe') : [])[0] || {}).dataUrl;
+        : ((typeof resolveCanvasSelfieForLook === 'function'
+          ? resolveCanvasSelfieForLook()
+          : (typeof getCanvasImages === 'function' ? getCanvasImages('wardrobe') : []).slice(-1)[0]) || {}).url
+          || ((typeof getCanvasImages === 'function' ? getCanvasImages('wardrobe') : []).slice(-1)[0] || {}).dataUrl;
       if (canvasImg) canvasImg.src = canvasSrc || vision;
       if (lookImg) lookImg.src = vision;
       compare.classList.remove('hidden');
@@ -4943,8 +4969,8 @@
         return;
       }
 
-      const images = await collectGlamourApiImages(2);
-      if (!images.length) {
+      const photoPayload = await collectCanvasSelfieForLook();
+      if (!photoPayload || !photoPayload.data) {
         setFionaVisionError("Add a photo to Your Canvas first, gorgeous — Fiona needs a face to dress.");
         showToast('Add a canvas photo first.');
         return;
@@ -4954,8 +4980,8 @@
       setFionaVisionError('');
 
       const body = {
-        photo: images[0],
-        images: images.slice(0, 2),
+        photo: photoPayload,
+        images: [photoPayload],
         look: meta.look,
         occasion: meta.occasionLabel,
         vibe: meta.vibe
@@ -4981,6 +5007,7 @@
         if (!res || !res.ok || !payload.image || !payload.image.dataUrl) {
           const msg = payload.fionaMessage
             || payload.hint
+            || (payload.error && payload.detail && payload.detail.error && payload.detail.error.message)
             || payload.error
             || "That look got stuck in the dressing room, darling. Try again in a moment.";
           setFionaVisionError(msg);
