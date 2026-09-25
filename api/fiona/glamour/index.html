@@ -4981,6 +4981,7 @@
         if (!res || !res.ok || !payload.image || !payload.image.dataUrl) {
           const msg = payload.fionaMessage
             || payload.hint
+            || (payload.error && payload.detail && payload.detail.error && payload.detail.error.message)
             || payload.error
             || "That look got stuck in the dressing room, darling. Try again in a moment.";
           setFionaVisionError(msg);
