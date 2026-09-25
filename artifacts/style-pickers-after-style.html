@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fiona Style pickers — after first Style</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={theme:{extend:{colors:{'spa-plum':'#5E2750','spa-plumdark':'#3D1A35','spa-cream':'#FBF7F2','spa-blush':'#FCEFEF','spa-darkbg':'#1A1420','spa-darkcard':'#2A2430'},fontFamily:{serif:['Playfair Display','Georgia','serif']}}}}</script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>body{font-family:'Plus Jakarta Sans',sans-serif;background:linear-gradient(160deg,#FBF7F2,#FCEFEF 50%,#F5E6EE)}</style>
+</head><body class="p-4 sm:p-8">
+  <p class="text-xs font-bold uppercase tracking-widest text-spa-plum mb-3">After one Style click — order Debra should see</p>
+  <div class="max-w-2xl mx-auto mb-4 grid grid-cols-2 gap-3 opacity-80">
+    <div class="bg-white p-2 shadow border border-spa-plum/20"><div class="aspect-[4/5] bg-spa-blush flex items-center justify-center text-xs text-spa-plum font-semibold">YOUR CANVAS</div></div>
+    <div class="bg-white p-2 shadow border border-spa-plum/20"><div class="aspect-[4/5] bg-gradient-to-br from-spa-blush to-spa-cream flex items-center justify-center text-xs text-spa-plum font-semibold text-center px-2">FIONA'S VISION<br>placeholder</div></div>
+  </div>
+  <!-- MUST sit between photos and Generate — never above Canvas (sticky nav ate it) -->
+            <div id="fiona-glamour-pickers" class="space-y-4 rounded-2xl border-2 border-spa-plum dark:border-pink-300 bg-white dark:bg-spa-darkbg p-4 sm:p-5 shadow-md" style="scroll-margin-top: 6.5rem;" data-fiona-pickers="v11">
+              <div class="rounded-xl bg-spa-plum text-white px-3.5 py-3 text-center sm:text-left space-y-0.5">
+                <p class="text-[11px] font-bold uppercase tracking-[0.16em]">Your picks — one Style = four options</p>
+                <p class="text-[12px] font-medium text-pink-100/95">Choose Wardrobe A or B, then Hair &amp; Makeup A or B. Generate is next.</p>
+              </div>
+
+              <section id="fiona-wardrobe-options-section" class="space-y-2">
+                <div class="flex flex-wrap items-baseline justify-between gap-2">
+                  <p class="text-[10px] font-bold uppercase tracking-[0.14em] text-spa-plum dark:text-pink-300">Wardrobe — Option A / B</p>
+                  <p id="fiona-wardrobe-pick-status" class="text-[10px] font-semibold text-spa-plum/70 dark:text-pink-300/70">Pick one</p>
+                </div>
+                <div id="fiona-wardrobe-options" class="grid grid-cols-1 sm:grid-cols-2 gap-3 min-h-[5.5rem]" role="radiogroup" aria-label="Wardrobe options">
+                  <button type="button" class="text-left p-3.5 border border-spa-plum bg-white ring-2 ring-spa-plum/35 shadow-sm space-y-1.5">
+                    <div class="flex items-center justify-between gap-2"><span class="text-[10px] font-bold uppercase tracking-[0.14em] text-spa-plum">Option A</span><span class="text-[9px] font-bold uppercase tracking-wider text-white bg-spa-plum px-1.5 py-0.5">Selected</span></div>
+                    <p class="font-serif text-base font-bold text-gray-900 leading-snug">Cinched Confidence Wrap</p>
+                    <p class="text-[11px] text-gray-600 leading-relaxed">Waist intentional wrap — flattering, never tented.</p>
+                  </button>
+                  <button type="button" class="text-left p-3.5 border border-spa-plum/20 bg-white/80 space-y-1.5">
+                    <div class="flex items-center justify-between gap-2"><span class="text-[10px] font-bold uppercase tracking-[0.14em] text-spa-plum">Option B</span></div>
+                    <p class="font-serif text-base font-bold text-gray-900 leading-snug">Cinched Confidence Wrap — Soft Alternate</p>
+                    <p class="text-[11px] text-gray-600 leading-relaxed">Softer open layer, same intentional waist.</p>
+                  </button>
+                </div>
+              </section>
+
+              <section id="fiona-beauty-options-section" class="space-y-2">
+                <div class="flex flex-wrap items-baseline justify-between gap-2">
+                  <p class="text-[10px] font-bold uppercase tracking-[0.14em] text-spa-plum dark:text-pink-300">Hair &amp; Makeup — Option A / B</p>
+                  <p id="fiona-beauty-pick-status" class="text-[10px] font-semibold text-spa-plum/70 dark:text-pink-300/70">Pick one</p>
+                </div>
+                <div id="fiona-beauty-options" class="grid grid-cols-1 sm:grid-cols-2 gap-3 min-h-[5.5rem]" role="radiogroup" aria-label="Hair and makeup options">
+                  <button type="button" class="text-left p-3 border border-spa-plum bg-white ring-2 ring-spa-plum/35 shadow-sm space-y-1.5">
+                    <div class="flex items-center justify-between gap-2"><span class="text-[10px] font-bold uppercase tracking-[0.14em] text-spa-plum">Option A</span><span class="text-[9px] font-bold uppercase tracking-wider text-white bg-spa-plum px-1.5 py-0.5">Selected</span></div>
+                    <p class="font-serif text-sm font-bold text-gray-900 leading-snug">Soft polish</p>
+                    <p class="text-[11px] text-gray-600">Keep mine · Velvet Currant</p>
+                  </button>
+                  <button type="button" class="text-left p-3 border border-spa-plum/20 bg-white/80 space-y-1.5">
+                    <div class="flex items-center justify-between gap-2"><span class="text-[10px] font-bold uppercase tracking-[0.14em] text-spa-plum">Option B</span></div>
+                    <p class="font-serif text-sm font-bold text-gray-900 leading-snug">Soft Wave Glow</p>
+                    <p class="text-[11px] text-gray-600">Soft waves · alternate lip</p>
+                  </button>
+                </div>
+                <p id="fiona-beauty-hint" class="text-[10px] text-gray-500 dark:text-gray-400 leading-snug">One Style click delivers both pairs. Face + body stay locked; hair may polish within your real length.</p>
+              </section>
+
+              <div class="flex flex-wrap items-center justify-center gap-2 pt-1 border-t border-spa-plum/15 dark:border-purple-900/50">
+                <button type="button" id="fiona-vision-generate-btn" onclick="generateFionaVisionLook()" class="px-5 py-3 rounded-xl bg-spa-plum hover:bg-spa-plumdark text-white text-xs font-bold shadow-sm transition active:scale-95 disabled:opacity-60">
+                  Generate My Look ✨
+                </button>
+                <button type="button" id="fiona-vision-sidebyside-btn" onclick="toggleFionaVisionSideBySide()" class="hidden px-3 py-2.5 rounded-xl bg-pink-100 dark:bg-purple-900/50 text-spa-plum dark:text-pink-200 text-xs font-semibold hover:bg-pink-200 transition">
+                  Side-by-side
+                </button>
+                <button type="button" id="fiona-vision-download-btn" onclick="downloadFionaVisionLook()" class="hidden px-3 py-2.5 rounded-xl bg-white dark:bg-spa-darkbg border border-spa-plum/25 text-spa-plum dark:text-pink-200 text-xs font-semibold hover:bg-spa-blush/50 transition">
+                  Download
+                </button>
+                <button type="button" id="fiona-vision-share-btn" onclick="shareFionaVisionLook()" class="hidden px-3 py-2.5 rounded-xl bg-white dark:bg-spa-darkbg border border-spa-plum/25 text-spa-plum dark:text-pink-200 text-xs font-semibold hover:bg-spa-blush/50 transition">
+                  Share
+                </button>
+              </div>
+
+              <!-- Palette AFTER picks + Generate so it never replaces the A/B dock on screen -->
+              <div id="wardrobe-palette-swatches" class="flex flex-wrap gap-3 justify-center pt-2 border-t border-spa-plum/15 dark:border-purple-900/50">
+                <p class="w-full text-[10px] font-bold uppercase tracking-[0.14em] text-spa-plum/70 mb-0.5 text-center">Curated color palette</p>
+                <div class="flex flex-col items-center gap-1"><span class="w-9 h-9 rounded-full border border-white shadow-sm ring-1 ring-spa-plum/15" style="background:#6B1F2A"></span><span class="text-[9px] text-gray-500">Deep Burgundy</span></div>
+                <div class="flex flex-col items-center gap-1"><span class="w-9 h-9 rounded-full border border-white shadow-sm ring-1 ring-spa-plum/15" style="background:#111111"></span><span class="text-[9px] text-gray-500">Noir Black</span></div>
+                <div class="flex flex-col items-center gap-1"><span class="w-9 h-9 rounded-full border border-white shadow-sm ring-1 ring-spa-plum/15" style="background:#C4A35A"></span><span class="text-[9px] text-gray-500">Warm Gold</span></div>
+                <div class="flex flex-col items-center gap-1"><span class="w-9 h-9 rounded-full border border-white shadow-sm ring-1 ring-spa-plum/15" style="background:#E8C4B8"></span><span class="text-[9px] text-gray-500">Soft Blush Nude</span></div>
+              </div>
+            </div>
+</body></html>
