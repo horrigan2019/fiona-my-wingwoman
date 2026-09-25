@@ -540,6 +540,8 @@ module.exports = async function handler(req, res) {
       provider: result.provider,
       prompt,
       hairStyleId: resolveHairStyleOption(look, hairStyleId).id,
+      wardrobeOptionId: body.wardrobeOptionId || look.selectedWardrobeId || look.wardrobeOptionId || null,
+      beautyOptionId: body.beautyOptionId || look.selectedBeautyId || look.beautyOptionId || null,
       image: {
         mimeType: result.mimeType,
         dataUrl: dataUrlOut,
