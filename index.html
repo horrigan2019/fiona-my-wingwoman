@@ -1203,6 +1203,15 @@
                   </div>
                 </div>
 
+                <div class="space-y-2 max-w-sm mx-auto lg:mx-0">
+                  <div class="flex flex-wrap items-baseline justify-between gap-2">
+                    <p class="text-[10px] font-bold uppercase tracking-[0.14em] text-spa-plum dark:text-pink-300">Hairstyle</p>
+                    <p id="fiona-hairstyle-fiona-note" class="hidden text-[10px] font-semibold text-spa-plum/80 dark:text-pink-300/80"></p>
+                  </div>
+                  <div id="fiona-hairstyle-options" class="flex flex-wrap gap-1.5 justify-center lg:justify-start" role="radiogroup" aria-label="Hairstyle options"></div>
+                  <p id="fiona-hairstyle-hint" class="text-[10px] text-gray-500 dark:text-gray-400 text-center lg:text-left leading-snug">Keep mine locks your exact hair. Other picks polish within your real length — face + body stay locked.</p>
+                </div>
+
                 <div class="flex flex-wrap items-center justify-center lg:justify-start gap-2">
                   <button type="button" id="fiona-vision-generate-btn" onclick="generateFionaVisionLook()" class="px-4 py-2.5 rounded-xl bg-spa-plum hover:bg-spa-plumdark text-white text-xs font-bold shadow-sm transition active:scale-95 disabled:opacity-60">
                     Generate My Look ✨
@@ -4750,16 +4759,93 @@
         silhouette,
         harmony,
         photoCount,
-        cacheKey: buildFionaVisionCacheKey(look, occasionLabel, vibe)
+        suggestedHairStyleId: (look && look.suggestedHairStyleId) || 'keep-mine',
+        cacheKey: buildFionaVisionCacheKey(look, occasionLabel, vibe, getSelectedHairStyleId())
       };
+      applyFionaHairSuggestion(window.lastGlamourLook.suggestedHairStyleId);
       prepareFionaVisionCard(window.lastGlamourLook);
     }
 
-    const FIONA_VISION_CACHE_PREFIX = 'fiona_vision_look_v4:';
+    const FIONA_HAIRSTYLE_OPTIONS = [
+      { id: 'keep-mine', label: 'Keep mine', short: 'Exact hair from your photo' },
+      { id: 'soft-waves', label: 'Soft waves', short: 'Gentle wave, same length' },
+      { id: 'sleek-side-part', label: 'Sleek side part', short: 'Polished deep side part' },
+      { id: 'polished-bob', label: 'Polished bob', short: 'Smooth chin-length bob' },
+      { id: 'subtle-volume', label: 'Subtle volume', short: 'Lifted crown, soft body' },
+      { id: 'tousled-texture', label: 'Tousled texture', short: 'Lived-in piecey finish' }
+    ];
+    const FIONA_VISION_CACHE_PREFIX = 'fiona_vision_look_v5:';
     let fionaVisionSideBySide = false;
     let fionaVisionGenerating = false;
+    let fionaSelectedHairStyleId = 'keep-mine';
+    let fionaSuggestedHairStyleId = null;
 
-    function buildFionaVisionCacheKey(look, occasionLabel, vibe) {
+    function getSelectedHairStyleId() {
+      const allowed = FIONA_HAIRSTYLE_OPTIONS.some((o) => o.id === fionaSelectedHairStyleId);
+      return allowed ? fionaSelectedHairStyleId : 'keep-mine';
+    }
+
+    function getHairStyleOption(id) {
+      return FIONA_HAIRSTYLE_OPTIONS.find((o) => o.id === id) || FIONA_HAIRSTYLE_OPTIONS[0];
+    }
+
+    function renderFionaHairstyleOptions() {
+      const host = document.getElementById('fiona-hairstyle-options');
+      const hint = document.getElementById('fiona-hairstyle-hint');
+      const note = document.getElementById('fiona-hairstyle-fiona-note');
+      if (!host) return;
+      const selected = getSelectedHairStyleId();
+      host.innerHTML = FIONA_HAIRSTYLE_OPTIONS.map((opt) => {
+        const isOn = opt.id === selected;
+        const isFiona = fionaSuggestedHairStyleId && opt.id === fionaSuggestedHairStyleId && opt.id !== 'keep-mine';
+        const base = isOn
+          ? 'bg-spa-plum text-white border-spa-plum shadow-sm'
+          : 'bg-white dark:bg-spa-darkbg text-spa-plum dark:text-pink-200 border-spa-plum/30 dark:border-purple-700 hover:border-spa-plum/60 hover:bg-spa-blush/40';
+        const ring = isFiona && !isOn ? ' ring-1 ring-spa-plum/35' : '';
+        return `<button type="button" role="radio" aria-checked="${isOn ? 'true' : 'false'}" data-hairstyle-id="${opt.id}" title="${opt.short}" onclick="selectFionaHairStyle('${opt.id}')" class="inline-flex items-center gap-1 px-2.5 py-1.5 text-[10px] font-bold tracking-wide border transition active:scale-95${ring} ${base}">${opt.label}${isFiona ? '<span class="text-[8px] font-semibold uppercase tracking-wider opacity-80">Fiona</span>' : ''}</button>`;
+      }).join('');
+      const opt = getHairStyleOption(selected);
+      if (hint) {
+        hint.textContent = selected === 'keep-mine'
+          ? 'Keep mine locks your exact hair. Other picks polish within your real length — face + body stay locked.'
+          : `${opt.label}: ${opt.short}. Face + body stay locked; hair stays in your length family.`;
+      }
+      if (note) {
+        if (fionaSuggestedHairStyleId && fionaSuggestedHairStyleId !== 'keep-mine') {
+          const sug = getHairStyleOption(fionaSuggestedHairStyleId);
+          note.classList.remove('hidden');
+          note.textContent = `Fiona suggests ${sug.label}`;
+        } else {
+          note.classList.add('hidden');
+          note.textContent = '';
+        }
+      }
+    }
+
+    function selectFionaHairStyle(id) {
+      const next = FIONA_HAIRSTYLE_OPTIONS.some((o) => o.id === id) ? id : 'keep-mine';
+      if (next === fionaSelectedHairStyleId) return;
+      fionaSelectedHairStyleId = next;
+      renderFionaHairstyleOptions();
+      if (window.lastGlamourLook && window.lastGlamourLook.look) {
+        window.lastGlamourLook.cacheKey = buildFionaVisionCacheKey(
+          window.lastGlamourLook.look,
+          window.lastGlamourLook.occasionLabel,
+          window.lastGlamourLook.vibe,
+          next
+        );
+        prepareFionaVisionCard(window.lastGlamourLook);
+      }
+    }
+
+    function applyFionaHairSuggestion(suggestedId) {
+      const allowed = FIONA_HAIRSTYLE_OPTIONS.some((o) => o.id === suggestedId);
+      fionaSuggestedHairStyleId = allowed ? suggestedId : null;
+      // Default stays Keep mine (identity-safe). Fiona's pick is highlighted, not forced.
+      renderFionaHairstyleOptions();
+    }
+
+    function buildFionaVisionCacheKey(look, occasionLabel, vibe, hairStyleId) {
       const pieces = Array.isArray(look && look.pieces)
         ? look.pieces.map((p) => `${p.name}|${p.colorLabel || ''}|${p.hex || ''}`).join(';')
         : '';
@@ -4775,6 +4861,7 @@
         : (canvas && canvas.url)
           ? String(canvas.url).slice(-120)
         : (canvas && canvas.id) || 'nophoto';
+      const styleId = hairStyleId || getSelectedHairStyleId();
       return [
         look && look.title || '',
         occasionLabel || '',
@@ -4782,6 +4869,7 @@
         pieces,
         hair,
         face,
+        styleId,
         photoSig
       ].join('::');
     }
@@ -4971,7 +5059,7 @@
         return;
       }
 
-      const cacheKey = meta.cacheKey || buildFionaVisionCacheKey(meta.look, meta.occasionLabel, meta.vibe);
+      const cacheKey = meta.cacheKey || buildFionaVisionCacheKey(meta.look, meta.occasionLabel, meta.vibe, getSelectedHairStyleId());
       const cached = readFionaVisionCache(cacheKey);
       if (cached && cached.dataUrl) {
         showFionaVisionResult(cached.dataUrl, 'Cached look · no re-charge');
@@ -4989,12 +5077,14 @@
       setFionaVisionLoading(true, 'in your custom palette — hang tight, gorgeous.');
       setFionaVisionError('');
 
+      const hairStyleId = getSelectedHairStyleId();
       const body = {
         photo: photoPayload,
         images: [photoPayload],
-        look: meta.look,
+        look: { ...meta.look, hairStyleId },
         occasion: meta.occasionLabel,
-        vibe: meta.vibe
+        vibe: meta.vibe,
+        hairStyleId
       };
 
       try {
@@ -5060,8 +5150,10 @@
         occasionLabel,
         vibe,
         photoCount: images ? images.length : 0,
-        cacheKey: buildFionaVisionCacheKey(look, occasionLabel, vibe)
+        suggestedHairStyleId: (look && look.suggestedHairStyleId) || (window.lastGlamourLook && window.lastGlamourLook.suggestedHairStyleId) || 'keep-mine',
+        cacheKey: buildFionaVisionCacheKey(look, occasionLabel, vibe, getSelectedHairStyleId())
       };
+      applyFionaHairSuggestion(window.lastGlamourLook.suggestedHairStyleId);
       return generateFionaVisionLook();
     }
 
@@ -6065,6 +6157,7 @@
       renderPastEntries();
       renderFlareTrackerForm();
       initRituals();
+      renderFionaHairstyleOptions();
       applyBetaInviteFromUrl();
       updateVipStatusPill();
       hydrateDailyEnergyUi();
