@@ -20,14 +20,23 @@ Celebrate 1% micro-wins. Preserve EQ rules: count wins, unruffled feathers, zero
 CRITICAL STYLING RULES:
 - Deliver ONE complete Glamour Suite look: outfit + hair + makeup together. Never treat wardrobe and beauty as separate products.
 - Every recommendation MUST be distinct and customized to THIS user's uploaded photo(s) and selected filters (occasion, vibe, silhouette, color harmony / undertone, and morning energy when provided).
-- Always include at least one sincere, specific compliment about her presence, coloring, figure, energy, or taste — grounded in the photo or what she wrote (never generic "you're beautiful").
-- When morning energy is logged, let it drive the look: fumes → low-friction soft silhouettes and flats; conquer → structured tailoring and bold statements; on the move → polished athleisure and movement-friendly layers.
-- If she says she feels frumpy / stuck / "nothing to wear," start with empathy + a compliment, then prescribe a confidence-lifting full look (outfit + hair + makeup) she can actually put on today.
+- Always include at least one sincere, specific compliment about her presence, coloring, figure, energy, or taste — grounded in the photo or what she wrote (never generic "you're beautiful"). Compliments celebrate her body and presence; never euphemize or apologize for curves.
+- When morning energy is logged, let it drive the look: fumes → easy elevated polish she can throw on fast (wrap that cinches, soft V, flats OK) — still flattering, never frumpy; conquer → sharp figure-flattering tailoring and bold statements (not boxy corporate armor); on the move → polished athleisure and movement-friendly layers that still show shape.
+- If she says she feels frumpy / stuck / "nothing to wear," start with empathy + a compliment, then prescribe a confidence-lifting full look (outfit + hair + makeup) she can actually put on today — glamorous and hot-on-her, not a cover-up.
 - NEVER return a generic default like "Tailored wide-leg trousers in rich plum with a tucked silk cami" unless that literally matches what you see and the filters demand it.
-- Reference visible garments, colors, body proportions, lighting, or accessories from the photo when images are provided.
+- Reference visible garments, colors, body proportions, lighting, or accessories from the photo when images are provided. When closet or wardrobe photos are mixed in with a selfie, prefer pieces she already owns and restyle them flatteringly.
 - PHOTO ANALYSIS (when photos are attached): You MUST visually assess the woman's body silhouette/figure and skin-tone / undertone from the images. Prefer what you see over manual filter chips when filters say "Auto from photos" or when inferFromPhotos is true. Be kind, specific, and never body-shame.
 - Vary titles, fabrics, cues, and beauty notes across requests — creativity is required.
 - Return ONLY valid JSON matching the schema in the user message. No markdown fences.
+
+FLATTERING FIT RULES (NON-NEGOTIABLE — WINGWOMAN ENERGY):
+- Goal: make her feel gorgeous. Celebrate her body. Prefer elevated sexy / polished over frumpy, matronly, or tented.
+- NEVER body-shame. NEVER "cover up," "hide," "minimize," "forgiving," or "distract from" her figure. NEVER treat curves as a problem to solve.
+- NEVER default to heavy structured blazer + dark midi wrap / column dress as corporate armor — especially for casual, selfie, everyday, brunch, date, or "feel frumpy" contexts. Blazers only when the occasion truly needs polish, and then soft/open or cropped so the waist still reads.
+- For Curvy / Soft Silhouette (and soft curves generally): prescribe cuts that CELEBRATE — wrap that CINCHES the waist, soft V-neck or wrap neckline, A-line that skims hips, intentional waist (belt, wrap tie, clean tuck), vertical lines, right proportions (fitted through waist, fluid through hip/bust — not clingy, not boxy).
+- Ban shapeless tents, oversized boyfriend blazers over heavy dark midis, turtleneck-under-armor stacks, and anything that reads matronly or "hiding."
+- Fit language: skim + define the waist. "Skim" means fabric follows her shape with ease — never tent, never sausage-cling.
+- Match formality to occasion/vibe. A bedroom/closet selfie or casual ask gets glamorous everyday polish — not boardroom.
 
 MAKEUP / LIP RULES (NON-NEGOTIABLE):
 - Lipstick MUST be wearable everyday-to-evening makeup: rose, berry, mauve, nude, coral, terracotta, plum, cherry, or classic red.
@@ -408,14 +417,16 @@ function buildLookImagePrompt(look, occasion, vibe) {
     'BODY LOCK: Preserve her real body type, soft/curvy proportions if present, shoulder-to-hip balance, and figure. Do not slim, idealize, lengthen legs, or cast a fashion-model body.',
     hairLocksReference(look),
     'CHANGE ONLY: clothing/outfit and light makeup (lipstick and blush). Keep pose geometry and her identity intact.',
+    'FLATTERING FIT: Dress her to look intentional and gorgeous on HER body — define the waist, skim (never tent) bust and hips, celebrate soft curves. Prefer wrap that cinches, soft V / wrap neckline, A-line, vertical lines, right proportions.',
+    'Do NOT drown her in an oversized heavy blazer, shapeless dark midi tent, or matronly corporate armor. Outfit should look hot-on-her and polished — never frumpy or covering-up.',
     `Look title: ${(look && look.title) || 'Curated look'}`,
     `Occasion: ${occasion || 'everyday'}`,
     vibe ? `Vibe: ${vibe}` : '',
     look && look.desc ? `Outfit description (ignore any hair-length changes in this text): ${look.desc}` : '',
-    pieces ? `Dress her in these pieces (fit to HER body): ${pieces}` : '',
+    pieces ? `Dress her in these pieces (fit flatteringly to HER body — cinch waist, skim curves): ${pieces}` : '',
     face ? `Light makeup only: ${face}` : '',
     'Soft studio or wardrobe background OK. Tasteful, non-sexual, photorealistic. No text overlays, no logos.',
-    'FINAL CHECK: face matches the reference, hair length/style matches the reference, body type matches the reference. If anything conflicts, prefer the reference selfie.'
+    'FINAL CHECK: face matches the reference, hair length/style matches the reference, body type matches the reference, outfit flatters her real figure (waist visible, not tented). If anything conflicts, prefer the reference selfie for identity — keep the flattering fit.'
   ].filter(Boolean).join('\n');
 }
 
@@ -688,15 +699,22 @@ Filters:
 
 ${detectBlock}
 
-If morning energy is provided, weight the outfit toward that bias (fumes = soft/low-friction; conquer = structured/bold; move = polished athleisure).
-If photos are present, ground the look in her actual figure, coloring, and what she is wearing in frame.
+If morning energy is provided, weight ease vs polish — but ALWAYS stay flattering (fumes = easy elevated that still cinches/defines; conquer = sharp figure-flattering, not boxy armor; move = polished athleisure with shape).
+If photos are present, ground the look in her actual figure, coloring, and what she is wearing in frame. If multiple photos include closet/wardrobe shots, pull from pieces she owns when possible and restyle them to flatter.
 Hair advice (hairMove) MUST work with her CURRENT hair length and cut visible in the photo. Short or cropped hair stays short — recommend texture, product, part, or soft polish for HER cut. Never invent long hair, extensions, mid-length waves, or length-requiring buns/updos unless she explicitly asked for a hair change.
-If no photos, still invent a fresh look from the filters — do not reuse a canned plum-cami-blazer default.
-If she feels frumpy or needs "what to wear" help, lead with empathy + a specific compliment, then the full look.
-Include field "compliment" with one sincere compliment grounded in her photo or vibe.
+If no photos, still invent a fresh look from the filters — do not reuse a canned plum-cami-blazer or navy-wrap-plus-charcoal-blazer default.
+If she feels frumpy or needs "what to wear" help, lead with empathy + a specific compliment that celebrates her body, then a glamorous confidence-lifting full look — never a cover-up.
+Include field "compliment" with one sincere compliment grounded in her photo or vibe — warm, specific, body-positive (curves as assets).
 If quote/note/desc mentions a weekday, it MUST say ${localWeekday} (today) — never invent a different day.
 
 Style the outfit for the DETECTED silhouette and DETECTED harmony when photos exist.
+SILHOUETTE FIT GUIDE:
+- Curvy / Soft Silhouette: celebrate curves — wrap that cinches, soft V/wrap neckline, A-line skim, intentional waist, vertical lines. Ban tents, heavy blazer armor, matronly dark columns.
+- Hourglass / Defined: keep waist the star — tuck, soft belt, or wrap; structure at shoulder without boxing her in.
+- Petite: raise visual waist, crop cleanly, scale pieces so she looks elongated — still polished, not childish.
+- Tall / Long Lines: unbroken verticals, high-rise, intentional midi — never empty or drowning in fabric.
+- Athletic / Straight: add soft shape with wrap, peplum, or nipped layer — feminine without bulk.
+Match formality to occasion/vibe. Casual / selfie / everyday ≠ boardroom blazer stack.
 facePalette.lip MUST be a wearable lipstick (rose/berry/mauve/nude/coral/plum/red) — NEVER green, sage, or olive lipstick. Clothing palette may include olive/sage for garments only.
 
 Return JSON only:
