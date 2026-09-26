@@ -1233,9 +1233,9 @@
                   <p id="fiona-beauty-pick-status" class="text-[10px] font-semibold text-spa-plum/70 dark:text-pink-300/70">Pick one</p>
                 </div>
                 <div id="fiona-beauty-options" class="grid grid-cols-1 sm:grid-cols-2 gap-3 min-h-[5.5rem]" role="radiogroup" aria-label="Hair and makeup options">
-                  <p class="text-[11px] text-gray-500 dark:text-gray-400 sm:col-span-2">Style My Full Look to reveal Hair &amp; Makeup A and B.</p>
+                  <p class="text-[11px] text-gray-500 dark:text-gray-400 sm:col-span-2">Style My Full Look to reveal Hair &amp; Makeup A and B (one hair up, one hair down + effortless makeup).</p>
                 </div>
-                <p id="fiona-beauty-hint" class="text-[10px] text-gray-500 dark:text-gray-400 leading-snug">One Style click delivers both pairs. Face + exact body locked; same haircut length; hair style + makeup should look clearly different when you pick Option B.</p>
+                <p id="fiona-beauty-hint" class="text-[10px] text-gray-500 dark:text-gray-400 leading-snug">One Style click delivers both pairs. One option puts hair up (playful or sleek); the other leaves it down. Each has a different effortless makeup vibe. Face + body stay yours.</p>
               </section>
 
               <div class="flex flex-wrap items-center justify-center gap-2 pt-1 border-t border-spa-plum/15 dark:border-purple-900/50">
@@ -5288,7 +5288,7 @@
             <p id="fiona-beauty-pick-status" class="text-[10px] font-semibold text-spa-plum/70 dark:text-pink-300/70">Pick one</p>
           </div>
           <div id="fiona-beauty-options" class="grid grid-cols-1 sm:grid-cols-2 gap-3 min-h-[5.5rem]" role="radiogroup" aria-label="Hair and makeup options"></div>
-          <p id="fiona-beauty-hint" class="text-[10px] text-gray-500 dark:text-gray-400 leading-snug">One Style click delivers both pairs. Face + exact body locked; same haircut length; hair style + makeup should look clearly different when you pick Option B.</p>
+          <p id="fiona-beauty-hint" class="text-[10px] text-gray-500 dark:text-gray-400 leading-snug">One Style click delivers both pairs. One option puts hair up (playful or sleek); the other leaves it down. Each has a different effortless makeup vibe. Face + body stay yours.</p>
         </section>
         <div class="flex flex-wrap items-center justify-center gap-2 pt-1 border-t border-spa-plum/15">
           <button type="button" id="fiona-vision-generate-btn" onclick="generateFionaVisionLook()" class="px-5 py-3 rounded-xl bg-spa-plum hover:bg-spa-plumdark text-white text-xs font-bold shadow-sm transition active:scale-95 disabled:opacity-60">Generate My Look ✨</button>
@@ -5369,25 +5369,33 @@
     }
 
     const FIONA_HAIRSTYLE_OPTIONS = [
-      { id: 'keep-mine', label: 'Keep mine', short: 'Exact hair from your photo' },
-      { id: 'soft-waves', label: 'Soft waves', short: 'Gentle wave, same cut & length' },
-      { id: 'sleek-side-part', label: 'Sleek side part', short: 'Polished deep side part, same length' },
-      { id: 'subtle-volume', label: 'Subtle volume', short: 'Lifted crown, soft body' },
-      { id: 'tousled-texture', label: 'Tousled texture', short: 'Lived-in piecey finish, same length' }
+      { id: 'keep-mine', label: 'Keep mine', short: 'Exact hair from your photo', category: 'as-is' },
+      { id: 'hair-up-playful', label: 'Hair up · cute playful', short: 'Easy cute playful updo', category: 'up' },
+      { id: 'hair-up-sleek', label: 'Hair up · sleek', short: 'Sleek pulled-up look', category: 'up' },
+      { id: 'hair-down-soft', label: 'Leave it down · soft', short: 'Hair down with soft waves', category: 'down' },
+      { id: 'hair-down-sleek', label: 'Leave it down · sleek', short: 'Hair down, sleek + polished', category: 'down' },
+      { id: 'soft-waves', label: 'Leave it down · soft', short: 'Hair down with soft waves', category: 'down' },
+      { id: 'sleek-side-part', label: 'Leave it down · sleek', short: 'Hair down, sleek + polished', category: 'down' },
+      { id: 'tousled-texture', label: 'Leave it down · soft', short: 'Hair down, tousled', category: 'down' },
+      { id: 'subtle-volume', label: 'Leave it down · soft', short: 'Hair down with volume', category: 'down' }
     ];
     const LEGACY_HAIRCUT_STYLE_REMAP = {
-      'polished-bob': 'sleek-side-part',
-      bob: 'sleek-side-part',
-      lob: 'soft-waves',
-      'collarbone-lob': 'sleek-side-part',
-      'soft-long-layers': 'soft-waves',
-      'face-framing-layers': 'soft-waves',
-      'modern-shag': 'tousled-texture',
-      'sleek-long': 'sleek-side-part',
+      'polished-bob': 'hair-down-sleek',
+      bob: 'hair-down-sleek',
+      lob: 'hair-down-soft',
+      'collarbone-lob': 'hair-down-sleek',
+      'soft-long-layers': 'hair-down-soft',
+      'face-framing-layers': 'hair-down-soft',
+      'modern-shag': 'hair-down-soft',
+      'sleek-long': 'hair-down-sleek',
       'new-haircut': 'keep-mine',
-      haircut: 'keep-mine'
+      haircut: 'keep-mine',
+      'soft-waves': 'hair-down-soft',
+      'sleek-side-part': 'hair-down-sleek',
+      'tousled-texture': 'hair-down-soft',
+      'subtle-volume': 'hair-down-soft'
     };
-    const FIONA_VISION_CACHE_PREFIX = 'fiona_vision_look_v13:';
+    const FIONA_VISION_CACHE_PREFIX = 'fiona_vision_look_v14:';
     let fionaVisionSideBySide = false;
     let fionaVisionGenerating = false;
     let fionaSelectedWardrobeId = 'A';
@@ -5459,7 +5467,7 @@
         };
         const hairARaw = normalizeHairStyleId((look && look.suggestedHairStyleId) || 'keep-mine');
         const hairA = allowedHair.has(hairARaw) ? hairARaw : 'keep-mine';
-        const hairB = hairA === 'soft-waves' ? 'sleek-side-part' : 'soft-waves';
+        const hairB = String(hairA).startsWith('hair-up') ? 'hair-down-soft' : 'hair-up-playful';
         beautyOptions = [
           {
             id: 'A',
@@ -5471,10 +5479,10 @@
           },
           {
             id: 'B',
-            title: hairB === 'soft-waves' ? 'Soft Waves & Glow' : 'Sleek Side Part & Berry Lip',
+            title: String(hairB).startsWith('hair-up') ? 'Hair Up · Cute Playful + Effortless Glow' : 'Hair Down · Soft + Effortless Soft Berry',
             summary: 'A second beauty mood — different hair styling and lip story, same haircut length.',
             hairMove: {
-              title: hairB === 'soft-waves' ? 'Soft wave polish' : 'Sleek side polish',
+              title: String(hairB).startsWith('hair-up') ? 'Easy cute playful up' : 'Leave it down · soft',
               body: 'Same haircut length as your photo — styling + makeup only, never a new cut.',
               cues: ['Volume: intentional', 'Part: deliberate', 'Texture: polished']
             },
@@ -5500,7 +5508,7 @@
 
       beautyOptions = beautyOptions.map((opt, i) => {
         let hairId = normalizeHairStyleId(opt.hairStyleId || opt.suggestedHairStyleId || '');
-        if (!allowedHair.has(hairId)) hairId = i === 0 ? 'keep-mine' : 'soft-waves';
+        if (!allowedHair.has(hairId) || hairId === 'keep-mine') hairId = i === 0 ? 'hair-up-playful' : 'hair-down-soft';
         return {
           ...opt,
           id: i === 0 ? 'A' : 'B',
@@ -5509,7 +5517,10 @@
         };
       });
       if (beautyOptions.length === 2 && beautyOptions[0].hairStyleId === beautyOptions[1].hairStyleId) {
-        beautyOptions[1].hairStyleId = beautyOptions[0].hairStyleId === 'sleek-side-part' ? 'soft-waves' : 'sleek-side-part';
+        {
+          const a = beautyOptions[0].hairStyleId || '';
+          beautyOptions[1].hairStyleId = String(a).startsWith('hair-up') ? 'hair-down-soft' : 'hair-up-playful';
+        }
       }
 
       return { wardrobeOptions, beautyOptions };
@@ -5597,7 +5608,7 @@
       if (!host) return;
       const list = (window.lastGlamourLook && window.lastGlamourLook.beautyOptions) || [];
       if (!list.length) {
-        host.innerHTML = '<p class="text-[11px] text-gray-500 dark:text-gray-400 sm:col-span-2">Style My Full Look to reveal Hair &amp; Makeup A and B.</p>';
+        host.innerHTML = '<p class="text-[11px] text-gray-500 dark:text-gray-400 sm:col-span-2">Style My Full Look to reveal Hair &amp; Makeup A and B (one hair up, one hair down + effortless makeup).</p>';
         return;
       }
       host.innerHTML = list.map((opt) => {
@@ -5630,7 +5641,7 @@
         const hair = getHairStyleOption(beauty && beauty.hairStyleId);
         hint.textContent = beauty
           ? `${hair.label}: face + body locked; same haircut length; style + makeup follow your pick.`
-          : 'Pick a beauty look. Face + exact body locked; same haircut length; hair style + makeup should look clearly different when you pick Option B.';
+          : 'Pick a beauty look. One option puts hair up (playful or sleek); the other leaves it down. Each has a different effortless makeup vibe. Face + body stay yours.';
       }
       const bStatus = document.getElementById('fiona-beauty-pick-status');
       if (bStatus) bStatus.textContent = `Selected ${fionaSelectedBeautyId}`;
@@ -6158,31 +6169,35 @@
 
       const beautyA = {
         id: 'A',
-        title: hairMove.title || 'Soft Everyday Glow',
-        summary: hairMove.body || 'Polished hair styling and wearable makeup — same cut length.',
-        hairMove,
+        title: 'Hair Up · Cute Playful + Effortless Glow',
+        summary: 'Easy cute playful updo with effortless fresh makeup — soft skin, rosy cheek, wearable nude-pink lip.',
+        hairMove: {
+          title: 'Easy cute playful up',
+          body: 'Claw-clip twist or soft playful bun — fun and effortless, using her real hair only.',
+          cues: ['Style: hair up', 'Mood: cute playful', 'Hold: easy']
+        },
         facePalette: {
           lip: face.lip,
           cheek: face.cheek,
-          note: `${harmony} harmony — lips stay rosy/berry/nude (never green). Soft color near the face only.`
+          note: `${harmony} harmony — effortless fresh glow; lips stay rosy/berry/nude.`
         },
-        hairStyleId: 'keep-mine'
+        hairStyleId: 'hair-up-playful'
       };
       const beautyB = {
         id: 'B',
-        title: 'Sleek Side Part Glow',
-        summary: 'Clearly different hair styling — polished deep side part and smooth finish at your same length, with a second wearable lip story.',
+        title: 'Hair Down · Soft + Effortless Soft Berry',
+        summary: 'Leave it down with soft waves and a second effortless makeup story — soft berry lip, healthy flush.',
         hairMove: {
-          title: 'Sleek side polish',
-          body: 'Same haircut length as your photo — sleek deep side part and glossy controlled finish (not the same loose waves), plus makeup only.',
-          cues: ['Part: deep side', 'Finish: sleek polish', 'Length: unchanged']
+          title: 'Leave it down · soft',
+          body: 'Hair stays down with soft romantic waves — clearly different from the up option.',
+          cues: ['Style: hair down', 'Texture: soft waves', 'Length: unchanged']
         },
         facePalette: sanitizeFacePalette({
           lip: face.lip,
           cheek: face.cheek,
-          note: 'Alternate wearable lip — still rose/berry/nude family.'
+          note: 'Effortless soft berry — still rose/berry/nude family.'
         }, harmony),
-        hairStyleId: 'sleek-side-part'
+        hairStyleId: 'hair-down-soft'
       };
 
       return {
