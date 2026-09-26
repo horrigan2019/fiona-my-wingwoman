@@ -34,6 +34,32 @@
   <!-- Lucide Icons CDN -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="/beta-pass.js"></script>
+  <!-- One-time shell migration: wipe stale PWA cache that stuck on Building… -->
+  <script>
+    (function () {
+      var SHELL = 'fiona-shell-v19';
+      try {
+        if (localStorage.getItem('fiona-shell-v') === SHELL) return;
+        localStorage.setItem('fiona-shell-v', SHELL);
+        var done = function () {
+          try { location.replace(location.pathname + location.search + (location.search ? '&' : '?') + 'fiona_shell=19&_=' + Date.now()); }
+          catch (e) { location.reload(); }
+        };
+        var tasks = [];
+        if ('serviceWorker' in navigator) {
+          tasks.push(navigator.serviceWorker.getRegistrations().then(function (regs) {
+            return Promise.all(regs.map(function (r) { return r.unregister(); }));
+          }));
+        }
+        if (window.caches && caches.keys) {
+          tasks.push(caches.keys().then(function (keys) {
+            return Promise.all(keys.map(function (k) { return caches.delete(k); }));
+          }));
+        }
+        Promise.all(tasks).then(done).catch(done);
+      } catch (e) {}
+    })();
+  </script>
 
   <script>
     tailwind.config = {
@@ -1212,7 +1238,7 @@
             </div>
 
             <!-- MUST sit between photos and Generate — never above Canvas (sticky nav ate it) -->
-            <div id="fiona-glamour-pickers" class="space-y-4 rounded-2xl border-2 border-spa-plum dark:border-pink-300 bg-white dark:bg-spa-darkbg p-4 sm:p-5 shadow-md" style="scroll-margin-top: 6.5rem;" data-fiona-pickers="v18">
+            <div id="fiona-glamour-pickers" class="space-y-4 rounded-2xl border-2 border-spa-plum dark:border-pink-300 bg-white dark:bg-spa-darkbg p-4 sm:p-5 shadow-md" style="scroll-margin-top: 6.5rem;" data-fiona-pickers="v19">
               <div class="rounded-xl bg-spa-plum text-white px-3.5 py-3 text-center sm:text-left space-y-0.5">
                 <p class="text-[11px] font-bold uppercase tracking-[0.16em]">Your picks — one Style = four options</p>
                 <p class="text-[12px] font-medium text-pink-100/95">Choose Wardrobe A or B, then Hair &amp; Makeup A or B. Generate is next.</p>
@@ -5347,7 +5373,7 @@
       const anchorParent = visionCard && visionCard.parentElement;
       const dock = document.createElement('div');
       dock.id = 'fiona-glamour-pickers';
-      dock.setAttribute('data-fiona-pickers', 'v18-injected');
+      dock.setAttribute('data-fiona-pickers', 'v19-injected');
       dock.className = 'space-y-4 rounded-2xl border-2 border-spa-plum dark:border-pink-300 bg-white dark:bg-spa-darkbg p-4 sm:p-5 shadow-md';
       dock.style.scrollMarginTop = '6.5rem';
       dock.innerHTML = `
@@ -6056,6 +6082,7 @@
     }
 
     async function generateFionaVisionLook() {
+      try { rescueStuckBuildingPickers(); } catch (_) {}
       if (fionaVisionGenerating) return;
       const meta = window.lastGlamourLook;
       if (!meta || !meta.look) {
@@ -6412,6 +6439,47 @@
         }
         return false;
       }
+    }
+
+
+    /** If any host still says "Building…", replace with real A/B cards. */
+    function rescueStuckBuildingPickers() {
+      try {
+        const hosts = [
+          ...allGlamourHosts('fiona-wardrobe-options'),
+          ...allGlamourHosts('fiona-beauty-options')
+        ];
+        const stuck = hosts.some((el) => /Building\s+(Wardrobe|Hair)/i.test(el && el.textContent || ''));
+        const wCount = (document.getElementById('fiona-wardrobe-options') || { querySelectorAll(){return[]} })
+          .querySelectorAll('[data-wardrobe-option]').length;
+        const bCount = (document.getElementById('fiona-beauty-options') || { querySelectorAll(){return[]} })
+          .querySelectorAll('[data-beauty-option]').length;
+        if (!stuck && wCount >= 2 && bCount >= 2) return false;
+        if (!stuck && wCount === 0 && bCount === 0 && !window.lastGlamourLook) return false;
+        const occasion = (typeof selectedOccasion !== 'undefined' && selectedOccasion) || 'Desk to Dinner';
+        const vibe = (document.getElementById('wardrobe-vibe') && document.getElementById('wardrobe-vibe').value) || '';
+        paintInstantStylePickers(occasion, vibe.trim());
+        ensureGlamourPickersVisible();
+        return true;
+      } catch (err) {
+        console.warn('[Glamour] rescueStuckBuildingPickers', err);
+        return false;
+      }
+    }
+
+    function startBuildingPickerWatchdog() {
+      if (window.__fionaBuildingWatch) return;
+      window.__fionaBuildingWatch = true;
+      const tick = () => { try { rescueStuckBuildingPickers(); } catch (_) {} };
+      setInterval(tick, 1200);
+      try {
+        const root = document.getElementById('wardrobe-recommendation-box') || document.body;
+        const mo = new MutationObserver(tick);
+        mo.observe(root, { childList: true, subtree: true, characterData: true });
+      } catch (_) {}
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) tick();
+      });
     }
 
     let glamourStyleInFlight = null;
@@ -7463,9 +7531,11 @@
       const footerYear = document.getElementById('site-footer-year');
       if (footerYear) footerYear.textContent = String(new Date().getFullYear());
 
+      try { startBuildingPickerWatchdog(); rescueStuckBuildingPickers(); } catch (_) {}
+
       // Progressive Web App — register service worker for Add to Home Screen
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js').then((reg) => {
+        navigator.serviceWorker.register('/sw.js?v=19').then((reg) => {
           try {
             if (reg && typeof reg.update === 'function') reg.update();
           } catch (_) {}
@@ -7477,8 +7547,8 @@
             if (!worker) return;
             worker.addEventListener('statechange', () => {
               if (worker.state === 'installed' && navigator.serviceWorker.controller) {
-                // New SW ready — claim on next load via skipWaiting in sw.js install.
-                console.info('[Fiona PWA] Updated shell available (v12 blank-canvas + Style harden)');
+                console.info('[Fiona PWA] Updated shell v19 — reloading');
+                try { location.reload(); } catch (_) {}
               }
             });
           });
