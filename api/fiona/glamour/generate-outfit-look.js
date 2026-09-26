@@ -254,17 +254,20 @@ function buildEditorialPrompt(look, occasion, vibe, hairStyleId, extras) {
     : 'FLATTERING FIT: Dress her to look intentional and gorgeous on HER body — define the waist, skim (never tent) bust and hips when she has soft curves. Prefer wrap that cinches, soft V / wrap neckline, A-line, vertical lines, right proportions.';
 
   return [
-    'Edit the attached images: first image is her IDENTITY selfie (face + body); if a second image is attached it is the EXACT garment to wear — virtual try-on only, same person.',
-    'IDENTITY LOCK — do not change: her exact face, facial geometry, eyes, nose, mouth, expression, skin tone, age, ethnicity, or likeness.',
+    'Edit the attached images: IMAGE 1 = her IDENTITY selfie (face + body). IMAGE 2 (if present) = the EXACT garment to wear — virtual try-on of IMAGE 2 clothes onto IMAGE 1 person only.',
+    'IDENTITY LOCK — do not change: her exact face, facial geometry, eyes, nose, mouth, expression, skin tone, age, ethnicity, or likeness from IMAGE 1. Never invent a different woman.',
+    exactGarment
+      ? 'GARMENT PHOTO RULE: IMAGE 2 may show another model, a mannequin, or a headless fit shot — IGNORE that person completely. Copy ONLY the clothing from IMAGE 2 onto the woman in IMAGE 1.'
+      : '',
     bodyLock,
     hairDirectionForVision(look, hairStyleId),
     changeLine,
     fitLine,
     exactGarment
-      ? 'GARMENT LOCK (NON-NEGOTIABLE): A garment reference image is attached (or her uploaded clothing choice is selected). Dress her in that EXACT garment — same color, fabric, lace/embroidery, length, silhouette, neckline, and straps (strapless stays strapless; no adding spaghetti straps, sleeves, or a different neckline). Do NOT redesign, recolor, restyle, or invent a different dress. Only fit THAT piece onto her body with realistic drape.'
+      ? 'GARMENT LOCK (NON-NEGOTIABLE): Dress her in the EXACT garment from IMAGE 2 — same color, fabric, lace/embroidery/3D florals, length, silhouette, neckline, and straps (strapless stays strapless; no adding spaghetti straps, sleeves, or a different neckline). Do NOT redesign, recolor, restyle, or invent a different dress (no swapping to a black one-shoulder mini). Only fit THAT piece onto her body with realistic drape.'
       : 'Do NOT drown her in an oversized heavy blazer, shapeless dark midi tent, or matronly corporate armor. Outfit should look hot-on-her and polished for the event — never frumpy or covering-up.',
     exactGarment
-      ? `Put her in her exact uploaded piece${pieceLine ? ` (described as: ${pieceLine})` : ''}. Match the garment photo pixel-faithfully for design details — fit to HER body only; do not change the clothes.`
+      ? 'Put her in her exact uploaded garment from IMAGE 2. Match that photo pixel-faithfully for design details. IGNORE any wardrobe option text that describes a different dress/color/neckline — the garment photo wins.'
       : `Dress her in: ${pieceLine || (look && look.desc) || 'the recommended outfit'}. Fit garments to HER existing body with realistic fabric drape — not pasted on, not padded out, not tented.`,
     `Makeup for the look: ${lip} lipstick, ${cheek} blush — do not change facial structure or bone structure.`,
     occasion ? `EVENT / FUNCTION (dress the outfit for this): ${occasion}.` : '',
@@ -500,21 +503,28 @@ async function generateWithOpenAI(apiKey, photo, prompt, garmentPhoto) {
   throw lastErr || new Error('OpenAI identity-preserving image edit failed');
 }
 
-async function generateWithGemini(apiKey, photo, prompt) {
+async function generateWithGemini(apiKey, photo, prompt, garmentPhoto) {
   const parsed = stripDataUrl(photo.data || photo);
   const model = process.env.GEMINI_IMAGE_MODEL || 'gemini-2.0-flash-preview-image-generation';
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
-  const identityLead = 'You are editing the attached photo of a real woman. Keep her identical face and EXACT body proportions (do not add curves or thickness). Keep hair length/cut; when asked, apply a clearly visible styling change only. Change clothes + makeup for the event.\n\n';
+  const identityLead = 'You are editing IMAGE 1 of a real woman. Keep her identical face and EXACT body proportions (do not add curves or thickness). Keep hair length/cut; when asked, apply a clearly visible styling change only. If IMAGE 2 is attached, it is the EXACT garment — ignore any other model in IMAGE 2 and copy only the clothes onto the woman in IMAGE 1.\n\n';
+  const requestParts = [
+    { text: identityLead + prompt },
+    { inline_data: { mime_type: parsed.mediaType || 'image/jpeg', data: parsed.base64 } }
+  ];
+  if (garmentPhoto) {
+    const gParsed = stripDataUrl(garmentPhoto.data || garmentPhoto);
+    if (gParsed && gParsed.base64) {
+      requestParts.push({ inline_data: { mime_type: gParsed.mediaType || 'image/jpeg', data: gParsed.base64 } });
+    }
+  }
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       contents: [{
         role: 'user',
-        parts: [
-          { text: identityLead + prompt },
-          { inline_data: { mime_type: parsed.mediaType || 'image/jpeg', data: parsed.base64 } }
-        ]
+        parts: requestParts
       }],
       generationConfig: { responseModalities: ['TEXT', 'IMAGE'] }
     })
@@ -621,7 +631,7 @@ module.exports = async function handler(req, res) {
       if (name === 'replicate' && imageGenKey) return generateWithReplicate(imageGenKey, dataUrl, prompt);
       if (name === 'fashn' && imageGenKey) return generateWithFashn(imageGenKey, dataUrl, prompt);
       if (name === 'openai' && openAiKey) return generateWithOpenAI(openAiKey, parsedPhoto, prompt, parsedGarment);
-      if (name === 'gemini' && geminiKey) return generateWithGemini(geminiKey, parsedPhoto, prompt);
+      if (name === 'gemini' && geminiKey) return generateWithGemini(geminiKey, parsedPhoto, prompt, parsedGarment);
       return null;
     };
 

@@ -3629,21 +3629,53 @@
       return images;
     }
 
-    function pickPreferredCanvasPersonPhoto(images) {
+    function pickPreferredCanvasPersonPhoto(images, opts) {
       const list = Array.isArray(images) ? images : getCanvasImages('wardrobe');
       if (!list.length) return null;
-      // Latest explicit person/selfie/full-body photo wins over any closet shelf.
-      for (let i = list.length - 1; i >= 0; i -= 1) {
-        if (list[i] && list[i].kind === 'person') return list[i];
+      const excludeUrl = opts && opts.excludeUrl;
+      const candidates = list.filter((img) => img && img.url && img.url !== excludeUrl);
+      const pool = candidates.length ? candidates : list;
+      // Prefer true selfies / face+body shots over dress-on-model or outfit flats.
+      const scoreIdentity = (img) => {
+        if (!img) return -1;
+        let s = 0;
+        const name = String(img.name || '').toLowerCase();
+        if (img.kind === 'person') s += 40;
+        else if (img.kind === 'unknown') s += 10;
+        else if (img.kind === 'closet') s -= 50;
+        if (/selfie|portrait|face|mirror|fit.?check|camera-capture|selfie-capture/.test(name)) s += 35;
+        if (/dress|gown|garment|outfit|closet|product|flat.?lay/.test(name)) s -= 25;
+        // Later uploads slightly preferred when scores tie (index as weak signal).
+        s += pool.indexOf(img) * 0.01;
+        return s;
+      };
+      const people = pool.filter((img) => img.kind === 'person');
+      if (people.length) {
+        people.sort((a, b) => scoreIdentity(b) - scoreIdentity(a));
+        return people[0];
       }
-      // Prefer unknowns over closet when a closet exists (unknown may still be a person).
-      const hasCloset = list.some((img) => img && img.kind === 'closet');
+      const hasCloset = pool.some((img) => img && img.kind === 'closet');
       if (hasCloset) {
-        for (let i = list.length - 1; i >= 0; i -= 1) {
-          if (list[i] && list[i].kind !== 'closet') return list[i];
+        const nonCloset = pool.filter((img) => img && img.kind !== 'closet');
+        if (nonCloset.length) {
+          nonCloset.sort((a, b) => scoreIdentity(b) - scoreIdentity(a));
+          return nonCloset[0];
         }
       }
-      return list[list.length - 1];
+      return pool[pool.length - 1];
+    }
+
+    /** Dress / outfit / closet shots — including a body-in-dress photo Debra tapped as her clothing choice. */
+    function isGarmentCandidate(img, identityUrl) {
+      if (!img || !img.url) return false;
+      if (identityUrl && img.url === identityUrl) return false;
+      if (img.kind === 'closet') return true;
+      if (img.kind && img.kind !== 'person') return true;
+      // Person-classified but Debra manually selected it as the dress to try on.
+      if (moodboardHeroManual && moodboardHeroUrl && img.url === moodboardHeroUrl) return true;
+      const name = String(img.name || '').toLowerCase();
+      if (/dress|gown|garment|outfit|closet|product|flat.?lay|wedding|formal/.test(name)) return true;
+      return false;
     }
 
     function resolveMoodboardHeroImage(images) {
@@ -5183,44 +5215,47 @@
       return out;
     }
 
-    /** Canvas selfie for Vision: person/selfie/full-body ONLY — never a closet shelf when a person exists. */
+    /** Canvas selfie for Vision: real face+body identity — never the selected dress photo. */
     function resolveCanvasSelfieForLook() {
       const images = getCanvasImages('wardrobe');
       if (!images.length) return null;
-      const person = pickPreferredCanvasPersonPhoto(images);
-      // Honor explicit thumb selection only when it is the person (or no person exists).
-      if (moodboardHeroUrl) {
-        const byUrl = images.find((img) => img && img.url && img.url === moodboardHeroUrl);
-        if (byUrl) {
-          if (person && person.kind === 'person' && byUrl.kind !== 'person') {
-            return person;
-          }
-          return byUrl;
-        }
-      }
+      const hero = moodboardHeroUrl
+        ? images.find((img) => img && img.url === moodboardHeroUrl)
+        : null;
+      // When Debra taps a dress thumb, that photo is clothing — identity must be a different selfie.
+      const excludeUrl = (moodboardHeroManual && hero && isGarmentCandidate(hero, null))
+        ? hero.url
+        : null;
+      const person = pickPreferredCanvasPersonPhoto(images, { excludeUrl });
       if (person) return person;
-      const hero = document.getElementById('wardrobe-moodboard-hero');
-      if (hero && hero.src && !hero.classList.contains('hidden')) {
-        const byUrl = images.find((img) => img && img.url && img.url === hero.src);
-        if (byUrl && byUrl.kind !== 'closet') return byUrl;
-      }
-      return images[images.length - 1];
+      // No other person shot — only then fall back (still avoid closet when possible).
+      if (hero && hero.kind !== 'closet' && !excludeUrl) return hero;
+      const nonCloset = images.filter((img) => img && img.kind !== 'closet');
+      return (nonCloset.length ? nonCloset[nonCloset.length - 1] : images[images.length - 1]) || null;
     }
 
     async function collectCanvasSelfieForLook() {
       await ensureCanvasImagesClassified();
+      const images = getCanvasImages('wardrobe');
       const selfie = resolveCanvasSelfieForLook();
       if (!selfie) return null;
-      // Guard: if somehow still a closet while a person exists, force the person.
-      const images = getCanvasImages('wardrobe');
-      const person = pickPreferredCanvasPersonPhoto(images);
-      const identity = (selfie.kind === 'closet' && person && person.kind === 'person') ? person : selfie;
-      if (identity && identity.url) {
-        // Do not force-swap hero away from a selected garment thumb — Vision needs that dress ref.
-        if (!(moodboardHeroManual && moodboardHeroUrl && identity.url !== moodboardHeroUrl)) {
-          setMoodboardHeroFromImage(identity, { manual: false });
-        }
+      // Guard: closet must never be identity when a person exists.
+      const person = pickPreferredCanvasPersonPhoto(images, {
+        excludeUrl: (moodboardHeroManual && moodboardHeroUrl) || null
+      });
+      let identity = selfie;
+      if (selfie.kind === 'closet' && person && person.kind === 'person') identity = person;
+      // Guard: selected dress thumb must never become identity when another person shot exists.
+      if (
+        moodboardHeroManual
+        && moodboardHeroUrl
+        && identity.url === moodboardHeroUrl
+        && person
+        && person.url !== identity.url
+      ) {
+        identity = person;
       }
+      // Keep Canvas hero on the dress Debra picked — do not snap hero back to the selfie.
       // Higher-res input helps gpt-image edit keep face + short hair + body type.
       return canvasImageToApiPayload(identity, {
         maxDim: 1536,
@@ -5235,22 +5270,19 @@
     function resolveGarmentRefForLook() {
       const images = getCanvasImages('wardrobe');
       if (!images.length) return null;
-      const person = pickPreferredCanvasPersonPhoto(images);
-      const personUrl = person && person.url;
-      const isGarmentLike = (img) => {
-        if (!img || !img.url) return false;
-        if (personUrl && img.url === personUrl) return false;
-        if (img.kind === 'closet') return true;
-        // Dress-only / outfit flat-lays often classify as "other"
-        if (img.kind && img.kind !== 'person') return true;
-        return false;
-      };
+      const identity = resolveCanvasSelfieForLook();
+      const identityUrl = identity && identity.url;
+      // Manual Canvas thumb = the dress Debra wants tried on (even if classifier said "person").
       if (moodboardHeroUrl) {
         const hero = images.find((img) => img && img.url === moodboardHeroUrl);
-        if (hero && isGarmentLike(hero)) return hero;
-        // Hero is the person but user also uploaded dresses — prefer latest closet/other
+        if (hero && hero.url !== identityUrl && isGarmentCandidate(hero, identityUrl)) {
+          return hero;
+        }
+        if (moodboardHeroManual && hero && hero.url !== identityUrl) {
+          return hero;
+        }
       }
-      const garments = images.filter(isGarmentLike);
+      const garments = images.filter((img) => isGarmentCandidate(img, identityUrl));
       if (!garments.length) return null;
       // Prefer most recently added clothing choice
       return garments[garments.length - 1];
@@ -5501,7 +5533,7 @@
       'tousled-texture': 'hair-down-soft',
       'subtle-volume': 'hair-down-soft'
     };
-    const FIONA_VISION_CACHE_PREFIX = 'fiona_vision_look_v17:';
+    const FIONA_VISION_CACHE_PREFIX = 'fiona_vision_look_v18:';
     let fionaVisionSideBySide = false;
     let fionaVisionGenerating = false;
     let fionaSelectedWardrobeId = 'A';
@@ -5887,10 +5919,15 @@
         : (canvas && canvas.url)
           ? String(canvas.url).slice(-120)
         : (canvas && canvas.id) || 'nophoto';
+      const garment = (typeof resolveGarmentRefForLook === 'function') ? resolveGarmentRefForLook() : null;
+      const garmentSig = garment && garment.url
+        ? String(garment.url).slice(-120)
+        : (garment && garment.id) || 'nogarment';
       const styleId = hairStyleId || getSelectedHairStyleId();
       const wardrobeId = (look && (look.selectedWardrobeId || look.wardrobeOptionId)) || fionaSelectedWardrobeId || 'A';
       const beautyId = (look && (look.selectedBeautyId || look.beautyOptionId)) || fionaSelectedBeautyId || 'A';
       return [
+        'idlock-v2',
         look && look.title || '',
         occasionLabel || '',
         vibe || '',
@@ -5900,7 +5937,9 @@
         styleId,
         `W${wardrobeId}`,
         `B${beautyId}`,
-        photoSig
+        photoSig,
+        garmentSig,
+        moodboardHeroManual ? 'manual-hero' : 'auto-hero'
       ].join('::');
     }
 
@@ -6106,10 +6145,22 @@
       }
       const garmentPayload = await collectGarmentRefForLook();
       const exactGarment = Boolean(garmentPayload && garmentPayload.data);
+      try {
+        const idImg = resolveCanvasSelfieForLook();
+        const gImg = resolveGarmentRefForLook();
+        console.info('[Glamour Vision] identity vs garment', {
+          identity: idImg && (idImg.name || idImg.url || '').toString().slice(-80),
+          identityKind: idImg && idImg.kind,
+          garment: gImg && (gImg.name || gImg.url || '').toString().slice(-80),
+          garmentKind: gImg && gImg.kind,
+          heroManual: moodboardHeroManual,
+          heroUrl: (moodboardHeroUrl || '').toString().slice(-80)
+        });
+      } catch (_) {}
 
       setFionaVisionLoading(true, exactGarment
-        ? 'trying on your exact uploaded piece — hang tight, gorgeous.'
-        : 'in your custom palette — hang tight, gorgeous.');
+        ? 'keeping your face + trying on the dress you selected — hang tight, gorgeous.'
+        : 'keeping your face in your custom palette — hang tight, gorgeous.');
       setFionaVisionError('');
 
       const hairStyleId = getSelectedHairStyleId();
