@@ -1212,7 +1212,7 @@
             </div>
 
             <!-- MUST sit between photos and Generate — never above Canvas (sticky nav ate it) -->
-            <div id="fiona-glamour-pickers" class="space-y-4 rounded-2xl border-2 border-spa-plum dark:border-pink-300 bg-white dark:bg-spa-darkbg p-4 sm:p-5 shadow-md" style="scroll-margin-top: 6.5rem;" data-fiona-pickers="v13">
+            <div id="fiona-glamour-pickers" class="space-y-4 rounded-2xl border-2 border-spa-plum dark:border-pink-300 bg-white dark:bg-spa-darkbg p-4 sm:p-5 shadow-md" style="scroll-margin-top: 6.5rem;" data-fiona-pickers="v18">
               <div class="rounded-xl bg-spa-plum text-white px-3.5 py-3 text-center sm:text-left space-y-0.5">
                 <p class="text-[11px] font-bold uppercase tracking-[0.16em]">Your picks — one Style = four options</p>
                 <p class="text-[12px] font-medium text-pink-100/95">Choose Wardrobe A or B, then Hair &amp; Makeup A or B. Generate is next.</p>
@@ -1221,7 +1221,7 @@
               <section id="fiona-wardrobe-options-section" class="space-y-2">
                 <div class="flex flex-wrap items-baseline justify-between gap-2">
                   <p class="text-[10px] font-bold uppercase tracking-[0.14em] text-spa-plum dark:text-pink-300">Wardrobe — Option A / B</p>
-                  <p id="fiona-wardrobe-pick-status" class="text-[10px] font-semibold text-spa-plum/70 dark:text-pink-300/70">Pick one</p>
+                  <p id="fiona-wardrobe-pick-status" class="text-[10px] font-semibold text-spa-plum/70 dark:text-pink-300/70">Tap a card</p>
                 </div>
                 <div id="fiona-wardrobe-options" class="grid grid-cols-1 sm:grid-cols-2 gap-3 min-h-[5.5rem]" role="radiogroup" aria-label="Wardrobe options">
                   <p class="text-[11px] text-gray-500 dark:text-gray-400 sm:col-span-2">Style My Full Look to reveal Wardrobe A and B.</p>
@@ -1231,7 +1231,7 @@
               <section id="fiona-beauty-options-section" class="space-y-2">
                 <div class="flex flex-wrap items-baseline justify-between gap-2">
                   <p class="text-[10px] font-bold uppercase tracking-[0.14em] text-spa-plum dark:text-pink-300">Hair &amp; Makeup — Option A / B</p>
-                  <p id="fiona-beauty-pick-status" class="text-[10px] font-semibold text-spa-plum/70 dark:text-pink-300/70">Pick one</p>
+                  <p id="fiona-beauty-pick-status" class="text-[10px] font-semibold text-spa-plum/70 dark:text-pink-300/70">Tap a card</p>
                 </div>
                 <div id="fiona-beauty-options" class="grid grid-cols-1 sm:grid-cols-2 gap-3 min-h-[5.5rem]" role="radiogroup" aria-label="Hair and makeup options">
                   <p class="text-[11px] text-gray-500 dark:text-gray-400 sm:col-span-2">Style My Full Look to reveal Hair &amp; Makeup A and B (one hair up, one hair down + effortless makeup).</p>
@@ -5003,7 +5003,7 @@
           body: JSON.stringify(requestBody),
           signal: controller ? controller.signal : undefined
         });
-        const timeoutMs = 55000;
+        const timeoutMs = 20000;
         if (controller) {
           setTimeout(() => { try { controller.abort(); } catch (_) {} }, timeoutMs);
         }
@@ -5332,6 +5332,11 @@
 
     /** If an old cached HTML shell is missing the dock, inject it after Canvas/Vision. */
     function ensureGlamourPickersMounted() {
+      // Remove duplicate docks (same ids break getElementById / clicks).
+      const docks = Array.from(document.querySelectorAll('#fiona-glamour-pickers'));
+      if (docks.length > 1) {
+        docks.slice(1).forEach((d) => { try { d.remove(); } catch (_) {} });
+      }
       let pickers = document.getElementById('fiona-glamour-pickers');
       if (pickers && document.getElementById('fiona-wardrobe-options') && document.getElementById('fiona-beauty-options')) {
         return pickers;
@@ -5342,7 +5347,7 @@
       const anchorParent = visionCard && visionCard.parentElement;
       const dock = document.createElement('div');
       dock.id = 'fiona-glamour-pickers';
-      dock.setAttribute('data-fiona-pickers', 'v13-injected');
+      dock.setAttribute('data-fiona-pickers', 'v18-injected');
       dock.className = 'space-y-4 rounded-2xl border-2 border-spa-plum dark:border-pink-300 bg-white dark:bg-spa-darkbg p-4 sm:p-5 shadow-md';
       dock.style.scrollMarginTop = '6.5rem';
       dock.innerHTML = `
@@ -5353,14 +5358,14 @@
         <section id="fiona-wardrobe-options-section" class="space-y-2">
           <div class="flex flex-wrap items-baseline justify-between gap-2">
             <p class="text-[10px] font-bold uppercase tracking-[0.14em] text-spa-plum dark:text-pink-300">Wardrobe — Option A / B</p>
-            <p id="fiona-wardrobe-pick-status" class="text-[10px] font-semibold text-spa-plum/70 dark:text-pink-300/70">Pick one</p>
+            <p id="fiona-wardrobe-pick-status" class="text-[10px] font-semibold text-spa-plum/70 dark:text-pink-300/70">Tap a card</p>
           </div>
           <div id="fiona-wardrobe-options" class="grid grid-cols-1 sm:grid-cols-2 gap-3 min-h-[5.5rem]" role="radiogroup" aria-label="Wardrobe options"></div>
         </section>
         <section id="fiona-beauty-options-section" class="space-y-2">
           <div class="flex flex-wrap items-baseline justify-between gap-2">
             <p class="text-[10px] font-bold uppercase tracking-[0.14em] text-spa-plum dark:text-pink-300">Hair &amp; Makeup — Option A / B</p>
-            <p id="fiona-beauty-pick-status" class="text-[10px] font-semibold text-spa-plum/70 dark:text-pink-300/70">Pick one</p>
+            <p id="fiona-beauty-pick-status" class="text-[10px] font-semibold text-spa-plum/70 dark:text-pink-300/70">Tap a card</p>
           </div>
           <div id="fiona-beauty-options" class="grid grid-cols-1 sm:grid-cols-2 gap-3 min-h-[5.5rem]" role="radiogroup" aria-label="Hair and makeup options"></div>
           <p id="fiona-beauty-hint" class="text-[10px] text-gray-500 dark:text-gray-400 leading-snug">One Style click delivers both pairs. One option puts hair up (playful or sleek); the other leaves it down. Each has a different effortless makeup vibe. Face + body stay yours.</p>
@@ -5470,7 +5475,7 @@
       'tousled-texture': 'hair-down-soft',
       'subtle-volume': 'hair-down-soft'
     };
-    const FIONA_VISION_CACHE_PREFIX = 'fiona_vision_look_v16:';
+    const FIONA_VISION_CACHE_PREFIX = 'fiona_vision_look_v17:';
     let fionaVisionSideBySide = false;
     let fionaVisionGenerating = false;
     let fionaSelectedWardrobeId = 'A';
@@ -5649,14 +5654,14 @@
     }
 
     function renderFionaWardrobeOptions() {
-      const host = document.getElementById('fiona-wardrobe-options');
-      if (!host) return;
+      const hosts = allGlamourHosts('fiona-wardrobe-options');
+      if (!hosts.length) return;
       const list = (window.lastGlamourLook && window.lastGlamourLook.wardrobeOptions) || [];
       if (!list.length) {
-        host.innerHTML = '<p class="text-[11px] text-gray-500 dark:text-gray-400 sm:col-span-2">Style My Full Look to reveal Wardrobe A and B.</p>';
+        setAllHostsHtml('fiona-wardrobe-options', '<p class="text-[11px] text-gray-500 dark:text-gray-400 sm:col-span-2">Style My Full Look to reveal Wardrobe A and B.</p>');
         return;
       }
-      host.innerHTML = list.map((opt) => {
+      const html = list.map((opt) => {
         const isOn = opt.id === fionaSelectedWardrobeId;
         const pieces = Array.isArray(opt.pieces) ? opt.pieces.slice(0, 2).map((p) => (p && p.name) || p).filter(Boolean).join(' · ') : '';
         const base = isOn
@@ -5673,20 +5678,21 @@
           ${pieces ? `<p class="text-[10px] font-semibold text-spa-plum/80 dark:text-pink-300/80 pt-0.5">${escapeGlamourHtml(pieces)}</p>` : ''}
         </button>`;
       }).join('');
-      const wStatus = document.getElementById('fiona-wardrobe-pick-status');
-      if (wStatus) wStatus.textContent = `Selected ${fionaSelectedWardrobeId}`;
+      setAllHostsHtml('fiona-wardrobe-options', html);
+      allGlamourHosts('fiona-wardrobe-pick-status').forEach((wStatus) => {
+        wStatus.textContent = `Selected ${fionaSelectedWardrobeId}`;
+      });
     }
 
     function renderFionaBeautyOptions() {
-      const host = document.getElementById('fiona-beauty-options');
-      const hint = document.getElementById('fiona-beauty-hint');
-      if (!host) return;
+      const hosts = allGlamourHosts('fiona-beauty-options');
+      if (!hosts.length) return;
       const list = (window.lastGlamourLook && window.lastGlamourLook.beautyOptions) || [];
       if (!list.length) {
-        host.innerHTML = '<p class="text-[11px] text-gray-500 dark:text-gray-400 sm:col-span-2">Style My Full Look to reveal Hair &amp; Makeup A and B (one hair up, one hair down + effortless makeup).</p>';
+        setAllHostsHtml('fiona-beauty-options', '<p class="text-[11px] text-gray-500 dark:text-gray-400 sm:col-span-2">Style My Full Look to reveal Hair &amp; Makeup A and B (one hair up, one hair down + effortless makeup).</p>');
         return;
       }
-      host.innerHTML = list.map((opt) => {
+      const html = list.map((opt) => {
         const isOn = opt.id === fionaSelectedBeautyId;
         const hair = getHairStyleOption(opt.hairStyleId);
         const haircutName = opt.haircut || (opt.hairMove && opt.hairMove.title) || hair.label;
@@ -5711,15 +5717,17 @@
           </div>
         </button>`;
       }).join('');
-      if (hint) {
+      setAllHostsHtml('fiona-beauty-options', html);
+      allGlamourHosts('fiona-beauty-hint').forEach((hint) => {
         const beauty = getSelectedBeautyOption();
         const hair = getHairStyleOption(beauty && beauty.hairStyleId);
         hint.textContent = beauty
-          ? `${hair.label}: face + body locked; same haircut length; style + makeup follow your pick.`
+          ? `${hair.label}: face + body locked; hair up or down + effortless makeup follow your pick.`
           : 'Pick a beauty look. One option puts hair up (playful or sleek); the other leaves it down. Each has a different effortless makeup vibe. Face + body stay yours.';
-      }
-      const bStatus = document.getElementById('fiona-beauty-pick-status');
-      if (bStatus) bStatus.textContent = `Selected ${fionaSelectedBeautyId}`;
+      });
+      allGlamourHosts('fiona-beauty-pick-status').forEach((bStatus) => {
+        bStatus.textContent = `Selected ${fionaSelectedBeautyId}`;
+      });
     }
 
     function applySelectedGlamourPicksToUi(opts) {
@@ -5796,6 +5804,32 @@
       fionaSelectedBeautyId = next;
       renderFionaBeautyOptions();
       applySelectedGlamourPicksToUi({ refreshVision: true });
+    }
+
+    // Always expose for inline onclick + delegated clicks (PWA / cached shells).
+    try {
+      window.selectFionaWardrobeOption = selectFionaWardrobeOption;
+      window.selectFionaBeautyOption = selectFionaBeautyOption;
+      window.generateFionaVisionLook = generateFionaVisionLook;
+    } catch (_) {}
+
+    if (!window.__fionaPickerClickBound) {
+      window.__fionaPickerClickBound = true;
+      document.addEventListener('click', function fionaPickerDelegate(ev) {
+        const t = ev.target && ev.target.closest
+          ? ev.target.closest('[data-wardrobe-option], [data-beauty-option]')
+          : null;
+        if (!t) return;
+        const w = t.getAttribute('data-wardrobe-option');
+        const b = t.getAttribute('data-beauty-option');
+        if (w) {
+          ev.preventDefault();
+          selectFionaWardrobeOption(w);
+        } else if (b) {
+          ev.preventDefault();
+          selectFionaBeautyOption(b);
+        }
+      }, true);
     }
 
     // Back-compat no-ops / aliases if older inline handlers remain
@@ -6298,6 +6332,88 @@
       };
     }
 
+
+    function allGlamourHosts(id) {
+      try {
+        return Array.from(document.querySelectorAll('#' + id));
+      } catch (_) {
+        const one = document.getElementById(id);
+        return one ? [one] : [];
+      }
+    }
+
+    function setAllHostsHtml(id, html) {
+      allGlamourHosts(id).forEach((el) => { el.innerHTML = html; });
+    }
+
+    /** Instant clickable A/B cards so Debra is never stuck on "Building…". */
+    function paintInstantStylePickers(occasionLabel, vibe) {
+      try {
+        const silhouette = (!isAutoSilhouette(selectedWardrobeSilhouette) && selectedWardrobeSilhouette)
+          || lastDetectedSilhouette
+          || 'Hourglass / Defined';
+        const harmony = (!isAutoHarmony(selectedWardrobeHarmony) && selectedWardrobeHarmony)
+          || lastDetectedHarmony
+          || 'Warm & Golden';
+        const offline = buildOfflineWardrobeLook(occasionLabel, vibe || '', silhouette, harmony);
+        if (vibe) {
+          offline.compliment = `You asked: “${vibe}” — pick a wardrobe path and hair up or down below while Fiona finishes refining.`;
+        }
+        applyWardrobeLookToUi(
+          offline,
+          occasionLabel,
+          vibe || '',
+          silhouette,
+          harmony,
+          getCanvasImages('wardrobe').length,
+          'Instant picks —'
+        );
+        return true;
+      } catch (err) {
+        console.error('[Glamour] instant pickers failed', err);
+        // Absolute last resort: hard-coded two cards
+        const wHtml = ['A', 'B'].map((id) => `
+          <button type="button" role="radio" aria-checked="${id === 'A'}" data-wardrobe-option="${id}" onclick="selectFionaWardrobeOption('${id}')"
+            class="text-left p-3.5 border border-spa-plum/30 bg-white dark:bg-spa-darkbg space-y-1">
+            <span class="text-[10px] font-bold uppercase tracking-[0.14em] text-spa-plum">Option ${id}</span>
+            <p class="font-serif text-base font-bold">Wardrobe Option ${id}</p>
+            <p class="text-[11px] text-gray-600">Tap to select — Fiona is refining this pick.</p>
+          </button>`).join('');
+        const bHtml = [
+          ['A', 'Hair Up · Cute Playful', 'hair-up-playful'],
+          ['B', 'Hair Down · Soft', 'hair-down-soft']
+        ].map(([id, title], i) => `
+          <button type="button" role="radio" aria-checked="${id === 'A'}" data-beauty-option="${id}" onclick="selectFionaBeautyOption('${id}')"
+            class="text-left p-3 border border-spa-plum/30 bg-white dark:bg-spa-darkbg space-y-1">
+            <span class="text-[10px] font-bold uppercase tracking-[0.14em] text-spa-plum">Option ${id}</span>
+            <p class="font-serif text-base font-bold">${title}</p>
+            <p class="text-[11px] text-gray-600">Effortless beauty — tap to select.</p>
+          </button>`).join('');
+        setAllHostsHtml('fiona-wardrobe-options', wHtml);
+        setAllHostsHtml('fiona-beauty-options', bHtml);
+        if (!window.lastGlamourLook) {
+          window.lastGlamourLook = {
+            look: null,
+            wardrobeOptions: [
+              { id: 'A', title: 'Wardrobe Option A', desc: 'Refining…', pieces: [], palette: [] },
+              { id: 'B', title: 'Wardrobe Option B', desc: 'Refining…', pieces: [], palette: [] }
+            ],
+            beautyOptions: [
+              { id: 'A', title: 'Hair Up · Cute Playful + Effortless Glow', hairStyleId: 'hair-up-playful', summary: 'Hair up' },
+              { id: 'B', title: 'Hair Down · Soft + Effortless Soft Berry', hairStyleId: 'hair-down-soft', summary: 'Hair down' }
+            ],
+            occasionLabel: occasionLabel,
+            vibe: vibe || '',
+            silhouette: 'Hourglass / Defined',
+            harmony: 'Warm & Golden'
+          };
+          fionaSelectedWardrobeId = 'A';
+          fionaSelectedBeautyId = 'A';
+        }
+        return false;
+      }
+    }
+
     let glamourStyleInFlight = null;
 
     async function generateWardrobeAdvice() {
@@ -6338,20 +6454,31 @@
             answerEl.innerHTML = '';
           }
         }
-        const wHost = document.getElementById('fiona-wardrobe-options');
-        const bHost = document.getElementById('fiona-beauty-options');
-        if (wHost) {
-          wHost.innerHTML = '<p class="text-[11px] text-spa-plum dark:text-pink-200 sm:col-span-2 font-semibold">Building Wardrobe Option A and B…</p>';
-        }
-        if (bHost) {
-          bHost.innerHTML = '<p class="text-[11px] text-spa-plum dark:text-pink-200 sm:col-span-2 font-semibold">Building Hair &amp; Makeup Option A and B…</p>';
-        }
+        // Instant clickable cards — never leave Debra on "Building…"
+        paintInstantStylePickers(occasionLabel, vibe);
         revealGlamourPickersIntoView();
-      } catch (_) {}
+        // Watchdog: if cards somehow cleared while API runs, re-paint.
+        setTimeout(() => {
+          try {
+            const bHost = document.getElementById('fiona-beauty-options');
+            const bCount = bHost ? bHost.querySelectorAll('[data-beauty-option]').length : 0;
+            if (bCount < 2) paintInstantStylePickers(occasionLabel, vibe);
+          } catch (_) {}
+        }, 1500);
+        setTimeout(() => {
+          try {
+            const bHost = document.getElementById('fiona-beauty-options');
+            const bCount = bHost ? bHost.querySelectorAll('[data-beauty-option]').length : 0;
+            if (bCount < 2) paintInstantStylePickers(occasionLabel, vibe);
+          } catch (_) {}
+        }, 4000);
+      } catch (_) {
+        try { paintInstantStylePickers(occasionLabel, vibe); } catch (__) {}
+      }
 
       glamourStyleInFlight = (async () => {
       try {
-        const images = await withTimeout(collectGlamourApiImages(MAX_CANVAS_PHOTOS), 25000, 'Photo prep');
+        const images = await withTimeout(collectGlamourApiImages(Math.min(MAX_CANVAS_PHOTOS, 6)), 12000, 'Photo prep');
         const inferFromPhotos = images.length > 0;
         const silhouetteHint = isAutoSilhouette(selectedWardrobeSilhouette)
           ? (inferFromPhotos ? 'Auto from photos' : 'Hourglass / Defined')
@@ -6490,12 +6617,27 @@
         }
       } finally {
         glamourStyleInFlight = null;
-        // Never leave Debra stuck on "Building…"
+        // Never leave Debra stuck on "Building…" — force clickable cards if missing.
         try {
+          const wHost = document.getElementById('fiona-wardrobe-options');
+          const bHost = document.getElementById('fiona-beauty-options');
+          const wCount = wHost ? wHost.querySelectorAll('[data-wardrobe-option]').length : 0;
+          const bCount = bHost ? bHost.querySelectorAll('[data-beauty-option]').length : 0;
           if (window.lastGlamourLook && window.lastGlamourLook.wardrobeOptions) {
             ensureGlamourPickersVisible();
           }
-        } catch (_) {}
+          const wCount2 = wHost ? wHost.querySelectorAll('[data-wardrobe-option]').length : 0;
+          const bCount2 = bHost ? bHost.querySelectorAll('[data-beauty-option]').length : 0;
+          if (wCount2 < 2 || bCount2 < 2) {
+            paintInstantStylePickers(occasionLabel, vibe);
+            ensureGlamourPickersVisible();
+          }
+          if (wCount < 2 || bCount < 2) {
+            console.warn('[Glamour] recovered empty pickers in finally', { wCount, bCount, wCount2, bCount2 });
+          }
+        } catch (_) {
+          try { paintInstantStylePickers(occasionLabel, vibe); } catch (__) {}
+        }
         if (btn) {
           btn.disabled = false;
           btn.innerText = previousLabel || 'Style My Full Look, Fiona ✨';
@@ -6504,6 +6646,8 @@
       })();
       await glamourStyleInFlight;
     }
+
+    try { window.generateWardrobeAdvice = generateWardrobeAdvice; } catch (_) {}
 
     function selectUndertone(btn, tone) {
       selectedUndertone = tone;
