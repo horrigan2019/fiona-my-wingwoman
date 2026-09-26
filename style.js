@@ -603,7 +603,14 @@ async function generateLookWithOpenAI(images, prompt) {
         form.append('input_fidelity', fidelity);
       }
       // Mask-free edit — identity/hair/body locks live in the prompt.
-      form.append('image', new Blob([bytes], { type: mediaType }), 'canvas-selfie.jpg');
+      form.append('image', new Blob([bytes], { type: mediaType }), 'identity-selfie.jpg');
+      const garment = images && images[1];
+      if (garment && garment.data) {
+        const gRaw = String(garment.data).replace(/^data:[^;]+;base64,/, '');
+        const gBytes = Buffer.from(gRaw, 'base64');
+        const gType = garment.mediaType || garment.media_type || 'image/jpeg';
+        form.append('image', new Blob([gBytes], { type: gType }), 'garment-exact.jpg');
+      }
 
       const res = await fetch('https://api.openai.com/v1/images/edits', {
         method: 'POST',
