@@ -4,6 +4,36 @@
  * set is_beta_tester and unlock VIP with no Stripe checkout.
  */
 (function (global) {
+  /* One-time PWA wipe so Debra leaves the stuck "Building Option A and B…" shell. */
+  try {
+    var SHELL = 'fiona-shell-v19';
+    if (global.localStorage && localStorage.getItem('fiona-shell-v') !== SHELL) {
+      localStorage.setItem('fiona-shell-v', SHELL);
+      var finish = function () {
+        try {
+          var u = new URL(global.location.href);
+          u.searchParams.set('fiona_shell', '19');
+          u.searchParams.set('_', String(Date.now()));
+          global.location.replace(u.toString());
+        } catch (e) {
+          global.location.reload();
+        }
+      };
+      var jobs = [];
+      if (global.navigator && navigator.serviceWorker && navigator.serviceWorker.getRegistrations) {
+        jobs.push(navigator.serviceWorker.getRegistrations().then(function (regs) {
+          return Promise.all((regs || []).map(function (r) { return r.unregister(); }));
+        }));
+      }
+      if (global.caches && caches.keys) {
+        jobs.push(caches.keys().then(function (keys) {
+          return Promise.all((keys || []).map(function (k) { return caches.delete(k); }));
+        }));
+      }
+      Promise.all(jobs).then(finish).catch(finish);
+    }
+  } catch (_) {}
+
   var BETA_TESTER_KEY = 'is_beta_tester';
   var VIP_STATUS_KEY = 'fiona_vip_status';
   var VIP_META_KEY = 'fiona_vip_meta';

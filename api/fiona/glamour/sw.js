@@ -1,5 +1,5 @@
 /* Fiona PWA service worker — resilient for Vercel cleanUrls + mobile install */
-const CACHE_NAME = 'fiona-pwa-v18';
+const CACHE_NAME = 'fiona-pwa-v19';
 /* Only cache final URLs (no /index.html — Vercel 308-redirects it to /) */
 const PRECACHE = [
   '/',
@@ -45,9 +45,22 @@ self.addEventListener('fetch', (event) => {
   if (url.pathname.startsWith('/api/')) return;
 
   event.respondWith((async () => {
+    // HTML navigations: always network, never serve a stale "Building…" shell.
+    if (req.mode === 'navigate' || (req.headers.get('accept') || '').includes('text/html')) {
+      try {
+        return await fetch(req, { cache: 'no-store' });
+      } catch (_) {
+        const cached = await caches.match(req) || await caches.match('/');
+        if (cached) return cached;
+        return new Response('Fiona is offline for a moment. Reconnect and try again.', {
+          status: 503,
+          headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+        });
+      }
+    }
     try {
-      const res = await fetch(req);
-      if (res && res.ok && req.mode !== 'navigate') {
+      const res = await fetch(req, { cache: 'no-cache' });
+      if (res && res.ok) {
         const cache = await caches.open(CACHE_NAME);
         cache.put(req, res.clone()).catch(() => {});
       }
@@ -55,10 +68,6 @@ self.addEventListener('fetch', (event) => {
     } catch (_) {
       const cached = await caches.match(req);
       if (cached) return cached;
-      if (req.mode === 'navigate') {
-        const home = await caches.match('/');
-        if (home) return home;
-      }
       return new Response('Fiona is offline for a moment. Reconnect and try again.', {
         status: 503,
         headers: { 'Content-Type': 'text/plain; charset=utf-8' }
