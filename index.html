@@ -1087,14 +1087,19 @@
             <input id="wardrobe-camera-input" type="file" accept="image/*" capture="user" class="sr-only" aria-label="Mobile camera fallback for wardrobe selfie" onchange="handleCanvasUpload(event, 'wardrobe')">
           </div>
 
-          <!-- Occasion Selector -->
+          <!-- Event / function selector -->
           <div class="space-y-2">
-            <span class="text-xs font-semibold text-gray-700 dark:text-gray-300">Select Today's Setting:</span>
+            <span class="text-xs font-semibold text-gray-700 dark:text-gray-300">Event / function — what are we dressing for?</span>
+            <p class="text-[11px] text-gray-500 dark:text-gray-400">Fiona builds the outfit + hair &amp; makeup around this (and your body type &amp; skin tone from the photo).</p>
             <div class="flex flex-wrap gap-2">
               <button onclick="selectOccasion(this, 'Desk to Dinner')" class="occasion-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-purple-200 dark:border-purple-800 bg-pink-50 dark:bg-purple-950 text-spa-plum dark:text-pink-200">💼 Desk to Dinner</button>
+              <button onclick="selectOccasion(this, 'Date Night')" class="occasion-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 dark:border-purple-900 text-gray-700 dark:text-gray-300">💋 Date Night</button>
+              <button onclick="selectOccasion(this, 'Weekend Brunch')" class="occasion-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 dark:border-purple-900 text-gray-700 dark:text-gray-300">🥂 Weekend Brunch</button>
+              <button onclick="selectOccasion(this, 'Beach / Vacation')" class="occasion-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 dark:border-purple-900 text-gray-700 dark:text-gray-300">🏖️ Beach / Vacation</button>
               <button onclick="selectOccasion(this, 'Casual Comfort Chic')" class="occasion-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 dark:border-purple-900 text-gray-700 dark:text-gray-300">☕ Casual Comfort Chic</button>
               <button onclick="selectOccasion(this, 'Power Meeting')" class="occasion-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 dark:border-purple-900 text-gray-700 dark:text-gray-300">🔥 Power Meeting</button>
               <button onclick="selectOccasion(this, 'Soft Evening Out')" class="occasion-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 dark:border-purple-900 text-gray-700 dark:text-gray-300">🍸 Soft Evening Out</button>
+              <button onclick="selectOccasion(this, 'Wedding Guest')" class="occasion-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 dark:border-purple-900 text-gray-700 dark:text-gray-300">💍 Wedding Guest</button>
               <button onclick="selectOccasion(this, 'Cozy Home Luxe')" class="occasion-chip px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 dark:border-purple-900 text-gray-700 dark:text-gray-300">🛋️ Cozy Home Luxe</button>
             </div>
           </div>
@@ -1230,7 +1235,7 @@
                 <div id="fiona-beauty-options" class="grid grid-cols-1 sm:grid-cols-2 gap-3 min-h-[5.5rem]" role="radiogroup" aria-label="Hair and makeup options">
                   <p class="text-[11px] text-gray-500 dark:text-gray-400 sm:col-span-2">Style My Full Look to reveal Hair &amp; Makeup A and B.</p>
                 </div>
-                <p id="fiona-beauty-hint" class="text-[10px] text-gray-500 dark:text-gray-400 leading-snug">One Style click delivers both pairs. Face + body locked; same haircut length; style + makeup follow your pick.</p>
+                <p id="fiona-beauty-hint" class="text-[10px] text-gray-500 dark:text-gray-400 leading-snug">One Style click delivers both pairs. Face + exact body locked; same haircut length; hair style + makeup should look clearly different when you pick Option B.</p>
               </section>
 
               <div class="flex flex-wrap items-center justify-center gap-2 pt-1 border-t border-spa-plum/15 dark:border-purple-900/50">
@@ -5283,7 +5288,7 @@
             <p id="fiona-beauty-pick-status" class="text-[10px] font-semibold text-spa-plum/70 dark:text-pink-300/70">Pick one</p>
           </div>
           <div id="fiona-beauty-options" class="grid grid-cols-1 sm:grid-cols-2 gap-3 min-h-[5.5rem]" role="radiogroup" aria-label="Hair and makeup options"></div>
-          <p id="fiona-beauty-hint" class="text-[10px] text-gray-500 dark:text-gray-400 leading-snug">One Style click delivers both pairs. Face + body locked; same haircut length; style + makeup follow your pick.</p>
+          <p id="fiona-beauty-hint" class="text-[10px] text-gray-500 dark:text-gray-400 leading-snug">One Style click delivers both pairs. Face + exact body locked; same haircut length; hair style + makeup should look clearly different when you pick Option B.</p>
         </section>
         <div class="flex flex-wrap items-center justify-center gap-2 pt-1 border-t border-spa-plum/15">
           <button type="button" id="fiona-vision-generate-btn" onclick="generateFionaVisionLook()" class="px-5 py-3 rounded-xl bg-spa-plum hover:bg-spa-plumdark text-white text-xs font-bold shadow-sm transition active:scale-95 disabled:opacity-60">Generate My Look ✨</button>
@@ -5382,7 +5387,7 @@
       'new-haircut': 'keep-mine',
       haircut: 'keep-mine'
     };
-    const FIONA_VISION_CACHE_PREFIX = 'fiona_vision_look_v12:';
+    const FIONA_VISION_CACHE_PREFIX = 'fiona_vision_look_v13:';
     let fionaVisionSideBySide = false;
     let fionaVisionGenerating = false;
     let fionaSelectedWardrobeId = 'A';
@@ -5466,7 +5471,7 @@
           },
           {
             id: 'B',
-            title: hairB === 'polished-bob' ? 'Polished Bob & Berry Lip' : 'Long Soft Layers & Glow',
+            title: hairB === 'soft-waves' ? 'Soft Waves & Glow' : 'Sleek Side Part & Berry Lip',
             summary: 'A second beauty mood — different hair styling and lip story, same haircut length.',
             hairMove: {
               title: hairB === 'soft-waves' ? 'Soft wave polish' : 'Sleek side polish',
@@ -5504,7 +5509,7 @@
         };
       });
       if (beautyOptions.length === 2 && beautyOptions[0].hairStyleId === beautyOptions[1].hairStyleId) {
-        beautyOptions[1].hairStyleId = beautyOptions[0].hairStyleId === 'polished-bob' ? 'soft-long-layers' : 'polished-bob';
+        beautyOptions[1].hairStyleId = beautyOptions[0].hairStyleId === 'sleek-side-part' ? 'soft-waves' : 'sleek-side-part';
       }
 
       return { wardrobeOptions, beautyOptions };
@@ -5625,7 +5630,7 @@
         const hair = getHairStyleOption(beauty && beauty.hairStyleId);
         hint.textContent = beauty
           ? `${hair.label}: face + body locked; same haircut length; style + makeup follow your pick.`
-          : 'Pick a beauty look. Face + body locked; same haircut length; style + makeup follow your pick.';
+          : 'Pick a beauty look. Face + exact body locked; same haircut length; hair style + makeup should look clearly different when you pick Option B.';
       }
       const bStatus = document.getElementById('fiona-beauty-pick-status');
       if (bStatus) bStatus.textContent = `Selected ${fionaSelectedBeautyId}`;
@@ -5971,13 +5976,18 @@
           selectedWardrobeId: wardrobeOptionId,
           selectedBeautyId: beautyOptionId,
           wardrobeOptionId,
-          beautyOptionId
+          beautyOptionId,
+          silhouette: meta.silhouette || selectedWardrobeSilhouette || '',
+          harmony: meta.harmony || selectedWardrobeHarmony || ''
         },
         occasion: meta.occasionLabel,
         vibe: meta.vibe,
         hairStyleId,
         wardrobeOptionId,
-        beautyOptionId
+        beautyOptionId,
+        silhouette: meta.silhouette || selectedWardrobeSilhouette || '',
+        harmony: meta.harmony || selectedWardrobeHarmony || '',
+        undertone: meta.harmony || selectedWardrobeHarmony || ''
       };
 
       try {
@@ -6160,19 +6170,19 @@
       };
       const beautyB = {
         id: 'B',
-        title: 'Soft Wave Glow',
-        summary: 'Gentle wave styling on your same haircut length, with a second wearable lip story.',
+        title: 'Sleek Side Part Glow',
+        summary: 'Clearly different hair styling — polished deep side part and smooth finish at your same length, with a second wearable lip story.',
         hairMove: {
-          title: 'Soft wave polish',
-          body: 'Same haircut length as your photo — soft face-framing waves and makeup only, never a new cut.',
-          cues: ['Volume: soft mid-lengths', 'Part: soft side', 'Texture: flexible hold']
+          title: 'Sleek side polish',
+          body: 'Same haircut length as your photo — sleek deep side part and glossy controlled finish (not the same loose waves), plus makeup only.',
+          cues: ['Part: deep side', 'Finish: sleek polish', 'Length: unchanged']
         },
         facePalette: sanitizeFacePalette({
           lip: face.lip,
           cheek: face.cheek,
           note: 'Alternate wearable lip — still rose/berry/nude family.'
         }, harmony),
-        hairStyleId: 'polished-bob'
+        hairStyleId: 'sleek-side-part'
       };
 
       return {

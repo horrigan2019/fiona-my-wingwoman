@@ -5,7 +5,7 @@
  * {
  *   photo: { data: base64|dataUrl, mediaType?: string },
  *   look: { title, desc, pieces[], hairMove, facePalette, compliment?, hairStyleId? },
- *   hairStyleId?: 'keep-mine' | 'soft-waves' | 'sleek-side-part' | 'polished-bob' | 'subtle-volume' | 'tousled-texture',
+ *   hairStyleId?: 'keep-mine' | 'soft-waves' | 'sleek-side-part' | 'subtle-volume' | 'tousled-texture',
  *   occasion?: string,
  *   vibe?: string
  * }
@@ -76,25 +76,25 @@ const FIONA_HAIRSTYLE_OPTIONS = [
     id: 'soft-waves',
     label: 'Soft waves',
     short: 'Gentle wave, same cut & length',
-    vision: 'STYLING ONLY — not a haircut. Restyle her EXISTING hair into soft, face-framing waves with natural movement. HARD LOCK: keep the EXACT same hair LENGTH and CUT/shape as the reference (waist-length stays waist-length; mid-back stays mid-back; short stays short). Same color, density, and hairline. NEVER shorten, bob, lob, trim, cut, or grow her hair.'
+    vision: 'STYLING ONLY — not a haircut. Make a CLEARLY VISIBLE change from her current finish: soft, romantic face-framing waves with defined S-bends and movement (not identical beachy flyaways). HARD LOCK: EXACT same hair LENGTH and CUT/shape as the reference. Same color, density, hairline. NEVER shorten, bob, lob, trim, cut, or grow her hair.'
   },
   {
     id: 'sleek-side-part',
     label: 'Sleek side part',
     short: 'Polished deep side part, same length',
-    vision: 'STYLING ONLY — not a haircut. Restyle her EXISTING hair with a polished deep side part and smooth, controlled finish. HARD LOCK: keep the EXACT same hair LENGTH and CUT/shape as the reference. Soft shine, not stiff. NEVER shorten, bob, lob, trim, cut, add length, or extensions.'
+    vision: 'STYLING ONLY — not a haircut. Make a CLEARLY VISIBLE change: polished deep SIDE PART, hair smoothed sleek and glossy (blowout-straight or softly controlled — NOT the same loose waves as the reference). HARD LOCK: EXACT same LENGTH and CUT/shape. Soft shine, not stiff. NEVER shorten, bob, lob, trim, cut, or add extensions.'
   },
   {
     id: 'subtle-volume',
     label: 'Subtle volume',
     short: 'Lifted crown, soft body',
-    vision: 'STYLING ONLY — not a haircut. Keep her EXACT cut silhouette and length, but add subtle lifted crown volume and soft body through the mid-lengths — same color, density, and hairline. Polish only; NEVER shorten, bob, trim, cut, or add extensions.'
+    vision: 'STYLING ONLY — not a haircut. CLEARLY VISIBLE lift: crown volume and brushed body through mid-lengths so the finish reads fuller/polished vs flat or windblown reference — still her EXACT cut silhouette and length. Same color, density, hairline. NEVER shorten, bob, trim, cut, or add extensions.'
   },
   {
     id: 'tousled-texture',
     label: 'Tousled texture',
     short: 'Lived-in piecey finish, same length',
-    vision: 'STYLING ONLY — not a haircut. Restyle her EXISTING hair with soft tousled, piecey texture and a lived-in finish. HARD LOCK: EXACT same length and cut/shape as the reference. Same color, density, and hairline. NEVER shorten, bob, lob, trim, or cut her hair.'
+    vision: 'STYLING ONLY — not a haircut. CLEARLY VISIBLE tousled, piecey, lived-in texture (finger-styled separation) — distinct from sleek or identical beach waves. HARD LOCK: EXACT same length and cut/shape. Same color, density, hairline. NEVER shorten, bob, lob, trim, or cut her hair.'
   }
 ];
 
@@ -150,12 +150,15 @@ function hairDirectionForVision(look, hairStyleId) {
     lengthGuard,
     `INTENTIONAL HAIR STYLING (user selected "${option.label}" — STYLING ONLY, NOT a haircut): ${option.vision}`,
     'Ignore conflicting hairMove / outfit-desc / beauty-title notes that would cut, bob, shorten, grow, or restyle into a different haircut length.',
-    'She must still look like herself — face locked; same haircut length as Canvas; only styling + makeup follow the pick.'
+    'She must still look like herself — face locked; EXACT body proportions locked (no added curves); same haircut LENGTH as Canvas; hair STYLING finish must be clearly different from the reference when a style is selected; makeup follows the pick.'
   ].join(' ');
 }
 
 
-function buildEditorialPrompt(look, occasion, vibe, hairStyleId) {
+function buildEditorialPrompt(look, occasion, vibe, hairStyleId, extras) {
+  extras = extras || {};
+  const silhouette = extras.silhouette || look && look.silhouette || '';
+  const harmony = extras.harmony || look && (look.harmony || look.undertone) || '';
   const pieces = Array.isArray(look && look.pieces) ? look.pieces : [];
   const pieceLine = pieces
     .map((p) => {
@@ -173,29 +176,42 @@ function buildEditorialPrompt(look, occasion, vibe, hairStyleId) {
     : 'soft flush';
 
   const hairOption = resolveHairStyleOption(look, hairStyleId);
-  const allowHaircut = Boolean(hairOption.vision && hairOption.id !== 'keep-mine');
-  const changeLine = allowHaircut
-    ? `CHANGE ALLOWED: clothing/outfit, light makeup (lipstick and blush), and the intentional "${hairOption.label}" STYLING finish on her EXISTING cut — same exact length/shape as the reference. Keep pose geometry, face, body type, and haircut length intact. NEVER bob, shorten, or cut her hair.`
-    : 'CHANGE ONLY: clothing/outfit and light makeup (lipstick and blush). Keep pose geometry, exact hair (cut + length), and her identity intact.';
+  const allowHairStyle = Boolean(hairOption.vision && hairOption.id !== 'keep-mine');
+  const changeLine = allowHairStyle
+    ? `CHANGE ALLOWED: clothing/outfit for the event, visible makeup (lipstick and blush), and a CLEARLY VISIBLE "${hairOption.label}" STYLING finish on her EXISTING cut — same exact length/shape as the reference. Keep pose geometry, face, and exact body proportions intact. NEVER bob, shorten, or cut her hair.`
+    : 'CHANGE ONLY: clothing/outfit for the event and light makeup (lipstick and blush). Keep pose geometry, exact hair (cut + length + finish), and her identity intact.';
 
-  // Virtual try-on: lock face + body; apply selected haircut when picked.
+  const silLower = String(silhouette || '').toLowerCase();
+  let bodyLock = 'BODY PROPORTION LOCK (critical): Keep her EXACT body from the reference — same frame, shoulder width, waist, hip width, thigh thickness, arm size, height cues, and muscle/softness. Do NOT add curves, widen hips/thighs, inflate bust, or thicken her. Do NOT slim, idealize, lengthen legs, or swap in a different body type. If she is slim, athletic, tall/long-lined, petite, or curvy — she stays exactly that.';
+  if (/curvy|soft silhouette|hourglass/.test(silLower)) {
+    bodyLock += ' Detected figure note: soft/hourglass — preserve her real waist-to-hip balance; do not exaggerate or invent extra weight.';
+  } else if (/athletic|straight|tall|long lines|petite/.test(silLower)) {
+    bodyLock += ` Detected figure note: ${silhouette} — keep that lean/long/athletic read; NEVER add softness or curves she does not have in the reference.`;
+  }
+
+  const fitLine = /athletic|straight|tall|long lines|petite/.test(silLower)
+    ? 'FLATTERING FIT: Dress HER real proportions — clean verticals, intentional waist if it suits, garments that skim without adding bulk. Prefer pieces that flatter a long/lean or athletic frame when that is what the reference shows.'
+    : 'FLATTERING FIT: Dress her to look intentional and gorgeous on HER body — define the waist, skim (never tent) bust and hips when she has soft curves. Prefer wrap that cinches, soft V / wrap neckline, A-line, vertical lines, right proportions.';
+
   return [
-    'Edit the attached reference selfie of this exact woman. Virtual try-on only — same person, not a new model.',
+    'Edit the attached reference selfie of this exact woman. Virtual try-on only — same person, not a new model or a plus-size/curvier stand-in.',
     'IDENTITY LOCK — do not change: her exact face, facial geometry, eyes, nose, mouth, expression, skin tone, age, ethnicity, or likeness.',
-    'BODY LOCK: Preserve her real body type, soft/curvy proportions if present, shoulder-to-hip balance, and figure. Do not slim, idealize, lengthen legs, or cast a fashion-model body.',
+    bodyLock,
     hairDirectionForVision(look, hairStyleId),
     changeLine,
-    'FLATTERING FIT: Dress her to look intentional and gorgeous on HER body — define the waist, skim (never tent) bust and hips, celebrate soft curves. Prefer wrap that cinches, soft V / wrap neckline, A-line, vertical lines, right proportions.',
-    'Do NOT drown her in an oversized heavy blazer, shapeless dark midi tent, or matronly corporate armor. Outfit should look hot-on-her and polished — never frumpy or covering-up.',
-    `Dress her in: ${pieceLine || (look && look.desc) || 'the recommended outfit'}. Fit garments flatteringly to HER existing body with realistic fabric drape that cinches the waist and skims curves — not pasted on, not tented.`,
-    `Light makeup only: ${lip} lipstick, ${cheek} blush — do not change facial structure or bone structure.`,
-    occasion ? `Occasion: ${occasion}.` : '',
-    vibe ? `Vibe: ${vibe}.` : '',
+    fitLine,
+    'Do NOT drown her in an oversized heavy blazer, shapeless dark midi tent, or matronly corporate armor. Outfit should look hot-on-her and polished for the event — never frumpy or covering-up.',
+    `Dress her in: ${pieceLine || (look && look.desc) || 'the recommended outfit'}. Fit garments to HER existing body with realistic fabric drape — not pasted on, not padded out, not tented.`,
+    `Makeup for the look: ${lip} lipstick, ${cheek} blush — do not change facial structure or bone structure.`,
+    occasion ? `EVENT / FUNCTION (dress the outfit for this): ${occasion}.` : '',
+    vibe ? `Vibe / notes: ${vibe}.` : '',
+    silhouette ? `Body type to honor: ${silhouette}.` : '',
+    harmony ? `Skin tone / color harmony to honor: ${harmony}.` : '',
     look && look.title ? `Look title: ${look.title}.` : '',
     'Soft studio or wardrobe background is OK. Tasteful, non-sexual, photorealistic. No text overlays, no logos.',
-    allowHaircut
-      ? `FINAL CHECK: face matches the reference, body type matches the reference, haircut matches the selected "${hairOption.label}", outfit flatters her real figure (waist visible, not tented). If anything conflicts, prefer the reference selfie for face + body — apply the selected haircut.`
-      : 'FINAL CHECK: face matches the reference, hair length/cut/style matches the reference, body type matches the reference, outfit flatters her real figure (waist visible, not tented). If anything conflicts, prefer the reference selfie for identity — keep the flattering fit.'
+    allowHairStyle
+      ? `FINAL CHECK: face matches reference; body proportions match reference (no added curves/thickness); hair LENGTH matches reference but styling CLEARLY shows "${hairOption.label}"; outfit flatters her real figure for ${occasion || 'the event'}. If anything conflicts, prefer the reference selfie for face + body.`
+      : `FINAL CHECK: face, hair, and body proportions match the reference (no added curves/thickness); outfit flatters her real figure for ${occasion || 'the event'}. If anything conflicts, prefer the reference selfie for identity.`
   ].filter(Boolean).join(' ');
 }
 
@@ -404,7 +420,7 @@ async function generateWithGemini(apiKey, photo, prompt) {
   const parsed = stripDataUrl(photo.data || photo);
   const model = process.env.GEMINI_IMAGE_MODEL || 'gemini-2.0-flash-preview-image-generation';
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
-  const identityLead = 'You are editing the attached photo of a real woman. Keep her identical face and body type. Keep hair in her real length/color family (short stays short). Change clothes, light makeup, and only an intentional selected hairstyle polish when the prompt asks for it.\n\n';
+  const identityLead = 'You are editing the attached photo of a real woman. Keep her identical face and EXACT body proportions (do not add curves or thickness). Keep hair length/cut; when asked, apply a clearly visible styling change only. Change clothes + makeup for the event.\n\n';
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -474,7 +490,10 @@ module.exports = async function handler(req, res) {
 
   const look = body.look || {};
   const hairStyleId = body.hairStyleId || body.hairstyleId || (look && look.hairStyleId) || 'keep-mine';
-  const prompt = buildEditorialPrompt(look, body.occasion, body.vibe, hairStyleId);
+  const prompt = buildEditorialPrompt(look, body.occasion, body.vibe, hairStyleId, {
+    silhouette: body.silhouette || look.silhouette || '',
+    harmony: body.harmony || body.undertone || look.harmony || look.undertone || ''
+  });
   const parsedPhoto = typeof photo === 'string' ? { data: photo } : photo;
   const dataUrl = String(parsedPhoto.data || '').startsWith('data:')
     ? String(parsedPhoto.data)

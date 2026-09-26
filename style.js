@@ -20,7 +20,10 @@ Celebrate 1% micro-wins. Preserve EQ rules: count wins, unruffled feathers, zero
 CRITICAL STYLING RULES:
 - Deliver TWO distinct Wardrobe options (Option A and Option B) AND TWO distinct Hair & Makeup beauty options (Option A and Option B). The user picks one wardrobe + one beauty look; Vision combines those picks. Do not collapse into a single bundled look.
 - Wardrobe options cover outfit only (title, desc, pieces, palette, neckline). Beauty options cover hair + makeup only (hairMove, facePalette, hairStyleId). Both pairs must feel like real choices — not tiny tweaks of the same idea.
-- Every recommendation MUST be distinct and customized to THIS user's uploaded photo(s) and selected filters (occasion, vibe, silhouette, color harmony / undertone, and morning energy when provided).
+- Every recommendation MUST be distinct and customized to THIS user's uploaded photo(s) and selected filters (event/occasion/function, vibe, silhouette/body type, color harmony / undertone/skin tone, and morning energy when provided).
+- EVENT / FUNCTION: Match outfit formality and pieces to the selected occasion chip or free-text event (desk, date night, beach, wedding guest, brunch, power meeting, etc.). Never ignore the event.
+- BODY TYPE HONESTY: Prescribe for the DETECTED or selected silhouette (Tall / Athletic / Petite / Curvy / Hourglass). Do not invent a curvier or slimmer body in descriptions than the photo shows.
+- BEAUTY STYLING: Hair & Makeup Option A and B must prescribe VISIBLY different hair STYLING finishes (e.g. sleek side part vs soft waves vs tousled) at the SAME cut length — never two near-identical beach-wave looks.
 - Always include at least one sincere, specific compliment about her presence, coloring, figure, energy, or taste — grounded in the photo or what she wrote (never generic "you're beautiful"). Compliments celebrate her body and presence; never euphemize or apologize for curves.
 - When morning energy is logged, let it drive BOTH wardrobe options: fumes → easy elevated polish she can throw on fast (wrap that cinches, soft V, flats OK) — still flattering, never frumpy; conquer → sharp figure-flattering tailoring and bold statements (not boxy corporate armor); on the move → polished athleisure and movement-friendly layers that still show shape.
 - If she says she feels frumpy / stuck / "nothing to wear," start with empathy + a compliment, then prescribe confidence-lifting wardrobe + beauty options she can actually put on today — glamorous and hot-on-her, not a cover-up.
@@ -404,25 +407,25 @@ const FIONA_HAIRSTYLE_OPTIONS = [
     id: 'soft-waves',
     label: 'Soft waves',
     short: 'Gentle wave, same cut & length',
-    vision: 'STYLING ONLY — not a haircut. Restyle her EXISTING hair into soft, face-framing waves with natural movement. HARD LOCK: keep the EXACT same hair LENGTH and CUT/shape as the reference (waist-length stays waist-length; mid-back stays mid-back; short stays short). Same color, density, and hairline. NEVER shorten, bob, lob, trim, cut, or grow her hair.'
+    vision: 'STYLING ONLY — not a haircut. Make a CLEARLY VISIBLE change from her current finish: soft, romantic face-framing waves with defined S-bends and movement (not identical beachy flyaways). HARD LOCK: EXACT same hair LENGTH and CUT/shape as the reference. Same color, density, hairline. NEVER shorten, bob, lob, trim, cut, or grow her hair.'
   },
   {
     id: 'sleek-side-part',
     label: 'Sleek side part',
     short: 'Polished deep side part, same length',
-    vision: 'STYLING ONLY — not a haircut. Restyle her EXISTING hair with a polished deep side part and smooth, controlled finish. HARD LOCK: keep the EXACT same hair LENGTH and CUT/shape as the reference. Soft shine, not stiff. NEVER shorten, bob, lob, trim, cut, add length, or extensions.'
+    vision: 'STYLING ONLY — not a haircut. Make a CLEARLY VISIBLE change: polished deep SIDE PART, hair smoothed sleek and glossy (blowout-straight or softly controlled — NOT the same loose waves as the reference). HARD LOCK: EXACT same LENGTH and CUT/shape. Soft shine, not stiff. NEVER shorten, bob, lob, trim, cut, or add extensions.'
   },
   {
     id: 'subtle-volume',
     label: 'Subtle volume',
     short: 'Lifted crown, soft body',
-    vision: 'STYLING ONLY — not a haircut. Keep her EXACT cut silhouette and length, but add subtle lifted crown volume and soft body through the mid-lengths — same color, density, and hairline. Polish only; NEVER shorten, bob, trim, cut, or add extensions.'
+    vision: 'STYLING ONLY — not a haircut. CLEARLY VISIBLE lift: crown volume and brushed body through mid-lengths so the finish reads fuller/polished vs flat or windblown reference — still her EXACT cut silhouette and length. Same color, density, hairline. NEVER shorten, bob, trim, cut, or add extensions.'
   },
   {
     id: 'tousled-texture',
     label: 'Tousled texture',
     short: 'Lived-in piecey finish, same length',
-    vision: 'STYLING ONLY — not a haircut. Restyle her EXISTING hair with soft tousled, piecey texture and a lived-in finish. HARD LOCK: EXACT same length and cut/shape as the reference. Same color, density, and hairline. NEVER shorten, bob, lob, trim, or cut her hair.'
+    vision: 'STYLING ONLY — not a haircut. CLEARLY VISIBLE tousled, piecey, lived-in texture (finger-styled separation) — distinct from sleek or identical beach waves. HARD LOCK: EXACT same length and cut/shape. Same color, density, hairline. NEVER shorten, bob, lob, trim, or cut her hair.'
   }
 ];
 
@@ -478,7 +481,7 @@ function hairDirectionForVision(look, hairStyleId) {
     lengthGuard,
     `INTENTIONAL HAIR STYLING (user selected "${option.label}" — STYLING ONLY, NOT a haircut): ${option.vision}`,
     'Ignore conflicting hairMove / outfit-desc / beauty-title notes that would cut, bob, shorten, grow, or restyle into a different haircut length.',
-    'She must still look like herself — face locked; same haircut length as Canvas; only styling + makeup follow the pick.'
+    'She must still look like herself — face locked; EXACT body proportions locked (no added curves); same haircut LENGTH as Canvas; hair STYLING finish must be clearly different from the reference when a style is selected; makeup follows the pick.'
   ].join(' ');
 }
 
@@ -498,13 +501,13 @@ function buildLookImagePrompt(look, occasion, vibe, hairStyleId) {
   return [
     'Edit the attached reference selfie of this exact woman. Virtual try-on only — same person, not a new model.',
     'IDENTITY LOCK — do not change: her exact face, facial geometry, eyes, nose, mouth, expression, skin tone, age, ethnicity, or likeness.',
-    'BODY LOCK: Preserve her real body type, soft/curvy proportions if present, shoulder-to-hip balance, and figure. Do not slim, idealize, lengthen legs, or cast a fashion-model body.',
+    'BODY PROPORTION LOCK: Keep her EXACT body from the reference — same frame, hips, thighs, waist, arms. Do NOT add curves or thickness; do NOT slim or idealize. Slim/athletic/tall stays that way.',
     hairDirectionForVision(look, hairStyleId),
     changeLine,
     'FLATTERING FIT: Dress her to look intentional and gorgeous on HER body — define the waist, skim (never tent) bust and hips, celebrate soft curves. Prefer wrap that cinches, soft V / wrap neckline, A-line, vertical lines, right proportions.',
     'Do NOT drown her in an oversized heavy blazer, shapeless dark midi tent, or matronly corporate armor. Outfit should look hot-on-her and polished — never frumpy or covering-up.',
     `Look title: ${(look && look.title) || 'Curated look'}`,
-    `Occasion: ${occasion || 'everyday'}`,
+    `EVENT / FUNCTION: ${occasion || 'everyday'}`,
     vibe ? `Vibe: ${vibe}` : '',
     look && look.desc ? `Outfit description (ignore any hair-length changes in this text): ${look.desc}` : '',
     pieces ? `Dress her in these pieces (fit flatteringly to HER body — cinch waist, skim curves): ${pieces}` : '',
@@ -796,7 +799,7 @@ If morning energy is provided, weight ease vs polish on BOTH wardrobe options �
 If photos are present, ground both wardrobe options in her actual figure, coloring, and what she is wearing in frame. If multiple photos include closet/wardrobe shots, pull from pieces she owns when possible and restyle them to flatter — but the identity selfie/full-body person photo is who you are dressing (never the closet shelf).
 If the identity photo shows swimwear/bikini/beachwear, celebrate that body: prescribe flattering, occasion-aware, hot-on-her options that match vibe/occasion — NOT a default matronly black midi wrap + cardigan/shawl, and NOT boardroom blazer armor unless occasion is explicitly corporate/black-tie.
 Hair & Makeup options are STYLING + makeup only — NEVER haircuts. Advice in EVERY beauty option MUST keep her CURRENT haircut length and cut/shape visible in the photo. Recommend texture, part, polish, volume, or finish for HER existing cut. Never invent a bob, lob, crop, trim, long hair she does not have, extensions, or length-requiring buns/updos.
-For each beauty option set hairStyleId to ONE Vision-safe STYLING id (same cut/length as photo — never a new haircut): "keep-mine" | "soft-waves" | "sleek-side-part" | "subtle-volume" | "tousled-texture". Do NOT use polished-bob or any haircut id. The two beauty options MUST use different hairStyleId values when possible (e.g. one tousled-texture, one sleek-side-part). Prefer flattering styling alternatives when her current finish looks flat/frumpy.
+For each beauty option set hairStyleId to ONE Vision-safe STYLING id (same cut/length as photo — never a new haircut): "keep-mine" | "soft-waves" | "sleek-side-part" | "subtle-volume" | "tousled-texture". Do NOT use polished-bob or any haircut id. The two beauty options MUST use different hairStyleId values (e.g. one sleek-side-part, one soft-waves or tousled-texture) so hair finishes are OBVIOUSLY different in Vision — never both "same loose waves." Prefer a sleek/polished option when the photo already has beach waves.
 If no photos, still invent fresh options from the filters — do not reuse a canned plum-cami-blazer or navy-wrap-plus-charcoal-blazer default.
 If she feels frumpy or needs "what to wear" help, lead with empathy + a specific compliment that celebrates her body, then glamorous confidence-lifting options — never a cover-up.
 Include field "compliment" with one sincere compliment grounded in her photo or vibe — warm, specific, body-positive (curves as assets).
