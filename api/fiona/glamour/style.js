@@ -23,7 +23,7 @@ CRITICAL STYLING RULES:
 - Every recommendation MUST be distinct and customized to THIS user's uploaded photo(s) and selected filters (event/occasion/function, vibe, silhouette/body type, color harmony / undertone/skin tone, and morning energy when provided).
 - EVENT / FUNCTION: Match outfit formality and pieces to the selected occasion chip or free-text event (desk, date night, beach, wedding guest, brunch, power meeting, etc.). Never ignore the event.
 - BODY TYPE HONESTY: Prescribe for the DETECTED or selected silhouette (Tall / Athletic / Petite / Curvy / Hourglass). Do not invent a curvier or slimmer body in descriptions than the photo shows.
-- BEAUTY STYLING: Hair & Makeup Option A and B must prescribe VISIBLY different hair STYLING finishes (e.g. sleek side part vs soft waves vs tousled) at the SAME cut length — never two near-identical beach-wave looks.
+- BEAUTY STYLING: Hair & Makeup Option A and Option B must be a real choice: ONE option with hair UP (easy cute playful OR sleek pulled-up) and ONE with hair LEFT DOWN (soft or sleek). Pair each with a different EFFORTLESS beauty makeup story (fresh glow vs soft berry vs sun-kissed, etc.). Never two near-identical down-wave looks.
 - Always include at least one sincere, specific compliment about her presence, coloring, figure, energy, or taste — grounded in the photo or what she wrote (never generic "you're beautiful"). Compliments celebrate her body and presence; never euphemize or apologize for curves.
 - When morning energy is logged, let it drive BOTH wardrobe options: fumes → easy elevated polish she can throw on fast (wrap that cinches, soft V, flats OK) — still flattering, never frumpy; conquer → sharp figure-flattering tailoring and bold statements (not boxy corporate armor); on the move → polished athleisure and movement-friendly layers that still show shape.
 - If she says she feels frumpy / stuck / "nothing to wear," start with empathy + a compliment, then prescribe confidence-lifting wardrobe + beauty options she can actually put on today — glamorous and hot-on-her, not a cover-up.
@@ -401,46 +401,83 @@ const FIONA_HAIRSTYLE_OPTIONS = [
     id: 'keep-mine',
     label: 'Keep mine',
     short: 'Exact hair from your photo',
+    category: 'as-is',
     vision: null
   },
   {
+    id: 'hair-down-soft',
+    label: 'Leave it down · soft',
+    short: 'Hair down with soft waves',
+    category: 'down',
+    vision: 'HAIR DOWN styling (not a haircut): leave her hair DOWN with CLEARLY VISIBLE soft romantic waves and face-framing movement. Keep her EXACT hair length/cut/color/density/hairline from the reference. Do NOT put hair up. NEVER shorten, bob, lob, trim, or cut.'
+  },
+  {
+    id: 'hair-down-sleek',
+    label: 'Leave it down · sleek',
+    short: 'Hair down, sleek + polished',
+    category: 'down',
+    vision: 'HAIR DOWN styling (not a haircut): leave her hair DOWN with a CLEARLY VISIBLE sleek polished finish — deep side part, smooth glossy lengths (not the same loose beach waves). Keep EXACT length/cut/color/density/hairline. Do NOT put hair up. NEVER shorten, bob, lob, trim, or cut.'
+  },
+  {
+    id: 'hair-up-playful',
+    label: 'Hair up · cute playful',
+    short: 'Easy cute playful updo',
+    category: 'up',
+    vision: 'HAIR UP styling (not a haircut): put her EXISTING hair UP in an EASY, CUTE, PLAYFUL style — messy claw-clip twist, soft playful bun, or undone half-up that feels fun and effortless. Use only her real hair (no extensions). Keep her real hair COLOR, density, and hairline. Face stays hers. NEVER cut or shorten her hair permanently — this is a style for the look only.'
+  },
+  {
+    id: 'hair-up-sleek',
+    label: 'Hair up · sleek',
+    short: 'Sleek pulled-up look',
+    category: 'up',
+    vision: 'HAIR UP styling (not a haircut): put her EXISTING hair UP in a SLEEK pulled-up look — low sleek pony, smooth low bun, or polished twist. Clean, intentional, glossy. Use only her real hair (no extensions). Keep her real hair COLOR, density, and hairline. Face stays hers. NEVER cut or shorten her hair — style only.'
+  },
+  // Back-compat aliases kept as first-class so old caches still resolve
+  {
     id: 'soft-waves',
-    label: 'Soft waves',
-    short: 'Gentle wave, same cut & length',
-    vision: 'STYLING ONLY — not a haircut. Make a CLEARLY VISIBLE change from her current finish: soft, romantic face-framing waves with defined S-bends and movement (not identical beachy flyaways). HARD LOCK: EXACT same hair LENGTH and CUT/shape as the reference. Same color, density, hairline. NEVER shorten, bob, lob, trim, cut, or grow her hair.'
+    label: 'Leave it down · soft',
+    short: 'Hair down with soft waves',
+    category: 'down',
+    vision: 'HAIR DOWN styling (not a haircut): leave her hair DOWN with CLEARLY VISIBLE soft romantic waves. Keep EXACT length/cut/color. Do NOT put hair up. NEVER cut or shorten.'
   },
   {
     id: 'sleek-side-part',
-    label: 'Sleek side part',
-    short: 'Polished deep side part, same length',
-    vision: 'STYLING ONLY — not a haircut. Make a CLEARLY VISIBLE change: polished deep SIDE PART, hair smoothed sleek and glossy (blowout-straight or softly controlled — NOT the same loose waves as the reference). HARD LOCK: EXACT same LENGTH and CUT/shape. Soft shine, not stiff. NEVER shorten, bob, lob, trim, cut, or add extensions.'
-  },
-  {
-    id: 'subtle-volume',
-    label: 'Subtle volume',
-    short: 'Lifted crown, soft body',
-    vision: 'STYLING ONLY — not a haircut. CLEARLY VISIBLE lift: crown volume and brushed body through mid-lengths so the finish reads fuller/polished vs flat or windblown reference — still her EXACT cut silhouette and length. Same color, density, hairline. NEVER shorten, bob, trim, cut, or add extensions.'
+    label: 'Leave it down · sleek',
+    short: 'Hair down, sleek + polished',
+    category: 'down',
+    vision: 'HAIR DOWN styling (not a haircut): leave her hair DOWN sleek and polished with a deep side part. Keep EXACT length/cut/color. Do NOT put hair up. NEVER cut or shorten.'
   },
   {
     id: 'tousled-texture',
-    label: 'Tousled texture',
-    short: 'Lived-in piecey finish, same length',
-    vision: 'STYLING ONLY — not a haircut. CLEARLY VISIBLE tousled, piecey, lived-in texture (finger-styled separation) — distinct from sleek or identical beach waves. HARD LOCK: EXACT same length and cut/shape. Same color, density, hairline. NEVER shorten, bob, lob, trim, or cut her hair.'
+    label: 'Leave it down · soft',
+    short: 'Hair down, tousled',
+    category: 'down',
+    vision: 'HAIR DOWN styling: leave hair DOWN with tousled piecey texture. Keep EXACT length/cut/color. Do NOT put hair up. NEVER cut or shorten.'
+  },
+  {
+    id: 'subtle-volume',
+    label: 'Leave it down · soft',
+    short: 'Hair down with volume',
+    category: 'down',
+    vision: 'HAIR DOWN styling: leave hair DOWN with lifted crown volume. Keep EXACT length/cut/color. Do NOT put hair up. NEVER cut or shorten.'
   }
 ];
 
-/** Legacy / wrongly-shipped haircut ids → styling-only equivalents. */
 const LEGACY_HAIRCUT_STYLE_REMAP = {
-  'polished-bob': 'sleek-side-part',
-  bob: 'sleek-side-part',
-  lob: 'soft-waves',
-  'collarbone-lob': 'sleek-side-part',
-  'soft-long-layers': 'soft-waves',
-  'face-framing-layers': 'soft-waves',
-  'modern-shag': 'tousled-texture',
-  'sleek-long': 'sleek-side-part',
+  'polished-bob': 'hair-down-sleek',
+  bob: 'hair-down-sleek',
+  lob: 'hair-down-soft',
+  'collarbone-lob': 'hair-down-sleek',
+  'soft-long-layers': 'hair-down-soft',
+  'face-framing-layers': 'hair-down-soft',
+  'modern-shag': 'hair-down-soft',
+  'sleek-long': 'hair-down-sleek',
   'new-haircut': 'keep-mine',
-  haircut: 'keep-mine'
+  haircut: 'keep-mine',
+  'soft-waves': 'hair-down-soft',
+  'sleek-side-part': 'hair-down-sleek',
+  'tousled-texture': 'hair-down-soft',
+  'subtle-volume': 'hair-down-soft'
 };
 
 function normalizeHairStyleId(hairStyleId) {
@@ -460,31 +497,49 @@ function resolveHairStyleOption(look, hairStyleId) {
 }
 
 function hairDirectionForVision(look, hairStyleId) {
-  // Intentional user pick is styling-only; free-form hairMove text is still risky (cuts / buns).
   const option = resolveHairStyleOption(look, hairStyleId);
-  const lengthGuard = [
-    'HAIR CUT & LENGTH HARD LOCK: Match the reference selfie\'s EXACT hair length and cut/shape — ends must land at the same place on her body (waist-length stays waist-length; mid-back stays mid-back; shoulder stays shoulder; chin/ear-length stays chin/ear-length).',
-    'STYLING ONLY: you may change texture, part, polish, volume, shine, and finish. You may NEVER give her a new haircut, bob, lob, crop, trim, bangs she does not have, or shorten/cut/grow her hair.',
+  const isUp = option.category === 'up' || String(option.id || '').startsWith('hair-up');
+  const isDown = option.category === 'down' || String(option.id || '').startsWith('hair-down');
+
+  const identityHair = [
     'Keep her real hair COLOR, density, and hairline from the reference.',
-    'Do NOT invent a bun, updo, ponytail, chignon, top knot, extensions, weave, or any length change.'
+    'NEVER give her a new haircut, bob, lob, crop, trim, or permanently shorten/grow her hair — styling for this look only.',
+    'Face locked; EXACT body proportions locked (no added curves).'
   ].join(' ');
 
   if (!option.vision || option.id === 'keep-mine') {
     return [
-      'HAIR LOCK: Keep her exact hair from the reference selfie — same length, cut, color, texture, density, and hairline.',
-      lengthGuard,
-      'Optional: light product polish of her EXISTING cut only (shine / soft tame) — do not invent a new silhouette or haircut.'
+      'HAIR LOCK: Keep her exact hair from the reference selfie — same length, whether it was up or down, color, texture, density, and hairline.',
+      identityHair,
+      'Optional: light product polish only — do not invent a new updo or change her finish unless she picked a beauty style.'
+    ].join(' ');
+  }
+
+  if (isUp) {
+    return [
+      identityHair,
+      `INTENTIONAL HAIR UP (user selected "${option.label}"): ${option.vision}`,
+      'Hair MUST be clearly UP / pulled up for this look — not left fully down like the reference if the reference was down.',
+      'Makeup follows the selected effortless beauty option. Ignore notes that would cut her hair or leave it fully down.'
+    ].join(' ');
+  }
+
+  if (isDown) {
+    return [
+      identityHair,
+      'HAIR DOWN LOCK: ends stay at the same place on her body as the reference length when worn down.',
+      `INTENTIONAL HAIR DOWN (user selected "${option.label}"): ${option.vision}`,
+      'Hair MUST stay DOWN — do NOT put it in a bun, pony, claw clip, or updo for this pick.',
+      'Makeup follows the selected effortless beauty option.'
     ].join(' ');
   }
 
   return [
-    lengthGuard,
-    `INTENTIONAL HAIR STYLING (user selected "${option.label}" — STYLING ONLY, NOT a haircut): ${option.vision}`,
-    'Ignore conflicting hairMove / outfit-desc / beauty-title notes that would cut, bob, shorten, grow, or restyle into a different haircut length.',
-    'She must still look like herself — face locked; EXACT body proportions locked (no added curves); same haircut LENGTH as Canvas; hair STYLING finish must be clearly different from the reference when a style is selected; makeup follows the pick.'
+    identityHair,
+    `INTENTIONAL HAIR STYLING (user selected "${option.label}"): ${option.vision}`,
+    'Makeup follows the selected effortless beauty option.'
   ].join(' ');
 }
-
 
 function buildLookImagePrompt(look, occasion, vibe, hairStyleId) {
   const pieces = Array.isArray(look && look.pieces)
@@ -798,8 +853,12 @@ ${detectBlock}
 If morning energy is provided, weight ease vs polish on BOTH wardrobe options — but ALWAYS stay flattering (fumes = easy elevated that still cinches/defines; conquer = sharp figure-flattering, not boxy armor; move = polished athleisure with shape).
 If photos are present, ground both wardrobe options in her actual figure, coloring, and what she is wearing in frame. If multiple photos include closet/wardrobe shots, pull from pieces she owns when possible and restyle them to flatter — but the identity selfie/full-body person photo is who you are dressing (never the closet shelf).
 If the identity photo shows swimwear/bikini/beachwear, celebrate that body: prescribe flattering, occasion-aware, hot-on-her options that match vibe/occasion — NOT a default matronly black midi wrap + cardigan/shawl, and NOT boardroom blazer armor unless occasion is explicitly corporate/black-tie.
-Hair & Makeup options are STYLING + makeup only — NEVER haircuts. Advice in EVERY beauty option MUST keep her CURRENT haircut length and cut/shape visible in the photo. Recommend texture, part, polish, volume, or finish for HER existing cut. Never invent a bob, lob, crop, trim, long hair she does not have, extensions, or length-requiring buns/updos.
-For each beauty option set hairStyleId to ONE Vision-safe STYLING id (same cut/length as photo — never a new haircut): "keep-mine" | "soft-waves" | "sleek-side-part" | "subtle-volume" | "tousled-texture". Do NOT use polished-bob or any haircut id. The two beauty options MUST use different hairStyleId values (e.g. one sleek-side-part, one soft-waves or tousled-texture) so hair finishes are OBVIOUSLY different in Vision — never both "same loose waves." Prefer a sleek/polished option when the photo already has beach waves.
+Hair & Makeup options are STYLING + effortless makeup only — NEVER haircuts. Keep her real hair (no extensions, no cutting).
+Beauty Option A and Option B MUST be:
+- One HAIR UP look: hairStyleId "hair-up-playful" (easy cute playful updo / claw clip / soft messy bun) OR "hair-up-sleek" (sleek pony / low sleek bun / polished twist)
+- One HAIR DOWN look: hairStyleId "hair-down-soft" (leave it down soft waves) OR "hair-down-sleek" (leave it down sleek polished)
+Also set different EFFORTLESS makeup on each (titles like "Effortless Fresh Glow", "Effortless Soft Berry", "Effortless Sun-Kissed") with distinct lip/cheek stories — wearable, natural, not heavy glam unless the event truly needs it.
+Allowed hairStyleId values: "keep-mine" | "hair-up-playful" | "hair-up-sleek" | "hair-down-soft" | "hair-down-sleek" (legacy soft-waves/sleek-side-part remapped server-side). Never two UP or two DOWN.
 If no photos, still invent fresh options from the filters — do not reuse a canned plum-cami-blazer or navy-wrap-plus-charcoal-blazer default.
 If she feels frumpy or needs "what to wear" help, lead with empathy + a specific compliment that celebrates her body, then glamorous confidence-lifting options — never a cover-up.
 Include field "compliment" with one sincere compliment grounded in her photo or vibe — warm, specific, body-positive (curves as assets).
@@ -871,7 +930,7 @@ Return JSON only:
         "body": "Styling advice for her actual haircut length in the photo — polish her existing cut; never recommend a new haircut, bob, or different length",
         "cues": ["Volume: ...", "Part: ...", "Texture: ..."]
       },
-      "hairStyleId": "keep-mine|soft-waves|sleek-side-part|subtle-volume|tousled-texture",
+      "hairStyleId": "keep-mine|hair-up-playful|hair-up-sleek|hair-down-soft|hair-down-sleek",
       "facePalette": {
         "lip": ["#HEX", "Name"],
         "cheek": ["#HEX", "Name"],
@@ -884,10 +943,10 @@ Return JSON only:
       "summary": "1-2 sentences on this beauty look",
       "hairMove": {
         "title": "Hair styling title",
-        "body": "Different styling direction than option A — still her exact same haircut length (no bob/cut)",
+        "body": "If A was hair up, this is hair down (or vice versa) — effortless makeup variant, no haircut",
         "cues": ["Volume: ...", "Part: ...", "Texture: ..."]
       },
-      "hairStyleId": "keep-mine|soft-waves|sleek-side-part|subtle-volume|tousled-texture",
+      "hairStyleId": "keep-mine|hair-up-playful|hair-up-sleek|hair-down-soft|hair-down-sleek",
       "facePalette": {
         "lip": ["#HEX", "Name"],
         "cheek": ["#HEX", "Name"],
@@ -1027,34 +1086,37 @@ function synthesizeWardrobeB(optA) {
 }
 
 function synthesizeBeautyPair(data, lipFallback, weekday, allowedHair) {
-  const hairA = normalizeHairStyleId((data && data.suggestedHairStyleId) || 'keep-mine');
-  const altHair = hairA === 'soft-waves' ? 'sleek-side-part' : 'soft-waves';
   const faceA = sanitizeFacePaletteObj(data && data.facePalette, lipFallback, weekday);
-  const moveA = sanitizeHairMoveObj(data && data.hairMove, weekday);
+  const upId = allowedHair.has('hair-up-playful') ? 'hair-up-playful' : 'hair-up-sleek';
+  const downId = allowedHair.has('hair-down-soft') ? 'hair-down-soft' : 'hair-down-sleek';
   return [
     {
       id: 'A',
-      title: (moveA && moveA.title) || 'Beauty Option A',
-      summary: (moveA && moveA.body) || 'Polished hair styling and wearable makeup — same cut length.',
-      hairMove: moveA,
+      title: 'Hair Up · Cute Playful + Effortless Glow',
+      summary: 'Easy cute playful updo with effortless fresh makeup — soft skin, rosy cheek, wearable nude-pink lip.',
+      hairMove: {
+        title: 'Easy cute playful up',
+        body: 'Claw-clip twist or soft playful bun — fun and effortless, using her real hair only.',
+        cues: ['Style: hair up', 'Mood: cute playful', 'Hold: easy']
+      },
       facePalette: faceA,
-      hairStyleId: allowedHair.has(hairA) ? hairA : 'keep-mine'
+      hairStyleId: upId
     },
     {
       id: 'B',
-      title: 'Soft Glow Alternate',
-      summary: 'A second beauty direction with different hair styling and lip story — same haircut length, never a new cut.',
+      title: 'Hair Down · Soft + Effortless Soft Berry',
+      summary: 'Leave it down with soft waves and a second effortless makeup story — soft berry lip, healthy flush.',
       hairMove: {
-        title: altHair === 'soft-waves' ? 'Soft wave polish' : 'Sleek side polish',
-        body: 'Same haircut length as her photo — different styling finish + makeup mood only.',
-        cues: ['Volume: intentional', 'Part: deliberate', 'Texture: polished']
+        title: 'Leave it down · soft',
+        body: 'Hair stays down with soft romantic waves — clearly different from the up option.',
+        cues: ['Style: hair down', 'Texture: soft waves', 'Length: unchanged']
       },
       facePalette: {
         lip: lipFallback,
         cheek: (faceA && faceA.cheek) || ['#E07A5F', 'Rose Radiance'],
-        note: 'Alternate wearable lip — still rose/berry/nude family.'
+        note: 'Effortless soft berry — still rose/berry/nude family.'
       },
-      hairStyleId: altHair
+      hairStyleId: downId
     }
   ];
 }
@@ -1127,7 +1189,13 @@ function ensureDualGlamourOptions(data, lipFallback, weekday) {
     return next;
   });
 
-  const usedHair = new Set();
+  const hairCat = (id) => {
+    const o = FIONA_HAIRSTYLE_OPTIONS.find((x) => x.id === id);
+    if (o && o.category) return o.category;
+    if (String(id).startsWith('hair-up')) return 'up';
+    if (String(id).startsWith('hair-down')) return 'down';
+    return 'other';
+  };
   beautyOptions = beautyOptions.slice(0, 2).map((opt, i) => {
     const id = i === 0 ? 'A' : 'B';
     const next = { ...(opt || {}), id };
@@ -1136,16 +1204,37 @@ function ensureDualGlamourOptions(data, lipFallback, weekday) {
     next.hairMove = sanitizeHairMoveObj(next.hairMove, weekday);
     next.facePalette = sanitizeFacePaletteObj(next.facePalette, lipFallback, weekday);
     let hairId = normalizeHairStyleId(next.hairStyleId || next.suggestedHairStyleId || '');
-    if (!allowedHair.has(hairId)) hairId = i === 0 ? 'keep-mine' : 'soft-waves';
-    if (usedHair.has(hairId) && i === 1) {
-      hairId = hairId === 'soft-waves' ? 'sleek-side-part' : 'soft-waves';
+    if (!allowedHair.has(hairId) || hairId === 'keep-mine') {
+      hairId = i === 0 ? 'hair-up-playful' : 'hair-down-soft';
     }
-    usedHair.add(hairId);
     next.hairStyleId = hairId;
-    if (!next.title) next.title = id === 'A' ? 'Beauty Option A' : 'Beauty Option B';
+    if (!next.title) {
+      next.title = i === 0
+        ? 'Hair Up · Cute Playful + Effortless Glow'
+        : 'Hair Down · Soft + Effortless Soft Berry';
+    }
     delete next.suggestedHairStyleId;
     return next;
   });
+  // Guarantee one UP and one DOWN beauty pick.
+  if (beautyOptions.length === 2) {
+    const c0 = hairCat(beautyOptions[0].hairStyleId);
+    const c1 = hairCat(beautyOptions[1].hairStyleId);
+    if (c0 === c1 || c0 === 'other' || c1 === 'other') {
+      if (c0 === 'up') {
+        beautyOptions[1].hairStyleId = 'hair-down-soft';
+        if (!/down/i.test(beautyOptions[1].title || '')) {
+          beautyOptions[1].title = 'Hair Down · Soft + Effortless Soft Berry';
+        }
+      } else {
+        beautyOptions[0].hairStyleId = 'hair-up-playful';
+        if (!/up/i.test(beautyOptions[0].title || '')) {
+          beautyOptions[0].title = 'Hair Up · Cute Playful + Effortless Glow';
+        }
+        if (c1 !== 'down') beautyOptions[1].hairStyleId = 'hair-down-soft';
+      }
+    }
+  }
 
   data.wardrobeOptions = wardrobeOptions;
   data.beautyOptions = beautyOptions;

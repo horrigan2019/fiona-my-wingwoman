@@ -70,46 +70,83 @@ const FIONA_HAIRSTYLE_OPTIONS = [
     id: 'keep-mine',
     label: 'Keep mine',
     short: 'Exact hair from your photo',
+    category: 'as-is',
     vision: null
   },
   {
+    id: 'hair-down-soft',
+    label: 'Leave it down · soft',
+    short: 'Hair down with soft waves',
+    category: 'down',
+    vision: 'HAIR DOWN styling (not a haircut): leave her hair DOWN with CLEARLY VISIBLE soft romantic waves and face-framing movement. Keep her EXACT hair length/cut/color/density/hairline from the reference. Do NOT put hair up. NEVER shorten, bob, lob, trim, or cut.'
+  },
+  {
+    id: 'hair-down-sleek',
+    label: 'Leave it down · sleek',
+    short: 'Hair down, sleek + polished',
+    category: 'down',
+    vision: 'HAIR DOWN styling (not a haircut): leave her hair DOWN with a CLEARLY VISIBLE sleek polished finish — deep side part, smooth glossy lengths (not the same loose beach waves). Keep EXACT length/cut/color/density/hairline. Do NOT put hair up. NEVER shorten, bob, lob, trim, or cut.'
+  },
+  {
+    id: 'hair-up-playful',
+    label: 'Hair up · cute playful',
+    short: 'Easy cute playful updo',
+    category: 'up',
+    vision: 'HAIR UP styling (not a haircut): put her EXISTING hair UP in an EASY, CUTE, PLAYFUL style — messy claw-clip twist, soft playful bun, or undone half-up that feels fun and effortless. Use only her real hair (no extensions). Keep her real hair COLOR, density, and hairline. Face stays hers. NEVER cut or shorten her hair permanently — this is a style for the look only.'
+  },
+  {
+    id: 'hair-up-sleek',
+    label: 'Hair up · sleek',
+    short: 'Sleek pulled-up look',
+    category: 'up',
+    vision: 'HAIR UP styling (not a haircut): put her EXISTING hair UP in a SLEEK pulled-up look — low sleek pony, smooth low bun, or polished twist. Clean, intentional, glossy. Use only her real hair (no extensions). Keep her real hair COLOR, density, and hairline. Face stays hers. NEVER cut or shorten her hair — style only.'
+  },
+  // Back-compat aliases kept as first-class so old caches still resolve
+  {
     id: 'soft-waves',
-    label: 'Soft waves',
-    short: 'Gentle wave, same cut & length',
-    vision: 'STYLING ONLY — not a haircut. Make a CLEARLY VISIBLE change from her current finish: soft, romantic face-framing waves with defined S-bends and movement (not identical beachy flyaways). HARD LOCK: EXACT same hair LENGTH and CUT/shape as the reference. Same color, density, hairline. NEVER shorten, bob, lob, trim, cut, or grow her hair.'
+    label: 'Leave it down · soft',
+    short: 'Hair down with soft waves',
+    category: 'down',
+    vision: 'HAIR DOWN styling (not a haircut): leave her hair DOWN with CLEARLY VISIBLE soft romantic waves. Keep EXACT length/cut/color. Do NOT put hair up. NEVER cut or shorten.'
   },
   {
     id: 'sleek-side-part',
-    label: 'Sleek side part',
-    short: 'Polished deep side part, same length',
-    vision: 'STYLING ONLY — not a haircut. Make a CLEARLY VISIBLE change: polished deep SIDE PART, hair smoothed sleek and glossy (blowout-straight or softly controlled — NOT the same loose waves as the reference). HARD LOCK: EXACT same LENGTH and CUT/shape. Soft shine, not stiff. NEVER shorten, bob, lob, trim, cut, or add extensions.'
-  },
-  {
-    id: 'subtle-volume',
-    label: 'Subtle volume',
-    short: 'Lifted crown, soft body',
-    vision: 'STYLING ONLY — not a haircut. CLEARLY VISIBLE lift: crown volume and brushed body through mid-lengths so the finish reads fuller/polished vs flat or windblown reference — still her EXACT cut silhouette and length. Same color, density, hairline. NEVER shorten, bob, trim, cut, or add extensions.'
+    label: 'Leave it down · sleek',
+    short: 'Hair down, sleek + polished',
+    category: 'down',
+    vision: 'HAIR DOWN styling (not a haircut): leave her hair DOWN sleek and polished with a deep side part. Keep EXACT length/cut/color. Do NOT put hair up. NEVER cut or shorten.'
   },
   {
     id: 'tousled-texture',
-    label: 'Tousled texture',
-    short: 'Lived-in piecey finish, same length',
-    vision: 'STYLING ONLY — not a haircut. CLEARLY VISIBLE tousled, piecey, lived-in texture (finger-styled separation) — distinct from sleek or identical beach waves. HARD LOCK: EXACT same length and cut/shape. Same color, density, hairline. NEVER shorten, bob, lob, trim, or cut her hair.'
+    label: 'Leave it down · soft',
+    short: 'Hair down, tousled',
+    category: 'down',
+    vision: 'HAIR DOWN styling: leave hair DOWN with tousled piecey texture. Keep EXACT length/cut/color. Do NOT put hair up. NEVER cut or shorten.'
+  },
+  {
+    id: 'subtle-volume',
+    label: 'Leave it down · soft',
+    short: 'Hair down with volume',
+    category: 'down',
+    vision: 'HAIR DOWN styling: leave hair DOWN with lifted crown volume. Keep EXACT length/cut/color. Do NOT put hair up. NEVER cut or shorten.'
   }
 ];
 
-/** Legacy / wrongly-shipped haircut ids → styling-only equivalents. */
 const LEGACY_HAIRCUT_STYLE_REMAP = {
-  'polished-bob': 'sleek-side-part',
-  bob: 'sleek-side-part',
-  lob: 'soft-waves',
-  'collarbone-lob': 'sleek-side-part',
-  'soft-long-layers': 'soft-waves',
-  'face-framing-layers': 'soft-waves',
-  'modern-shag': 'tousled-texture',
-  'sleek-long': 'sleek-side-part',
+  'polished-bob': 'hair-down-sleek',
+  bob: 'hair-down-sleek',
+  lob: 'hair-down-soft',
+  'collarbone-lob': 'hair-down-sleek',
+  'soft-long-layers': 'hair-down-soft',
+  'face-framing-layers': 'hair-down-soft',
+  'modern-shag': 'hair-down-soft',
+  'sleek-long': 'hair-down-sleek',
   'new-haircut': 'keep-mine',
-  haircut: 'keep-mine'
+  haircut: 'keep-mine',
+  'soft-waves': 'hair-down-soft',
+  'sleek-side-part': 'hair-down-sleek',
+  'tousled-texture': 'hair-down-soft',
+  'subtle-volume': 'hair-down-soft'
 };
 
 function normalizeHairStyleId(hairStyleId) {
@@ -129,31 +166,49 @@ function resolveHairStyleOption(look, hairStyleId) {
 }
 
 function hairDirectionForVision(look, hairStyleId) {
-  // Intentional user pick is styling-only; free-form hairMove text is still risky (cuts / buns).
   const option = resolveHairStyleOption(look, hairStyleId);
-  const lengthGuard = [
-    'HAIR CUT & LENGTH HARD LOCK: Match the reference selfie\'s EXACT hair length and cut/shape — ends must land at the same place on her body (waist-length stays waist-length; mid-back stays mid-back; shoulder stays shoulder; chin/ear-length stays chin/ear-length).',
-    'STYLING ONLY: you may change texture, part, polish, volume, shine, and finish. You may NEVER give her a new haircut, bob, lob, crop, trim, bangs she does not have, or shorten/cut/grow her hair.',
+  const isUp = option.category === 'up' || String(option.id || '').startsWith('hair-up');
+  const isDown = option.category === 'down' || String(option.id || '').startsWith('hair-down');
+
+  const identityHair = [
     'Keep her real hair COLOR, density, and hairline from the reference.',
-    'Do NOT invent a bun, updo, ponytail, chignon, top knot, extensions, weave, or any length change.'
+    'NEVER give her a new haircut, bob, lob, crop, trim, or permanently shorten/grow her hair — styling for this look only.',
+    'Face locked; EXACT body proportions locked (no added curves).'
   ].join(' ');
 
   if (!option.vision || option.id === 'keep-mine') {
     return [
-      'HAIR LOCK: Keep her exact hair from the reference selfie — same length, cut, color, texture, density, and hairline.',
-      lengthGuard,
-      'Optional: light product polish of her EXISTING cut only (shine / soft tame) — do not invent a new silhouette or haircut.'
+      'HAIR LOCK: Keep her exact hair from the reference selfie — same length, whether it was up or down, color, texture, density, and hairline.',
+      identityHair,
+      'Optional: light product polish only — do not invent a new updo or change her finish unless she picked a beauty style.'
+    ].join(' ');
+  }
+
+  if (isUp) {
+    return [
+      identityHair,
+      `INTENTIONAL HAIR UP (user selected "${option.label}"): ${option.vision}`,
+      'Hair MUST be clearly UP / pulled up for this look — not left fully down like the reference if the reference was down.',
+      'Makeup follows the selected effortless beauty option. Ignore notes that would cut her hair or leave it fully down.'
+    ].join(' ');
+  }
+
+  if (isDown) {
+    return [
+      identityHair,
+      'HAIR DOWN LOCK: ends stay at the same place on her body as the reference length when worn down.',
+      `INTENTIONAL HAIR DOWN (user selected "${option.label}"): ${option.vision}`,
+      'Hair MUST stay DOWN — do NOT put it in a bun, pony, claw clip, or updo for this pick.',
+      'Makeup follows the selected effortless beauty option.'
     ].join(' ');
   }
 
   return [
-    lengthGuard,
-    `INTENTIONAL HAIR STYLING (user selected "${option.label}" — STYLING ONLY, NOT a haircut): ${option.vision}`,
-    'Ignore conflicting hairMove / outfit-desc / beauty-title notes that would cut, bob, shorten, grow, or restyle into a different haircut length.',
-    'She must still look like herself — face locked; EXACT body proportions locked (no added curves); same haircut LENGTH as Canvas; hair STYLING finish must be clearly different from the reference when a style is selected; makeup follows the pick.'
+    identityHair,
+    `INTENTIONAL HAIR STYLING (user selected "${option.label}"): ${option.vision}`,
+    'Makeup follows the selected effortless beauty option.'
   ].join(' ');
 }
-
 
 function buildEditorialPrompt(look, occasion, vibe, hairStyleId, extras) {
   extras = extras || {};
