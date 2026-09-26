@@ -1156,6 +1156,7 @@
               <p id="wardrobe-visual-caption" class="text-[10px] font-semibold uppercase tracking-wider text-spa-plum/70 dark:text-pink-300/70"></p>
             </div>
 
+            <p id="fiona-user-question-answer" class="hidden text-sm font-medium text-spa-plumdark dark:text-pink-100 bg-pink-50/90 dark:bg-purple-950/40 border border-spa-plum/25 dark:border-purple-800 rounded-xl px-3.5 py-3"></p>
             <p id="wardrobe-compliment" class="hidden text-sm font-medium text-spa-plumdark dark:text-pink-100 bg-white/80 dark:bg-spa-darkbg/50 border border-spa-plum/20 dark:border-purple-800 rounded-xl px-3.5 py-3"></p>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-6 items-start">
@@ -4972,26 +4973,48 @@
       return { summary: combined, toast, status, code, payload };
     }
 
+    function withTimeout(promise, ms, label) {
+      let timer;
+      const timeout = new Promise((_, reject) => {
+        timer = setTimeout(() => {
+          const err = new Error((label || 'Request') + ' timed out');
+          err.code = 'timeout';
+          err.fionaToast = 'Fiona took too long — showing your options from what we have so you are not stuck.';
+          reject(err);
+        }, ms);
+      });
+      return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+    }
+
     async function postGlamourStyle(body) {
       const weekdayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
       const localWeekday = weekdayNames[new Date().getDay()];
       const requestBody = {
         ...body,
-        localWeekday: body && body.localWeekday ? body.localWeekday : localWeekday
+        localWeekday: body && body.localWeekday ? body.localWeekday : localWeekday,
+        userQuestion: (body && (body.userQuestion || body.vibe)) || ''
       };
       let res;
       try {
-        res = await fetch(GLAMOUR_STYLE_API, {
+        const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+        const fetchPromise = fetch(GLAMOUR_STYLE_API, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(requestBody)
+          body: JSON.stringify(requestBody),
+          signal: controller ? controller.signal : undefined
         });
+        const timeoutMs = 55000;
+        if (controller) {
+          setTimeout(() => { try { controller.abort(); } catch (_) {} }, timeoutMs);
+        }
+        res = await withTimeout(fetchPromise, timeoutMs, 'Fiona style');
       } catch (networkErr) {
         const formatted = formatGlamourApiError(null, null, networkErr);
         console.error('[Glamour Style] network failure', networkErr);
         const err = new Error(formatted.summary);
-        err.fionaToast = formatted.toast;
+        err.fionaToast = networkErr && networkErr.fionaToast ? networkErr.fionaToast : formatted.toast;
         err.fionaMeta = formatted;
+        err.code = networkErr && networkErr.code;
         throw err;
       }
 
@@ -5285,6 +5308,17 @@
       // Guard: compliment/palette must never appear without 2+2 option cards.
       ensureGlamourPickersVisible();
       revealGlamourPickersIntoView();
+      const answerEl = document.getElementById('fiona-user-question-answer');
+      if (answerEl) {
+        if (vibe) {
+          const wA = (wardrobeOptions[0] && wardrobeOptions[0].title) || 'Option A';
+          const wB = (wardrobeOptions[1] && wardrobeOptions[1].title) || 'Option B';
+          answerEl.classList.remove('hidden');
+          answerEl.innerHTML = `<span class="font-semibold">You asked:</span> “${escapeGlamourHtml(vibe)}”<br><span class="font-semibold">Fiona’s answer:</span> Pick between <em>${escapeGlamourHtml(wA)}</em> and <em>${escapeGlamourHtml(wB)}</em> for ${escapeGlamourHtml(occasionLabel || 'your event')} — then choose hair up or down below. Your uploaded clothes stay exact.`;
+        } else {
+          answerEl.classList.add('hidden');
+        }
+      }
     }
 
     function escapeGlamourHtml(value) {
@@ -5436,7 +5470,7 @@
       'tousled-texture': 'hair-down-soft',
       'subtle-volume': 'hair-down-soft'
     };
-    const FIONA_VISION_CACHE_PREFIX = 'fiona_vision_look_v15:';
+    const FIONA_VISION_CACHE_PREFIX = 'fiona_vision_look_v16:';
     let fionaVisionSideBySide = false;
     let fionaVisionGenerating = false;
     let fionaSelectedWardrobeId = 'A';
@@ -6264,7 +6298,13 @@
       };
     }
 
+    let glamourStyleInFlight = null;
+
     async function generateWardrobeAdvice() {
+      if (glamourStyleInFlight) {
+        showToast('Still building your options — one moment, gorgeous.');
+        return;
+      }
       if (!consumePhotoAnalysis()) return;
       const vibe = (document.getElementById('wardrobe-vibe')?.value || '').trim();
       const occasionLabel = selectedOccasion;
@@ -6280,6 +6320,24 @@
         ensureGlamourPickersMounted();
         const box = document.getElementById('wardrobe-recommendation-box');
         if (box) box.classList.remove('hidden');
+        const titleEl = document.getElementById('wardrobe-look-title');
+        const descEl = document.getElementById('wardrobe-look-desc');
+        if (titleEl) titleEl.innerText = vibe ? 'Answering you…' : 'Building your options…';
+        if (descEl) {
+          descEl.innerText = vibe
+            ? `You asked: “${vibe}” — Fiona is picking Wardrobe A/B and Hair & Makeup A/B that answer that, for ${occasionLabel}.`
+            : `Building Wardrobe A/B and Hair & Makeup A/B for ${occasionLabel}…`;
+        }
+        const answerEl = document.getElementById('fiona-user-question-answer');
+        if (answerEl) {
+          if (vibe) {
+            answerEl.classList.remove('hidden');
+            answerEl.innerHTML = `<span class="font-semibold">You asked:</span> “${escapeGlamourHtml(vibe)}” — Fiona is answering with the options below.`;
+          } else {
+            answerEl.classList.add('hidden');
+            answerEl.innerHTML = '';
+          }
+        }
         const wHost = document.getElementById('fiona-wardrobe-options');
         const bHost = document.getElementById('fiona-beauty-options');
         if (wHost) {
@@ -6291,8 +6349,9 @@
         revealGlamourPickersIntoView();
       } catch (_) {}
 
+      glamourStyleInFlight = (async () => {
       try {
-        const images = await collectGlamourApiImages(MAX_CANVAS_PHOTOS);
+        const images = await withTimeout(collectGlamourApiImages(MAX_CANVAS_PHOTOS), 25000, 'Photo prep');
         const inferFromPhotos = images.length > 0;
         const silhouetteHint = isAutoSilhouette(selectedWardrobeSilhouette)
           ? (inferFromPhotos ? 'Auto from photos' : 'Hourglass / Defined')
@@ -6313,6 +6372,7 @@
           mode: 'wardrobe',
           occasion: occasionLabel,
           vibe,
+          userQuestion: vibe,
           silhouette: silhouetteHint,
           harmony: harmonyHint,
           undertone: undertoneHint,
@@ -6366,6 +6426,19 @@
             ? `Your coloring and presence already do half the styling — Fiona just finished the sentence.`
             : `You asking for a full look is already a confidence move. Let's make it visible.`;
         }
+        if (vibe) {
+          const lead = `You asked: “${vibe}” — `;
+          if (!String(payload.data.compliment).includes(vibe.slice(0, 24))) {
+            payload.data.compliment = lead + payload.data.compliment;
+          }
+          // Make sure wardrobe option copy answers the typed question
+          (payload.data.wardrobeOptions || []).forEach((opt, i) => {
+            if (!opt || !opt.desc) return;
+            if (!/you asked|answers your/i.test(opt.desc)) {
+              opt.desc = `Answers your question for ${occasionLabel}: ${opt.desc}`;
+            }
+          });
+        }
 
         applyWardrobeLookToUi(
           payload.data,
@@ -6385,30 +6458,51 @@
         }
       } catch (err) {
         console.error('[Glamour Style] wardrobe fallback', err && err.fionaMeta ? err.fionaMeta : err);
-        const silhouette = (!isAutoSilhouette(selectedWardrobeSilhouette) && selectedWardrobeSilhouette)
-          || lastDetectedSilhouette
-          || 'Hourglass / Defined';
-        const harmony = (!isAutoHarmony(selectedWardrobeHarmony) && selectedWardrobeHarmony)
-          || lastDetectedHarmony
-          || 'Warm & Golden';
-        const offline = buildOfflineWardrobeLook(occasionLabel, vibe, silhouette, harmony);
-        offline.compliment = offline.compliment || 'Even offline, Fiona sees the woman who showed up asking for better — that counts.';
-        applyWardrobeLookToUi(
-          offline,
-          occasionLabel,
-          vibe,
-          silhouette,
-          harmony,
-          getCanvasImages('wardrobe').length,
-          'Offline draft —'
-        );
-        showToast((err && err.fionaToast) || `Live styling unavailable (${err && err.message ? err.message : 'unknown error'}). Showing offline draft.`);
+        try {
+          const silhouette = (!isAutoSilhouette(selectedWardrobeSilhouette) && selectedWardrobeSilhouette)
+            || lastDetectedSilhouette
+            || 'Hourglass / Defined';
+          const harmony = (!isAutoHarmony(selectedWardrobeHarmony) && selectedWardrobeHarmony)
+            || lastDetectedHarmony
+            || 'Warm & Golden';
+          const offline = buildOfflineWardrobeLook(occasionLabel, vibe, silhouette, harmony);
+          if (vibe) {
+            offline.compliment = `You asked: “${vibe}” — here are two clear wardrobe paths and two hair & makeup paths that answer that for ${occasionLabel}.`;
+          } else {
+            offline.compliment = offline.compliment || 'Even offline, Fiona sees the woman who showed up asking for better — that counts.';
+          }
+          applyWardrobeLookToUi(
+            offline,
+            occasionLabel,
+            vibe,
+            silhouette,
+            harmony,
+            getCanvasImages('wardrobe').length,
+            'Offline draft —'
+          );
+          showToast((err && err.fionaToast) || `Live styling unavailable (${err && err.message ? err.message : 'unknown error'}). Showing offline draft.`);
+        } catch (e2) {
+          console.error('[Glamour Style] recovery failed', e2);
+          const wHost = document.getElementById('fiona-wardrobe-options');
+          const bHost = document.getElementById('fiona-beauty-options');
+          if (wHost) wHost.innerHTML = '<p class="text-[11px] text-rose-700 sm:col-span-2">Could not build options — tap Style My Full Look again.</p>';
+          if (bHost) bHost.innerHTML = '';
+        }
       } finally {
+        glamourStyleInFlight = null;
+        // Never leave Debra stuck on "Building…"
+        try {
+          if (window.lastGlamourLook && window.lastGlamourLook.wardrobeOptions) {
+            ensureGlamourPickersVisible();
+          }
+        } catch (_) {}
         if (btn) {
           btn.disabled = false;
           btn.innerText = previousLabel || 'Style My Full Look, Fiona ✨';
         }
       }
+      })();
+      await glamourStyleInFlight;
     }
 
     function selectUndertone(btn, tone) {

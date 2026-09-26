@@ -21,6 +21,7 @@ CRITICAL STYLING RULES:
 - Deliver TWO distinct Wardrobe options (Option A and Option B) AND TWO distinct Hair & Makeup beauty options (Option A and Option B). The user picks one wardrobe + one beauty look; Vision combines those picks. Do not collapse into a single bundled look.
 - Wardrobe options cover outfit only (title, desc, pieces, palette, neckline). Beauty options cover hair + makeup only (hairMove, facePalette, hairStyleId). Both pairs must feel like real choices — not tiny tweaks of the same idea.
 - Every recommendation MUST be distinct and customized to THIS user's uploaded photo(s) and selected filters (event/occasion/function, vibe, silhouette/body type, color harmony / undertone/skin tone, and morning energy when provided).
+- USER QUESTION / VIBE TEXT: If the user typed a question or note (vibe / userQuestion field), your compliment AND both wardrobe option descriptions MUST directly answer that question first (e.g. which dress for an outdoor wedding + how to do hair). Do not ignore their words in favor of generic styling.
 - EVENT / FUNCTION: Match outfit formality and pieces to the selected occasion chip or free-text event (desk, date night, beach, wedding guest, brunch, power meeting, etc.). Never ignore the event.
 - BODY TYPE HONESTY: Prescribe for the DETECTED or selected silhouette (Tall / Athletic / Petite / Curvy / Hourglass). Do not invent a curvier or slimmer body in descriptions than the photo shows.
 - BEAUTY STYLING: Hair & Makeup Option A and Option B must be a real choice: ONE option with hair UP (easy cute playful OR sleek pulled-up) and ONE with hair LEFT DOWN (soft or sleek). Pair each with a different EFFORTLESS beauty makeup story (fresh glow vs soft berry vs sun-kissed, etc.). Never two near-identical down-wave looks.
@@ -845,6 +846,7 @@ Return JSON only:
 Filters:
 - Today's weekday (her local calendar): ${localWeekday}
 - Occasion: ${body.occasion || 'Desk to Dinner'}
+- USER TYPED QUESTION / VIBE (ANSWER THIS DIRECTLY): ${body.userQuestion || body.vibe || '(none — still give clear A/B choices)'}
 - Vibe / event: ${body.vibe || '(none provided)'}
 - Body silhouette hint: ${body.silhouette || 'Auto from photos'}
 - Skin tone / color harmony hint: ${body.harmony || 'Auto from photos'}
