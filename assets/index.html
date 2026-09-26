@@ -1206,7 +1206,7 @@
             </div>
 
             <!-- MUST sit between photos and Generate — never above Canvas (sticky nav ate it) -->
-            <div id="fiona-glamour-pickers" class="space-y-4 rounded-2xl border-2 border-spa-plum dark:border-pink-300 bg-white dark:bg-spa-darkbg p-4 sm:p-5 shadow-md" style="scroll-margin-top: 6.5rem;" data-fiona-pickers="v12">
+            <div id="fiona-glamour-pickers" class="space-y-4 rounded-2xl border-2 border-spa-plum dark:border-pink-300 bg-white dark:bg-spa-darkbg p-4 sm:p-5 shadow-md" style="scroll-margin-top: 6.5rem;" data-fiona-pickers="v13">
               <div class="rounded-xl bg-spa-plum text-white px-3.5 py-3 text-center sm:text-left space-y-0.5">
                 <p class="text-[11px] font-bold uppercase tracking-[0.16em]">Your picks — one Style = four options</p>
                 <p class="text-[12px] font-medium text-pink-100/95">Choose Wardrobe A or B, then Hair &amp; Makeup A or B. Generate is next.</p>
@@ -1230,7 +1230,7 @@
                 <div id="fiona-beauty-options" class="grid grid-cols-1 sm:grid-cols-2 gap-3 min-h-[5.5rem]" role="radiogroup" aria-label="Hair and makeup options">
                   <p class="text-[11px] text-gray-500 dark:text-gray-400 sm:col-span-2">Style My Full Look to reveal Hair &amp; Makeup A and B.</p>
                 </div>
-                <p id="fiona-beauty-hint" class="text-[10px] text-gray-500 dark:text-gray-400 leading-snug">One Style click delivers both pairs. Face + body stay locked; hair may polish within your real length.</p>
+                <p id="fiona-beauty-hint" class="text-[10px] text-gray-500 dark:text-gray-400 leading-snug">One Style click delivers both pairs. Face + body locked; same haircut length; style + makeup follow your pick.</p>
               </section>
 
               <div class="flex flex-wrap items-center justify-center gap-2 pt-1 border-t border-spa-plum/15 dark:border-purple-900/50">
@@ -5262,7 +5262,7 @@
       const anchorParent = visionCard && visionCard.parentElement;
       const dock = document.createElement('div');
       dock.id = 'fiona-glamour-pickers';
-      dock.setAttribute('data-fiona-pickers', 'v12-injected');
+      dock.setAttribute('data-fiona-pickers', 'v13-injected');
       dock.className = 'space-y-4 rounded-2xl border-2 border-spa-plum dark:border-pink-300 bg-white dark:bg-spa-darkbg p-4 sm:p-5 shadow-md';
       dock.style.scrollMarginTop = '6.5rem';
       dock.innerHTML = `
@@ -5283,7 +5283,7 @@
             <p id="fiona-beauty-pick-status" class="text-[10px] font-semibold text-spa-plum/70 dark:text-pink-300/70">Pick one</p>
           </div>
           <div id="fiona-beauty-options" class="grid grid-cols-1 sm:grid-cols-2 gap-3 min-h-[5.5rem]" role="radiogroup" aria-label="Hair and makeup options"></div>
-          <p id="fiona-beauty-hint" class="text-[10px] text-gray-500 dark:text-gray-400 leading-snug">One Style click delivers both pairs.</p>
+          <p id="fiona-beauty-hint" class="text-[10px] text-gray-500 dark:text-gray-400 leading-snug">One Style click delivers both pairs. Face + body locked; same haircut length; style + makeup follow your pick.</p>
         </section>
         <div class="flex flex-wrap items-center justify-center gap-2 pt-1 border-t border-spa-plum/15">
           <button type="button" id="fiona-vision-generate-btn" onclick="generateFionaVisionLook()" class="px-5 py-3 rounded-xl bg-spa-plum hover:bg-spa-plumdark text-white text-xs font-bold shadow-sm transition active:scale-95 disabled:opacity-60">Generate My Look ✨</button>
@@ -5365,17 +5365,35 @@
 
     const FIONA_HAIRSTYLE_OPTIONS = [
       { id: 'keep-mine', label: 'Keep mine', short: 'Exact hair from your photo' },
-      { id: 'soft-waves', label: 'Soft waves', short: 'Gentle wave, same length' },
-      { id: 'sleek-side-part', label: 'Sleek side part', short: 'Polished deep side part' },
-      { id: 'polished-bob', label: 'Polished bob', short: 'Smooth chin-length bob' },
+      { id: 'soft-waves', label: 'Soft waves', short: 'Gentle wave, same cut & length' },
+      { id: 'sleek-side-part', label: 'Sleek side part', short: 'Polished deep side part, same length' },
       { id: 'subtle-volume', label: 'Subtle volume', short: 'Lifted crown, soft body' },
-      { id: 'tousled-texture', label: 'Tousled texture', short: 'Lived-in piecey finish' }
+      { id: 'tousled-texture', label: 'Tousled texture', short: 'Lived-in piecey finish, same length' }
     ];
-    const FIONA_VISION_CACHE_PREFIX = 'fiona_vision_look_v11:';
+    const LEGACY_HAIRCUT_STYLE_REMAP = {
+      'polished-bob': 'sleek-side-part',
+      bob: 'sleek-side-part',
+      lob: 'soft-waves',
+      'collarbone-lob': 'sleek-side-part',
+      'soft-long-layers': 'soft-waves',
+      'face-framing-layers': 'soft-waves',
+      'modern-shag': 'tousled-texture',
+      'sleek-long': 'sleek-side-part',
+      'new-haircut': 'keep-mine',
+      haircut: 'keep-mine'
+    };
+    const FIONA_VISION_CACHE_PREFIX = 'fiona_vision_look_v12:';
     let fionaVisionSideBySide = false;
     let fionaVisionGenerating = false;
     let fionaSelectedWardrobeId = 'A';
     let fionaSelectedBeautyId = 'A';
+
+    function normalizeHairStyleId(hairStyleId) {
+      const raw = String(hairStyleId || '').trim().toLowerCase();
+      if (!raw) return 'keep-mine';
+      if (LEGACY_HAIRCUT_STYLE_REMAP[raw]) return LEGACY_HAIRCUT_STYLE_REMAP[raw];
+      return raw;
+    }
 
     function normalizeClientDualOptions(look, harmony) {
       const allowedHair = new Set(FIONA_HAIRSTYLE_OPTIONS.map((o) => o.id));
@@ -5434,26 +5452,25 @@
           body: 'Keep your real length with soft shine.',
           cues: ['Volume: soft crown', 'Part: natural', 'Texture: flexible hold']
         };
-        const hairA = allowedHair.has(String((look && look.suggestedHairStyleId) || '').toLowerCase())
-          ? String(look.suggestedHairStyleId).toLowerCase()
-          : 'keep-mine';
+        const hairARaw = normalizeHairStyleId((look && look.suggestedHairStyleId) || 'keep-mine');
+        const hairA = allowedHair.has(hairARaw) ? hairARaw : 'keep-mine';
         const hairB = hairA === 'soft-waves' ? 'sleek-side-part' : 'soft-waves';
         beautyOptions = [
           {
             id: 'A',
             title: move.title || 'Beauty Option A',
-            summary: move.body || 'Polished hair and wearable makeup.',
+            summary: move.body || 'Polished hair styling and wearable makeup — same cut length.',
             hairMove: move,
             facePalette: face,
             hairStyleId: hairA
           },
           {
             id: 'B',
-            title: hairB === 'soft-waves' ? 'Soft Wave Glow' : 'Sleek Side Glow',
-            summary: 'A second beauty mood — different hair polish and lip story, still your length.',
+            title: hairB === 'polished-bob' ? 'Polished Bob & Berry Lip' : 'Long Soft Layers & Glow',
+            summary: 'A second beauty mood — different hair styling and lip story, same haircut length.',
             hairMove: {
               title: hairB === 'soft-waves' ? 'Soft wave polish' : 'Sleek side polish',
-              body: 'Same length family as your photo, different finish for a second vibe.',
+              body: 'Same haircut length as your photo — styling + makeup only, never a new cut.',
               cues: ['Volume: intentional', 'Part: deliberate', 'Texture: polished']
             },
             facePalette: sanitizeFacePalette({
@@ -5477,7 +5494,7 @@
       if (wardrobeOptions[1]) wardrobeOptions[1].id = 'B';
 
       beautyOptions = beautyOptions.map((opt, i) => {
-        let hairId = String(opt.hairStyleId || opt.suggestedHairStyleId || '').trim().toLowerCase();
+        let hairId = normalizeHairStyleId(opt.hairStyleId || opt.suggestedHairStyleId || '');
         if (!allowedHair.has(hairId)) hairId = i === 0 ? 'keep-mine' : 'soft-waves';
         return {
           ...opt,
@@ -5487,7 +5504,7 @@
         };
       });
       if (beautyOptions.length === 2 && beautyOptions[0].hairStyleId === beautyOptions[1].hairStyleId) {
-        beautyOptions[1].hairStyleId = beautyOptions[0].hairStyleId === 'soft-waves' ? 'sleek-side-part' : 'soft-waves';
+        beautyOptions[1].hairStyleId = beautyOptions[0].hairStyleId === 'polished-bob' ? 'soft-long-layers' : 'polished-bob';
       }
 
       return { wardrobeOptions, beautyOptions };
@@ -5505,12 +5522,13 @@
 
     function getSelectedHairStyleId() {
       const beauty = getSelectedBeautyOption();
-      const id = beauty && beauty.hairStyleId;
+      const id = normalizeHairStyleId(beauty && beauty.hairStyleId);
       return FIONA_HAIRSTYLE_OPTIONS.some((o) => o.id === id) ? id : 'keep-mine';
     }
 
     function getHairStyleOption(id) {
-      return FIONA_HAIRSTYLE_OPTIONS.find((o) => o.id === id) || FIONA_HAIRSTYLE_OPTIONS[0];
+      const normalized = normalizeHairStyleId(id);
+      return FIONA_HAIRSTYLE_OPTIONS.find((o) => o.id === normalized) || FIONA_HAIRSTYLE_OPTIONS[0];
     }
 
     function buildCompositeGlamourLook() {
@@ -5580,6 +5598,7 @@
       host.innerHTML = list.map((opt) => {
         const isOn = opt.id === fionaSelectedBeautyId;
         const hair = getHairStyleOption(opt.hairStyleId);
+        const haircutName = opt.haircut || (opt.hairMove && opt.hairMove.title) || hair.label;
         const lip = (opt.facePalette && opt.facePalette.lip) || [];
         const cheek = (opt.facePalette && opt.facePalette.cheek) || [];
         const base = isOn
@@ -5595,7 +5614,7 @@
           <p class="font-serif text-sm font-bold text-gray-900 dark:text-white leading-snug">${escapeGlamourHtml(opt.title || 'Beauty look')}</p>
           <p class="text-[11px] text-gray-600 dark:text-gray-300 leading-relaxed line-clamp-3">${escapeGlamourHtml(summary)}</p>
           <div class="flex flex-wrap items-center gap-2 pt-0.5">
-            <span class="text-[10px] font-semibold text-spa-plum dark:text-pink-200">${escapeGlamourHtml(hair.label)}</span>
+            <span class="text-[10px] font-semibold text-spa-plum dark:text-pink-200">${escapeGlamourHtml(haircutName)}</span>
             ${lip[0] ? `<span class="inline-flex items-center gap-1 text-[10px] text-gray-600 dark:text-gray-300"><span class="w-3 h-3 rounded-full border border-white ring-1 ring-spa-plum/20" style="background:${escapeGlamourHtml(lip[0])}"></span>${escapeGlamourHtml(lip[1] || 'Lip')}</span>` : ''}
             ${cheek[0] ? `<span class="inline-flex items-center gap-1 text-[10px] text-gray-600 dark:text-gray-300"><span class="w-3 h-3 rounded-full border border-white ring-1 ring-spa-plum/20" style="background:${escapeGlamourHtml(cheek[0])}"></span>${escapeGlamourHtml(cheek[1] || 'Cheek')}</span>` : ''}
           </div>
@@ -5605,8 +5624,8 @@
         const beauty = getSelectedBeautyOption();
         const hair = getHairStyleOption(beauty && beauty.hairStyleId);
         hint.textContent = beauty
-          ? `${hair.label}: face + body stay locked; hair stays in your length family.`
-          : 'Pick a beauty look. Face + body stay locked; hair may polish within your real length.';
+          ? `${hair.label}: face + body locked; same haircut length; style + makeup follow your pick.`
+          : 'Pick a beauty look. Face + body locked; same haircut length; style + makeup follow your pick.';
       }
       const bStatus = document.getElementById('fiona-beauty-pick-status');
       if (bStatus) bStatus.textContent = `Selected ${fionaSelectedBeautyId}`;
@@ -6130,7 +6149,7 @@
       const beautyA = {
         id: 'A',
         title: hairMove.title || 'Soft Everyday Glow',
-        summary: hairMove.body || 'Polished hair and wearable makeup on your real length.',
+        summary: hairMove.body || 'Polished hair styling and wearable makeup — same cut length.',
         hairMove,
         facePalette: {
           lip: face.lip,
@@ -6142,10 +6161,10 @@
       const beautyB = {
         id: 'B',
         title: 'Soft Wave Glow',
-        summary: 'Gentle wave polish within your length family, with a second wearable lip story.',
+        summary: 'Gentle wave styling on your same haircut length, with a second wearable lip story.',
         hairMove: {
           title: 'Soft wave polish',
-          body: 'Restyle your existing length into soft face-framing waves — same color family, no extensions.',
+          body: 'Same haircut length as your photo — soft face-framing waves and makeup only, never a new cut.',
           cues: ['Volume: soft mid-lengths', 'Part: soft side', 'Texture: flexible hold']
         },
         facePalette: sanitizeFacePalette({
@@ -6153,7 +6172,7 @@
           cheek: face.cheek,
           note: 'Alternate wearable lip — still rose/berry/nude family.'
         }, harmony),
-        hairStyleId: 'soft-waves'
+        hairStyleId: 'polished-bob'
       };
 
       return {
