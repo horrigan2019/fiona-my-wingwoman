@@ -28,7 +28,7 @@ CRITICAL STYLING RULES:
 - When morning energy is logged, let it drive BOTH wardrobe options: fumes → easy elevated polish she can throw on fast (wrap that cinches, soft V, flats OK) — still flattering, never frumpy; conquer → sharp figure-flattering tailoring and bold statements (not boxy corporate armor); on the move → polished athleisure and movement-friendly layers that still show shape.
 - If she says she feels frumpy / stuck / "nothing to wear," start with empathy + a compliment, then prescribe confidence-lifting wardrobe + beauty options she can actually put on today — glamorous and hot-on-her, not a cover-up.
 - NEVER return a generic default like "Tailored wide-leg trousers in rich plum with a tucked silk cami" unless that literally matches what you see and the filters demand it.
-- Reference visible garments, colors, body proportions, lighting, or accessories from the photo when images are provided. When closet or wardrobe photos are mixed in with a selfie, prefer pieces she already owns and restyle them flatteringly. The IDENTITY photo is always the person/selfie/full-body shot — never treat a closet shelf, hanger rack, or clothing pile as the woman to dress.
+- Reference visible garments, colors, body proportions, lighting, or accessories from the photo when images are provided. When closet or wardrobe / clothing-choice photos are mixed in with a selfie, Wardrobe Option A and B MUST pick among those EXACT uploaded garments (e.g. which dress for the wedding). Describe each piece accurately — neckline, straps or strapless, color, fabric, length. NEVER redesign an uploaded garment (do not turn strapless into spaghetti straps, change color, add sleeves, or invent a different dress). You may recommend hair, makeup, shoes, and setting. The IDENTITY photo is the person to dress — never treat a closet shelf as her body.
 - PHOTO ANALYSIS (when photos are attached): You MUST visually assess the woman's body silhouette/figure and skin-tone / undertone from the images. Prefer what you see over manual filter chips when filters say "Auto from photos" or when inferFromPhotos is true. Be kind, specific, and never body-shame.
 - SWIMWEAR / BIKINI / BEACHWEAR ON CANVAS: If the identity photo shows her in a bikini, swimsuit, or similar, celebrate that body and energy. Offer flattering, occasion-aware, hot-on-her options (elevated day-to-night slip or cut-out knit, tailored shorts + silk cami, linen set, wrap that cinches, soft V) — NEVER default to a matronly black midi wrap dress + cardigan/shawl "armor," heavy blazer stacks, or formal boardroom looks unless the occasion filter explicitly demands black-tie / corporate.
 - Vary titles, fabrics, cues, and beauty notes across requests — creativity is required. Option A and Option B must clearly diverge (different silhouette strategy, fabrics, or color story for wardrobe; different hair finish + lip/cheek story for beauty).
@@ -560,7 +560,7 @@ function buildLookImagePrompt(look, occasion, vibe, hairStyleId) {
     hairDirectionForVision(look, hairStyleId),
     changeLine,
     'FLATTERING FIT: Dress her to look intentional and gorgeous on HER body — define the waist, skim (never tent) bust and hips, celebrate soft curves. Prefer wrap that cinches, soft V / wrap neckline, A-line, vertical lines, right proportions.',
-    'Do NOT drown her in an oversized heavy blazer, shapeless dark midi tent, or matronly corporate armor. Outfit should look hot-on-her and polished — never frumpy or covering-up.',
+    'If dressing from her uploaded clothing photos: keep the EXACT garment design (neckline, straps/strapless, color, fabric, details) — never redesign. Otherwise avoid matronly blazer armor; keep looks hot-on-her and polished for the event.',
     `Look title: ${(look && look.title) || 'Curated look'}`,
     `EVENT / FUNCTION: ${occasion || 'everyday'}`,
     vibe ? `Vibe: ${vibe}` : '',
@@ -603,7 +603,14 @@ async function generateLookWithOpenAI(images, prompt) {
         form.append('input_fidelity', fidelity);
       }
       // Mask-free edit — identity/hair/body locks live in the prompt.
-      form.append('image', new Blob([bytes], { type: mediaType }), 'canvas-selfie.jpg');
+      form.append('image', new Blob([bytes], { type: mediaType }), 'identity-selfie.jpg');
+      const garment = images && images[1];
+      if (garment && garment.data) {
+        const gRaw = String(garment.data).replace(/^data:[^;]+;base64,/, '');
+        const gBytes = Buffer.from(gRaw, 'base64');
+        const gType = garment.mediaType || garment.media_type || 'image/jpeg';
+        form.append('image', new Blob([gBytes], { type: gType }), 'garment-exact.jpg');
+      }
 
       const res = await fetch('https://api.openai.com/v1/images/edits', {
         method: 'POST',
@@ -851,7 +858,7 @@ Filters:
 ${detectBlock}
 
 If morning energy is provided, weight ease vs polish on BOTH wardrobe options — but ALWAYS stay flattering (fumes = easy elevated that still cinches/defines; conquer = sharp figure-flattering, not boxy armor; move = polished athleisure with shape).
-If photos are present, ground both wardrobe options in her actual figure, coloring, and what she is wearing in frame. If multiple photos include closet/wardrobe shots, pull from pieces she owns when possible and restyle them to flatter — but the identity selfie/full-body person photo is who you are dressing (never the closet shelf).
+If photos are present, ground both wardrobe options in her actual figure, coloring, and uploaded clothing. If she uploaded clothing-choice photos (dresses/outfits), Option A and B MUST each recommend one of THOSE exact pieces (or a clear pairing from them) — describe faithfully; NEVER redesign the garment. Identity selfie = who you dress; closet/garment shots = exact clothes only.
 If the identity photo shows swimwear/bikini/beachwear, celebrate that body: prescribe flattering, occasion-aware, hot-on-her options that match vibe/occasion — NOT a default matronly black midi wrap + cardigan/shawl, and NOT boardroom blazer armor unless occasion is explicitly corporate/black-tie.
 Hair & Makeup options are STYLING + effortless makeup only — NEVER haircuts. Keep her real hair (no extensions, no cutting).
 Beauty Option A and Option B MUST be:

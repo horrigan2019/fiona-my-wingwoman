@@ -232,9 +232,14 @@ function buildEditorialPrompt(look, occasion, vibe, hairStyleId, extras) {
 
   const hairOption = resolveHairStyleOption(look, hairStyleId);
   const allowHairStyle = Boolean(hairOption.vision && hairOption.id !== 'keep-mine');
-  const changeLine = allowHairStyle
-    ? `CHANGE ALLOWED: clothing/outfit for the event, visible makeup (lipstick and blush), and a CLEARLY VISIBLE "${hairOption.label}" STYLING finish on her EXISTING cut — same exact length/shape as the reference. Keep pose geometry, face, and exact body proportions intact. NEVER bob, shorten, or cut her hair.`
-    : 'CHANGE ONLY: clothing/outfit for the event and light makeup (lipstick and blush). Keep pose geometry, exact hair (cut + length + finish), and her identity intact.';
+  const exactGarment = Boolean(extras.exactGarment || extras.hasGarmentRef || look.exactGarment || look.fromUploads);
+  const changeLine = exactGarment
+    ? (allowHairStyle
+      ? `CHANGE ALLOWED ONLY: fit her EXACT uploaded garment onto her body, place her in an event-appropriate setting, visible makeup, and a CLEARLY VISIBLE "${hairOption.label}" hair styling. Do NOT redesign the garment.`
+      : 'CHANGE ALLOWED ONLY: fit her EXACT uploaded garment onto her body, event-appropriate setting, and light makeup. Do NOT redesign the garment. Keep exact hair unless a beauty style is selected.')
+    : (allowHairStyle
+      ? `CHANGE ALLOWED: clothing/outfit for the event, visible makeup (lipstick and blush), and a CLEARLY VISIBLE "${hairOption.label}" STYLING finish on her EXISTING cut — same exact length/shape as the reference. Keep pose geometry, face, and exact body proportions intact. NEVER bob, shorten, or cut her hair.`
+      : 'CHANGE ONLY: clothing/outfit for the event and light makeup (lipstick and blush). Keep pose geometry, exact hair (cut + length + finish), and her identity intact.');
 
   const silLower = String(silhouette || '').toLowerCase();
   let bodyLock = 'BODY PROPORTION LOCK (critical): Keep her EXACT body from the reference — same frame, shoulder width, waist, hip width, thigh thickness, arm size, height cues, and muscle/softness. Do NOT add curves, widen hips/thighs, inflate bust, or thicken her. Do NOT slim, idealize, lengthen legs, or swap in a different body type. If she is slim, athletic, tall/long-lined, petite, or curvy — she stays exactly that.';
@@ -249,14 +254,18 @@ function buildEditorialPrompt(look, occasion, vibe, hairStyleId, extras) {
     : 'FLATTERING FIT: Dress her to look intentional and gorgeous on HER body — define the waist, skim (never tent) bust and hips when she has soft curves. Prefer wrap that cinches, soft V / wrap neckline, A-line, vertical lines, right proportions.';
 
   return [
-    'Edit the attached reference selfie of this exact woman. Virtual try-on only — same person, not a new model or a plus-size/curvier stand-in.',
+    'Edit the attached images: first image is her IDENTITY selfie (face + body); if a second image is attached it is the EXACT garment to wear — virtual try-on only, same person.',
     'IDENTITY LOCK — do not change: her exact face, facial geometry, eyes, nose, mouth, expression, skin tone, age, ethnicity, or likeness.',
     bodyLock,
     hairDirectionForVision(look, hairStyleId),
     changeLine,
     fitLine,
-    'Do NOT drown her in an oversized heavy blazer, shapeless dark midi tent, or matronly corporate armor. Outfit should look hot-on-her and polished for the event — never frumpy or covering-up.',
-    `Dress her in: ${pieceLine || (look && look.desc) || 'the recommended outfit'}. Fit garments to HER existing body with realistic fabric drape — not pasted on, not padded out, not tented.`,
+    exactGarment
+      ? 'GARMENT LOCK (NON-NEGOTIABLE): A garment reference image is attached (or her uploaded clothing choice is selected). Dress her in that EXACT garment — same color, fabric, lace/embroidery, length, silhouette, neckline, and straps (strapless stays strapless; no adding spaghetti straps, sleeves, or a different neckline). Do NOT redesign, recolor, restyle, or invent a different dress. Only fit THAT piece onto her body with realistic drape.'
+      : 'Do NOT drown her in an oversized heavy blazer, shapeless dark midi tent, or matronly corporate armor. Outfit should look hot-on-her and polished for the event — never frumpy or covering-up.',
+    exactGarment
+      ? `Put her in her exact uploaded piece${pieceLine ? ` (described as: ${pieceLine})` : ''}. Match the garment photo pixel-faithfully for design details — fit to HER body only; do not change the clothes.`
+      : `Dress her in: ${pieceLine || (look && look.desc) || 'the recommended outfit'}. Fit garments to HER existing body with realistic fabric drape — not pasted on, not padded out, not tented.`,
     `Makeup for the look: ${lip} lipstick, ${cheek} blush — do not change facial structure or bone structure.`,
     occasion ? `EVENT / FUNCTION (dress the outfit for this): ${occasion}.` : '',
     vibe ? `Vibe / notes: ${vibe}.` : '',
@@ -264,9 +273,11 @@ function buildEditorialPrompt(look, occasion, vibe, hairStyleId, extras) {
     harmony ? `Skin tone / color harmony to honor: ${harmony}.` : '',
     look && look.title ? `Look title: ${look.title}.` : '',
     'Soft studio or wardrobe background is OK. Tasteful, non-sexual, photorealistic. No text overlays, no logos.',
-    allowHairStyle
+    exactGarment
+      ? `FINAL CHECK: face + body match identity selfie; garment matches the uploaded clothing photo EXACTLY (neckline/straps/color/details unchanged); hair styling follows "${hairOption.label}" if selected; setting suits ${occasion || 'the event'}. If anything conflicts, prefer identity selfie for face/body and garment photo for the clothes.`
+      : (allowHairStyle
       ? `FINAL CHECK: face matches reference; body proportions match reference (no added curves/thickness); hair LENGTH matches reference but styling CLEARLY shows "${hairOption.label}"; outfit flatters her real figure for ${occasion || 'the event'}. If anything conflicts, prefer the reference selfie for face + body.`
-      : `FINAL CHECK: face, hair, and body proportions match the reference (no added curves/thickness); outfit flatters her real figure for ${occasion || 'the event'}. If anything conflicts, prefer the reference selfie for identity.`
+      : `FINAL CHECK: face, hair, and body proportions match the reference (no added curves/thickness); outfit flatters her real figure for ${occasion || 'the event'}. If anything conflicts, prefer the reference selfie for identity.`)
   ].filter(Boolean).join(' ');
 }
 
@@ -404,7 +415,7 @@ async function generateWithFashn(apiKey, dataUrl, prompt) {
   };
 }
 
-async function generateWithOpenAI(apiKey, photo, prompt) {
+async function generateWithOpenAI(apiKey, photo, prompt, garmentPhoto) {
   const parsed = stripDataUrl(photo.data || photo);
   const bytes = Buffer.from(parsed.base64, 'base64');
   // Identity-preserving edits only — never fall back to text-to-image (invents a different woman).
@@ -436,8 +447,19 @@ async function generateWithOpenAI(apiKey, photo, prompt) {
       form.append(
         'image',
         new Blob([bytes], { type: parsed.mediaType || 'image/jpeg' }),
-        'canvas-selfie.jpg'
+        'identity-selfie.jpg'
       );
+      if (garmentPhoto) {
+        const gParsed = stripDataUrl(garmentPhoto.data || garmentPhoto);
+        if (gParsed && gParsed.base64) {
+          const gBytes = Buffer.from(gParsed.base64, 'base64');
+          form.append(
+            'image',
+            new Blob([gBytes], { type: gParsed.mediaType || 'image/jpeg' }),
+            'garment-exact.jpg'
+          );
+        }
+      }
 
       const res = await fetch('https://api.openai.com/v1/images/edits', {
         method: 'POST',
@@ -545,14 +567,27 @@ module.exports = async function handler(req, res) {
 
   const look = body.look || {};
   const hairStyleId = body.hairStyleId || body.hairstyleId || (look && look.hairStyleId) || 'keep-mine';
+  const garment = body.garment || body.garmentPhoto || null;
+  const hasGarmentRef = Boolean(garment && (garment.data || typeof garment === 'string'));
+  const exactGarment = Boolean(
+    body.exactGarment
+    || hasGarmentRef
+    || look.exactGarment
+    || look.fromUploads
+  );
   const prompt = buildEditorialPrompt(look, body.occasion, body.vibe, hairStyleId, {
     silhouette: body.silhouette || look.silhouette || '',
-    harmony: body.harmony || body.undertone || look.harmony || look.undertone || ''
+    harmony: body.harmony || body.undertone || look.harmony || look.undertone || '',
+    exactGarment,
+    hasGarmentRef
   });
   const parsedPhoto = typeof photo === 'string' ? { data: photo } : photo;
   const dataUrl = String(parsedPhoto.data || '').startsWith('data:')
     ? String(parsedPhoto.data)
     : toDataUrl(parsedPhoto.mediaType || 'image/jpeg', stripDataUrl(parsedPhoto.data).base64);
+  const parsedGarment = hasGarmentRef
+    ? (typeof garment === 'string' ? { data: garment } : garment)
+    : null;
 
   const imageGenKey = process.env.IMAGE_GEN_API_KEY || '';
   const provider = String(process.env.IMAGE_GEN_PROVIDER || (imageGenKey ? 'fal' : '')).toLowerCase();
@@ -578,7 +613,7 @@ module.exports = async function handler(req, res) {
       if (name === 'fal' && imageGenKey) return generateWithFal(imageGenKey, dataUrl, prompt);
       if (name === 'replicate' && imageGenKey) return generateWithReplicate(imageGenKey, dataUrl, prompt);
       if (name === 'fashn' && imageGenKey) return generateWithFashn(imageGenKey, dataUrl, prompt);
-      if (name === 'openai' && openAiKey) return generateWithOpenAI(openAiKey, parsedPhoto, prompt);
+      if (name === 'openai' && openAiKey) return generateWithOpenAI(openAiKey, parsedPhoto, prompt, parsedGarment);
       if (name === 'gemini' && geminiKey) return generateWithGemini(geminiKey, parsedPhoto, prompt);
       return null;
     };

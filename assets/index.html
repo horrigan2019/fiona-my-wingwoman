@@ -1191,7 +1191,7 @@
                     <div id="fiona-vision-placeholder" class="px-5 text-center space-y-3">
                       <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-spa-plum/70 dark:text-pink-300/80">Fiona's Vision</p>
                       <p class="font-serif text-lg font-bold text-spa-plumdark dark:text-pink-100 leading-snug">Your Virtual Styling Look</p>
-                      <p class="text-[11px] text-gray-600 dark:text-gray-300 leading-relaxed">Pick Wardrobe + Hair &amp; Makeup below, then Generate My Look.</p>
+                      <p class="text-[11px] text-gray-600 dark:text-gray-300 leading-relaxed">Pick Wardrobe + Hair &amp; Makeup below, then Generate My Look. Fiona keeps your uploaded clothes exact — she won't redesign the dress.</p>
                     </div>
                     <div id="fiona-vision-loading" class="hidden absolute inset-0 bg-spa-cream/90 dark:bg-spa-darkcard/90 backdrop-blur-sm flex flex-col items-center justify-center gap-3 px-6 text-center">
                       <div class="w-9 h-9 rounded-full border-2 border-spa-plum/30 border-t-spa-plum animate-spin" aria-hidden="true"></div>
@@ -5167,7 +5167,10 @@
       const person = pickPreferredCanvasPersonPhoto(images);
       const identity = (selfie.kind === 'closet' && person && person.kind === 'person') ? person : selfie;
       if (identity && identity.url) {
-        setMoodboardHeroFromImage(identity, { manual: moodboardHeroManual && moodboardHeroUrl === identity.url });
+        // Do not force-swap hero away from a selected garment thumb — Vision needs that dress ref.
+        if (!(moodboardHeroManual && moodboardHeroUrl && identity.url !== moodboardHeroUrl)) {
+          setMoodboardHeroFromImage(identity, { manual: false });
+        }
       }
       // Higher-res input helps gpt-image edit keep face + short hair + body type.
       return canvasImageToApiPayload(identity, {
@@ -5176,6 +5179,44 @@
         softLimit: 520000,
         hardMaxDim: 1280,
         hardQuality: 0.78
+      });
+    }
+
+    /** Exact uploaded garment/clothing-choice photo for Vision — never redesign this piece. */
+    function resolveGarmentRefForLook() {
+      const images = getCanvasImages('wardrobe');
+      if (!images.length) return null;
+      const person = pickPreferredCanvasPersonPhoto(images);
+      const personUrl = person && person.url;
+      const isGarmentLike = (img) => {
+        if (!img || !img.url) return false;
+        if (personUrl && img.url === personUrl) return false;
+        if (img.kind === 'closet') return true;
+        // Dress-only / outfit flat-lays often classify as "other"
+        if (img.kind && img.kind !== 'person') return true;
+        return false;
+      };
+      if (moodboardHeroUrl) {
+        const hero = images.find((img) => img && img.url === moodboardHeroUrl);
+        if (hero && isGarmentLike(hero)) return hero;
+        // Hero is the person but user also uploaded dresses — prefer latest closet/other
+      }
+      const garments = images.filter(isGarmentLike);
+      if (!garments.length) return null;
+      // Prefer most recently added clothing choice
+      return garments[garments.length - 1];
+    }
+
+    async function collectGarmentRefForLook() {
+      await ensureCanvasImagesClassified();
+      const garment = resolveGarmentRefForLook();
+      if (!garment) return null;
+      return canvasImageToApiPayload(garment, {
+        maxDim: 1400,
+        quality: 0.88,
+        softLimit: 480000,
+        hardMaxDim: 1200,
+        hardQuality: 0.75
       });
     }
 
@@ -5395,7 +5436,7 @@
       'tousled-texture': 'hair-down-soft',
       'subtle-volume': 'hair-down-soft'
     };
-    const FIONA_VISION_CACHE_PREFIX = 'fiona_vision_look_v14:';
+    const FIONA_VISION_CACHE_PREFIX = 'fiona_vision_look_v15:';
     let fionaVisionSideBySide = false;
     let fionaVisionGenerating = false;
     let fionaSelectedWardrobeId = 'A';
@@ -5964,12 +6005,16 @@
 
       const photoPayload = await collectCanvasSelfieForLook();
       if (!photoPayload || !photoPayload.data) {
-        setFionaVisionError("Add a photo to Your Canvas first, gorgeous — Fiona needs a face to dress.");
-        showToast('Add a canvas photo first.');
+        setFionaVisionError("Add a photo of you to Your Canvas first, gorgeous — Fiona needs your face + a clothing choice.");
+        showToast('Add a photo of you first.');
         return;
       }
+      const garmentPayload = await collectGarmentRefForLook();
+      const exactGarment = Boolean(garmentPayload && garmentPayload.data);
 
-      setFionaVisionLoading(true, 'in your custom palette — hang tight, gorgeous.');
+      setFionaVisionLoading(true, exactGarment
+        ? 'trying on your exact uploaded piece — hang tight, gorgeous.'
+        : 'in your custom palette — hang tight, gorgeous.');
       setFionaVisionError('');
 
       const hairStyleId = getSelectedHairStyleId();
@@ -5980,7 +6025,9 @@
       const beautyOptionId = compositeLook.selectedBeautyId || fionaSelectedBeautyId || 'A';
       const body = {
         photo: photoPayload,
-        images: [photoPayload],
+        garment: garmentPayload || undefined,
+        exactGarment,
+        images: exactGarment ? [photoPayload, garmentPayload] : [photoPayload],
         look: {
           ...compositeLook,
           hairStyleId,
@@ -5989,7 +6036,9 @@
           wardrobeOptionId,
           beautyOptionId,
           silhouette: meta.silhouette || selectedWardrobeSilhouette || '',
-          harmony: meta.harmony || selectedWardrobeHarmony || ''
+          harmony: meta.harmony || selectedWardrobeHarmony || '',
+          exactGarment,
+          fromUploads: exactGarment
         },
         occasion: meta.occasionLabel,
         vibe: meta.vibe,
