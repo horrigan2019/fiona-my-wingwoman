@@ -604,13 +604,19 @@ async function generateLookWithOpenAI(images, prompt) {
         form.append('input_fidelity', fidelity);
       }
       // Mask-free edit — identity/hair/body locks live in the prompt.
-      form.append('image', new Blob([bytes], { type: mediaType }), 'identity-selfie.jpg');
+      // OpenAI rejects duplicate "image" fields — use image[] when sending identity + garment.
       const garment = images && images[1];
+      let garmentBytes = null;
+      let garmentType = 'image/jpeg';
       if (garment && garment.data) {
         const gRaw = String(garment.data).replace(/^data:[^;]+;base64,/, '');
-        const gBytes = Buffer.from(gRaw, 'base64');
-        const gType = garment.mediaType || garment.media_type || 'image/jpeg';
-        form.append('image', new Blob([gBytes], { type: gType }), 'garment-exact.jpg');
+        garmentBytes = Buffer.from(gRaw, 'base64');
+        garmentType = garment.mediaType || garment.media_type || 'image/jpeg';
+      }
+      const imageField = garmentBytes ? 'image[]' : 'image';
+      form.append(imageField, new Blob([bytes], { type: mediaType }), 'identity-selfie.jpg');
+      if (garmentBytes) {
+        form.append('image[]', new Blob([garmentBytes], { type: garmentType }), 'garment-exact.jpg');
       }
 
       const res = await fetch('https://api.openai.com/v1/images/edits', {

@@ -444,21 +444,28 @@ async function generateWithOpenAI(apiKey, photo, prompt, garmentPhoto) {
         form.append('input_fidelity', fidelity);
       }
       // Mask-free full-image edit — model must follow IDENTITY/HAIR/BODY locks in the prompt.
-      form.append(
-        'image',
-        new Blob([bytes], { type: parsed.mediaType || 'image/jpeg' }),
-        'identity-selfie.jpg'
-      );
+      // OpenAI rejects duplicate "image" fields — use image[] when sending identity + garment.
+      let garmentBytes = null;
+      let garmentType = 'image/jpeg';
       if (garmentPhoto) {
         const gParsed = stripDataUrl(garmentPhoto.data || garmentPhoto);
         if (gParsed && gParsed.base64) {
-          const gBytes = Buffer.from(gParsed.base64, 'base64');
-          form.append(
-            'image',
-            new Blob([gBytes], { type: gParsed.mediaType || 'image/jpeg' }),
-            'garment-exact.jpg'
-          );
+          garmentBytes = Buffer.from(gParsed.base64, 'base64');
+          garmentType = gParsed.mediaType || 'image/jpeg';
         }
+      }
+      const imageField = garmentBytes ? 'image[]' : 'image';
+      form.append(
+        imageField,
+        new Blob([bytes], { type: parsed.mediaType || 'image/jpeg' }),
+        'identity-selfie.jpg'
+      );
+      if (garmentBytes) {
+        form.append(
+          'image[]',
+          new Blob([garmentBytes], { type: garmentType }),
+          'garment-exact.jpg'
+        );
       }
 
       const res = await fetch('https://api.openai.com/v1/images/edits', {
