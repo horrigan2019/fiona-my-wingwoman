@@ -266,7 +266,7 @@ function buildEditorialPrompt(look, occasion, vibe, hairStyleId, extras) {
     fitLine,
     exactGarment
       ? 'GARMENT LOCK (NON-NEGOTIABLE): Dress her in the EXACT garment from IMAGE 2 — same color, fabric, lace/embroidery/3D florals, length, silhouette, neckline, and straps (strapless stays strapless; no adding spaghetti straps, sleeves, or a different neckline). Do NOT redesign, recolor, restyle, or invent a different dress (no swapping to a black one-shoulder mini). Only fit THAT piece onto her body with realistic drape.'
-      : 'Do NOT drown her in an oversized heavy blazer, shapeless dark midi tent, or matronly corporate armor. Outfit should look hot-on-her and polished for the event — never frumpy or covering-up.',
+      : 'Do NOT drown her in oversized blazers, scarf+cardigan stacks, shapeless dark midi tents, or matronly corporate armor. ONE polished hero outfit — hot-on-her and formality-matched to the event — never frumpy, piled, or silly.',
     exactGarment
       ? 'Put her in her exact uploaded garment from IMAGE 2. Match that photo pixel-faithfully for design details. IGNORE any wardrobe option text that describes a different dress/color/neckline — the garment photo wins.'
       : `Dress her in: ${pieceLine || (look && look.desc) || 'the recommended outfit'}. Fit garments to HER existing body with realistic fabric drape — not pasted on, not padded out, not tented.`,
@@ -277,12 +277,15 @@ function buildEditorialPrompt(look, occasion, vibe, hairStyleId, extras) {
     harmony ? `Skin tone / color harmony to honor: ${harmony}.` : '',
     look && look.title ? `Look title: ${look.title}.` : '',
     (look && (look.selectedWardrobeId || look.wardrobeOptionId))
-      ? `USER PICK — Wardrobe Option ${look.selectedWardrobeId || look.wardrobeOptionId}: follow THIS wardrobe option's styling story (accessories, layering, setting energy). If an exact garment photo is attached, keep that garment but still honor this option's vibe/setting/shoes vs the other option.`
+      ? `USER PICK — Wardrobe Option ${look.selectedWardrobeId || look.wardrobeOptionId}: follow THIS option's clean hero outfit + setting energy (not the other option). Keep layering minimal. If an exact garment photo is attached, keep that garment and vary shoes/setting/simple polish only.`
       : '',
     (look && (look.selectedBeautyId || look.beautyOptionId || look.beautyTitle))
       ? `USER PICK — Beauty Option ${look.selectedBeautyId || look.beautyOptionId || ''}: ${look.beautyTitle || ''}. Hair + makeup MUST match this beauty pick (and its hair up vs down), not the other option.`
       : '',
-    'Soft studio or wardrobe background is OK. Tasteful, non-sexual, photorealistic. No text overlays, no logos.',
+    'CLEAN OUTFIT RULE (critical — avoid silly looks): ONE clear hero outfit only. At most 2 clothing pieces + optional shoes. Ban scarf+cardigan+open-shirt stacks, bulky neck scarves, 3+ layers, costume layering, or wearing a whole closet at once. Clothes must look naturally worn with realistic fabric drape — not pasted stickers.',
+    'FORMALITY MATCH: Outfit and background must match. No banquet/wedding venue with lounge layers, pajama cardigans, or piled scarves. If the occasion is elevated, use one polished dress or clean tailored set — not random closet layers.',
+    'If IMAGE 1 is underwear/bra/swimwear, dress her in a single flattering occasion-appropriate look (slip dress, wrap, tailored set) — celebrate her body; never bury her in matronly layers.',
+    'Soft natural or event-appropriate background OK. Tasteful, non-sexual, photorealistic. No text overlays, no logos.',
     exactGarment
       ? `FINAL CHECK: face + body match identity selfie; garment matches the uploaded clothing photo EXACTLY; hair LENGTH matches the identity selfie EXACTLY (short stays short — no longer waves); hair styling follows "${hairOption.label}" if selected without changing length; setting suits ${occasion || 'the event'}. If anything conflicts, prefer identity selfie for face/body/hair length and garment photo for the clothes.`
       : (allowHairStyle

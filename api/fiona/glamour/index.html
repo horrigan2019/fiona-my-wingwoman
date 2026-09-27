@@ -3665,16 +3665,20 @@
       return pool[pool.length - 1];
     }
 
-    /** Dress / outfit / closet shots — including a body-in-dress photo Debra tapped as her clothing choice. */
+    /** Single dress/outfit piece for try-on — NEVER a closet shelf/rack/pile (those invent silly layered looks). */
     function isGarmentCandidate(img, identityUrl) {
       if (!img || !img.url) return false;
       if (identityUrl && img.url === identityUrl) return false;
-      if (img.kind === 'closet') return true;
-      if (img.kind && img.kind !== 'person') return true;
-      // Person-classified but Debra manually selected it as the dress to try on.
-      if (moodboardHeroManual && moodboardHeroUrl && img.url === moodboardHeroUrl) return true;
+      // Closet shelves / hanging racks / piles are inventory only — not a Vision garment ref.
+      if (img.kind === 'closet') return false;
       const name = String(img.name || '').toLowerCase();
-      if (/dress|gown|garment|outfit|closet|product|flat.?lay|wedding|formal/.test(name)) return true;
+      if (/closet|wardrobe|shelf|hanger|rack|drawer|pile|hanging/.test(name)) return false;
+      if (img.kind && img.kind !== 'person') return true; // dress flat-lay / product shot
+      // Person-classified but Debra manually tapped it as the dress to try on (not the selfie).
+      if (moodboardHeroManual && moodboardHeroUrl && img.url === moodboardHeroUrl && img.kind !== 'closet') {
+        return true;
+      }
+      if (/dress|gown|garment|outfit|product|flat.?lay|wedding|formal|slip|jumpsuit/.test(name)) return true;
       return false;
     }
 
@@ -5321,12 +5325,14 @@
         picked.push({ img, role });
       };
       push(identity, 'identity');
-      push(garment, 'closet');
-      // One extra person/reference if still empty / helpful — never dump all 6–10 canvases.
+      if (garment && garment.kind !== 'closet') push(garment, 'garment');
+      // Optional second clothing piece only — never closet racks (they make Style invent silly layer piles).
       if (picked.length < 2) {
-        const extras = getCanvasImages('wardrobe').filter((img) => img && img.url && !seen.has(img.url));
+        const extras = getCanvasImages('wardrobe').filter((img) =>
+          img && img.url && !seen.has(img.url) && isGarmentCandidate(img, identity && identity.url)
+        );
         for (const img of extras) {
-          push(img, img.kind === 'person' ? 'identity' : 'reference');
+          push(img, 'garment');
           if (picked.length >= 2) break;
         }
       }
@@ -5398,7 +5404,7 @@
       });
     }
 
-    /** Exact uploaded garment/clothing-choice photo for Vision — never redesign this piece. */
+    /** Exact uploaded garment photo for Vision — single piece only; never a closet rack. */
     function resolveGarmentRefForLook() {
       const images = getCanvasImages('wardrobe');
       if (!images.length) return null;
@@ -5407,16 +5413,16 @@
       // Manual Canvas thumb = the dress Debra wants tried on (even if classifier said "person").
       if (moodboardHeroUrl) {
         const hero = images.find((img) => img && img.url === moodboardHeroUrl);
-        if (hero && hero.url !== identityUrl && isGarmentCandidate(hero, identityUrl)) {
+        if (hero && hero.url !== identityUrl && hero.kind !== 'closet' && isGarmentCandidate(hero, identityUrl)) {
           return hero;
         }
-        if (moodboardHeroManual && hero && hero.url !== identityUrl) {
+        // Manual tap on a closet rack is inventory browsing — do NOT send it as the try-on garment.
+        if (moodboardHeroManual && hero && hero.url !== identityUrl && hero.kind !== 'closet') {
           return hero;
         }
       }
       const garments = images.filter((img) => isGarmentCandidate(img, identityUrl));
       if (!garments.length) return null;
-      // Prefer most recently added clothing choice
       return garments[garments.length - 1];
     }
 
@@ -5671,7 +5677,7 @@
       'tousled-texture': 'hair-down-soft',
       'subtle-volume': 'hair-down-soft'
     };
-    const FIONA_VISION_CACHE_PREFIX = 'fiona_vision_look_v20:';
+    const FIONA_VISION_CACHE_PREFIX = 'fiona_vision_look_v21:';
     let fionaVisionSideBySide = false;
     let fionaVisionGenerating = false;
     let fionaSelectedWardrobeId = 'A';
@@ -6116,7 +6122,7 @@
       const wardrobeId = (look && (look.selectedWardrobeId || look.wardrobeOptionId)) || fionaSelectedWardrobeId || 'A';
       const beautyId = (look && (look.selectedBeautyId || look.beautyOptionId)) || fionaSelectedBeautyId || 'A';
       return [
-        'idlock-v4-picks',
+        'idlock-v5-cleanlook',
         look && look.title || '',
         occasionLabel || '',
         vibe || '',
