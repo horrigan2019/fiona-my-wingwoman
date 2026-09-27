@@ -1,0 +1,29 @@
+Fiona Glamour — anti-silly outfit piece sanitizer smoke (2026-09-27)
+
+Input (screenshot-like piled look):
+  Tank top + Open plaid button-down + Mauve cardigan + Pink fringed scarf + Olive trousers
+Output:
+  Tank top + Olive trousers
+  (scarf dropped; open shirt + cardigan dropped because top+bottom already complete)
+
+Input (dress + scarf + cardigan + heels):
+  Wrap dress + Silk scarf + Cardigan + Heels
+Output:
+  Wrap dress
+  (dress wins; scarf/cardigan dropped; heels optional — dress-only path keeps dress first)
+
+Input (casual knit set + scarf):
+  Knit top + Matching pant + Silk scarf
+Output:
+  Knit top + Matching pant
+
+Input (single core + one outer):
+  Cami + Soft cardigan
+Output:
+  Cami + Soft cardigan
+  (outer allowed only when a second core piece is missing)
+
+Also enforced in:
+- style.js / api/fiona/glamour/style.js (Style JSON sanitize + anti-silly prompts)
+- api/generate-outfit-look.js (Vision prompt + pieceLine sanitize)
+- index.html (client dual-options + composite look sanitize; Casual Comfort Chic no longer ships a silk scarf)

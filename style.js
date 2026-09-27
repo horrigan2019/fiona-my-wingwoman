@@ -43,8 +43,8 @@ FLATTERING FIT RULES (NON-NEGOTIABLE — WINGWOMAN ENERGY):
 - Ban shapeless tents, oversized boyfriend blazers over heavy dark midis, turtleneck-under-armor stacks, and anything that reads matronly or "hiding."
 - Fit language: skim + define the waist. "Skim" means fabric follows her shape with ease — never tent, never sausage-cling.
 - Match formality to occasion/vibe. A bedroom/closet selfie or casual ask gets glamorous everyday polish — not boardroom.
-- CLEAN LOOKS ONLY (anti-silly): Each wardrobe option is ONE clear hero look — typically a single dress OR a top+bottom set. Maximum one light layer (e.g. open blazer OR cardigan — not both). NEVER prescribe scarf + cardigan + open button-down + tank stacks, bulky neck scarves, or "wear the whole closet" layer piles. Closet photos are inventory to pick FROM — pick one piece, do not dress her in everything on the rack.
-- Underwear / bra / lingerie selfies: prescribe elevated, hot-on-her, occasion-right looks (slip, wrap, tailored set) — never matronly cover-up layering.
+- CLEAN LOOKS ONLY (anti-silly — NON-NEGOTIABLE): Each wardrobe option is ONE clear hero look. Prefer a single dress/jumpsuit OR a clean top+bottom. Absolute max: 2 clothing pieces + optional shoes. At most ONE light outer layer (open blazer OR cardigan — never both, never plus an open shirt). FORBIDDEN: neck scarves, shawls, stoles, scarf+cardigan stacks, tank+plaid+cardigan piles, 3+ layers, or dressing her in everything from a closet rack. Closet photos are inventory to pick FROM — pick one hero piece (or one clean pairing), never the whole rack.
+- Underwear / bra / lingerie selfies: prescribe ONE elevated, hot-on-her, occasion-right look (slip dress, wrap, tailored set) — never matronly cover-up layering or accessory piles.
 
 MAKEUP / LIP RULES (NON-NEGOTIABLE):
 - Lipstick MUST be wearable everyday-to-evening makeup: rose, berry, mauve, nude, coral, terracotta, plum, cherry, or classic red.
@@ -546,9 +546,10 @@ function hairDirectionForVision(look, hairStyleId) {
 }
 
 function buildLookImagePrompt(look, occasion, vibe, hairStyleId) {
-  const pieces = Array.isArray(look && look.pieces)
-    ? look.pieces.map((p) => `${p.name} (${p.fabric || ''} ${p.colorLabel || p.hex || ''})`.trim()).join('; ')
-    : '';
+  const cleanPieces = sanitizeOutfitPieces(Array.isArray(look && look.pieces) ? look.pieces : []);
+  const pieces = cleanPieces
+    .map((p) => `${p.name} (${p.fabric || ''} ${p.colorLabel || p.hex || ''})`.trim())
+    .join('; ');
   const face = look && look.facePalette
     ? `Lips ${((look.facePalette.lip || [])[1]) || ''}, cheeks ${((look.facePalette.cheek || [])[1]) || ''}. ${look.facePalette.note || ''}`
     : '';
@@ -565,16 +566,17 @@ function buildLookImagePrompt(look, occasion, vibe, hairStyleId) {
     changeLine,
     'FLATTERING FIT: Dress her to look intentional and gorgeous on HER body — define the waist, skim (never tent) bust and hips, celebrate soft curves. Prefer wrap that cinches, soft V / wrap neckline, A-line, vertical lines, right proportions.',
     'If dressing from her uploaded clothing photos: keep the EXACT garment design (neckline, straps/strapless, color, fabric, details) — never redesign. Otherwise avoid matronly blazer armor; keep looks hot-on-her and polished for the event.',
+    'CLEAN OUTFIT (anti-silly): ONE hero outfit only — a single dress OR top+bottom. Ban neck scarves, scarf+cardigan stacks, tank+open-shirt+cardigan piles, and pasted-on layers. Clothes must drape naturally.',
     `Look title: ${(look && look.title) || 'Curated look'}`,
     `EVENT / FUNCTION: ${occasion || 'everyday'}`,
     vibe ? `Vibe: ${vibe}` : '',
-    look && look.desc ? `Outfit description (ignore any hair-length changes in this text): ${look.desc}` : '',
-    pieces ? `Dress her in these pieces (fit flatteringly to HER body — cinch waist, skim curves): ${pieces}` : '',
+    look && look.desc ? `Outfit description (ignore any hair-length changes or scarf mentions in this text): ${look.desc}` : '',
+    pieces ? `Dress her in ONLY these clean pieces (fit flatteringly — cinch waist, skim curves): ${pieces}` : '',
     face ? `Light makeup only: ${face}` : '',
     'Soft studio or wardrobe background OK. Tasteful, non-sexual, photorealistic. No text overlays, no logos.',
     allowHairRestyle
-      ? `FINAL CHECK: face matches the reference; hair LENGTH and CUT/shape match the reference exactly (no bobbing, no shortening, no growing longer / no long waves if short); only the selected "${hairOption.label}" styling finish + makeup differ within that length; body type matches the reference; outfit flatters her real figure (waist visible, not tented). If anything conflicts, prefer the reference selfie for face + body + hair length — keep the flattering fit and selected styling polish.`
-      : 'FINAL CHECK: face matches the reference, hair length/cut/style matches the reference, body type matches the reference, outfit flatters her real figure (waist visible, not tented). If anything conflicts, prefer the reference selfie for identity — keep the flattering fit.'
+      ? `FINAL CHECK: face matches the reference; hair LENGTH and CUT/shape match the reference exactly (no bobbing, no shortening, no growing longer / no long waves if short); only the selected "${hairOption.label}" styling finish + makeup differ within that length; body type matches the reference; outfit is a clean hero look (no scarf piles) that flatters her real figure. If anything conflicts, prefer the reference selfie for face + body + hair length — keep the flattering fit and selected styling polish.`
+      : 'FINAL CHECK: face matches the reference, hair length/cut/style matches the reference, body type matches the reference, outfit is a clean hero look (no scarf piles) that flatters her real figure. If anything conflicts, prefer the reference selfie for identity — keep the flattering fit.'
   ].filter(Boolean).join('\n');
 }
 
@@ -889,10 +891,11 @@ SILHOUETTE FIT GUIDE:
 - Petite: raise visual waist, crop cleanly, scale pieces so she looks elongated — still polished, not childish.
 - Tall / Long Lines: unbroken verticals, high-rise, length that flatters — intentional midi only when occasion warrants; for casual / selfie / swimwear energy prefer hot-on-her proportions (not matronly column dresses).
 - Athletic / Straight: add soft shape with wrap, peplum, or nipped layer — feminine without bulk.
-Match formality to occasion/vibe. Casual / selfie / swimwear / everyday ≠ boardroom blazer stack or funeral-formal black midi + cardigan.
+Match formality to occasion/vibe. Casual / selfie / swimwear / everyday ≠ boardroom blazer stack or funeral-formal black midi + cardigan. Elevated event (wedding/banquet/gala) → one polished dress or clean tailored set — never lounge layers + scarf at a formal venue.
 facePalette.lip MUST be a wearable lipstick (rose/berry/mauve/nude/coral/plum/red) — NEVER green, sage, or olive lipstick. Clothing palette may include olive/sage for garments only.
 
 Wardrobe Option A and Option B must be CLEARLY different (e.g. dress vs separates, or different color stories / necklines) while both flattering. Beauty Option A and Option B must be CLEARLY different (different hair finish + lip/cheek story).
+pieces arrays: 1–2 clothing items (+ optional shoes). NO scarves/shawls. At most one outer layer total.
 
 Return JSON only:
 {
@@ -906,12 +909,11 @@ Return JSON only:
     {
       "id": "A",
       "title": "Wardrobe option A title (unique)",
-      "desc": "2-4 sentences focused on the OUTFIT (not hair/makeup), tailored to detected figure/skin tone and photo",
+      "desc": "2-4 sentences focused on the OUTFIT (not hair/makeup), tailored to detected figure/skin tone and photo — clean hero look, no scarf piles",
       "neckline": "short neckline note",
       "pieces": [
-        { "name": "Piece name", "fabric": "Fabric — texture note", "cue": "One-line styling cue", "hex": "#HEX", "colorLabel": "Color name" },
-        { "name": "...", "fabric": "...", "cue": "...", "hex": "#HEX", "colorLabel": "..." },
-        { "name": "...", "fabric": "...", "cue": "...", "hex": "#HEX", "colorLabel": "..." }
+        { "name": "Hero piece (e.g. wrap dress)", "fabric": "Fabric — texture note", "cue": "One-line styling cue", "hex": "#HEX", "colorLabel": "Color name" },
+        { "name": "Optional second piece or shoes", "fabric": "...", "cue": "...", "hex": "#HEX", "colorLabel": "..." }
       ],
       "palette": [
         { "hex": "#HEX", "label": "Name" },
@@ -923,12 +925,11 @@ Return JSON only:
     {
       "id": "B",
       "title": "Wardrobe option B title (clearly different from A)",
-      "desc": "2-4 sentences focused on the OUTFIT",
+      "desc": "2-4 sentences focused on the OUTFIT — clean hero look, no scarf piles",
       "neckline": "short neckline note",
       "pieces": [
-        { "name": "Piece name", "fabric": "Fabric — texture note", "cue": "One-line styling cue", "hex": "#HEX", "colorLabel": "Color name" },
-        { "name": "...", "fabric": "...", "cue": "...", "hex": "#HEX", "colorLabel": "..." },
-        { "name": "...", "fabric": "...", "cue": "...", "hex": "#HEX", "colorLabel": "..." }
+        { "name": "Hero piece", "fabric": "Fabric — texture note", "cue": "One-line styling cue", "hex": "#HEX", "colorLabel": "Color name" },
+        { "name": "Optional second piece or shoes", "fabric": "...", "cue": "...", "hex": "#HEX", "colorLabel": "..." }
       ],
       "palette": [
         { "hex": "#HEX", "label": "Name" },
@@ -1070,6 +1071,51 @@ function normalizeOptionId(raw, fallback) {
   return fallback;
 }
 
+/** Drop scarves / stacked outer layers so Style never ships silly piled looks to Vision. */
+function pieceTextForSanitize(p) {
+  if (!p) return '';
+  if (typeof p === 'string') return p;
+  return [p.name, p.fabric, p.cue, p.colorLabel].filter(Boolean).join(' ');
+}
+
+function sanitizeOutfitPieces(pieces) {
+  if (!Array.isArray(pieces)) return [];
+  const SILLY_ACCESSORY = /\b(scarf|shawls?|stoles?|pashmina|muffler|neck\s*wrap|infinity\s*scarf|fringed?\s*scarf)\b/i;
+  const OUTER_LAYER = /\b(cardigan|blazer|coat|jacket|kimono|shrug|overshirt|open\s*(shirt|layer)|button[- ]?down|plaid\s*shirt)\b/i;
+  const SHOE = /\b(shoe|heel|sneaker|boot|sandal|flat|loafer|mule|pump)\b/i;
+  const NON_CLOTHING = /\b(lipstick|lip\b|blush|makeup|earring|necklace|bracelet|jewelry|handbag|clutch|purse|bag)\b/i;
+  const DRESS = /\b(dress|gown|jumpsuit|romper|slip)\b/i;
+  const CORE = /\b(dress|gown|jumpsuit|romper|slip|top|pant|trouser|skirt|blouse|tee|tank|cami|jean|denim|short)\b/i;
+
+  const cores = [];
+  const outers = [];
+  const shoes = [];
+  for (const p of pieces) {
+    const text = pieceTextForSanitize(p);
+    if (!String(text).trim()) continue;
+    if (SILLY_ACCESSORY.test(text)) continue;
+    if (SHOE.test(text)) {
+      shoes.push(p);
+      continue;
+    }
+    if (OUTER_LAYER.test(text)) {
+      outers.push(p);
+      continue;
+    }
+    if (NON_CLOTHING.test(text) && !CORE.test(text)) continue;
+    cores.push(p);
+  }
+
+  const dresses = cores.filter((p) => DRESS.test(pieceTextForSanitize(p)));
+  if (dresses.length) {
+    return [dresses[0], ...shoes.slice(0, 1)];
+  }
+  // Prefer a clean top+bottom. Only add one outer if we lack a second core piece.
+  const chosen = cores.slice(0, 2);
+  if (chosen.length < 2 && outers.length) chosen.push(outers[0]);
+  return [...chosen, ...shoes.slice(0, 1)].slice(0, 3);
+}
+
 function flattenSelectedGlamourLook(data, wardrobeOpt, beautyOpt) {
   if (!data || typeof data !== 'object') return data;
   const w = wardrobeOpt || {};
@@ -1077,7 +1123,7 @@ function flattenSelectedGlamourLook(data, wardrobeOpt, beautyOpt) {
   data.title = w.title || data.title || 'Curated look';
   data.desc = w.desc || data.desc || '';
   data.neckline = w.neckline || data.neckline || '';
-  data.pieces = Array.isArray(w.pieces) ? w.pieces : data.pieces;
+  data.pieces = sanitizeOutfitPieces(Array.isArray(w.pieces) ? w.pieces : data.pieces);
   data.palette = Array.isArray(w.palette) ? w.palette : data.palette;
   data.hairMove = b.hairMove || data.hairMove;
   data.facePalette = b.facePalette || data.facePalette;
@@ -1202,8 +1248,17 @@ function ensureDualGlamourOptions(data, lipFallback, weekday) {
       if (typeof next[key] === 'string') next[key] = alignTextToWeekday(next[key], weekday);
     }
     if (!Array.isArray(next.pieces)) next.pieces = data.pieces || [];
+    next.pieces = sanitizeOutfitPieces(next.pieces);
     if (!Array.isArray(next.palette)) next.palette = data.palette || [];
     if (!next.title) next.title = id === 'A' ? 'Wardrobe Option A' : 'Wardrobe Option B';
+    // Strip scarf/pile language from copy so Vision is not steered into silly stacks.
+    if (typeof next.desc === 'string') {
+      next.desc = next.desc
+        .replace(/\b(silk\s+)?scar(?:f|ves)\b/gi, '')
+        .replace(/\bshawls?\b/gi, '')
+        .replace(/\s{2,}/g, ' ')
+        .trim();
+    }
     return next;
   });
 

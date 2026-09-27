@@ -4546,13 +4546,13 @@
       },
       'Casual Comfort Chic': {
         title: 'Soft Street Royalty',
-        desc: 'Elevated knit set in dusty rose with a defined waist (soft belt or tuck), clean white sneakers, and a silk scarf at the neck for that quiet Fiona polish.',
+        desc: 'Elevated knit set in dusty rose with a defined waist (soft belt or tuck) and clean white sneakers — quiet Fiona polish without accessory piles.',
         quote: 'Casual does not mean careless, darling. Soft fabrics, sharp intention.',
-        neckline: 'crew / soft scarf frame',
+        neckline: 'crew / soft scoop',
         pieces: [
           { name: 'Knit top', fabric: 'Fine-gauge cotton knit', cue: 'Tuck or half-tuck so the waist reads' },
           { name: 'Matching pant', fabric: 'Relaxed stretch knit', cue: 'High rise to lengthen the leg line' },
-          { name: 'Silk scarf', fabric: 'Light silk twill', cue: 'Knot once at the collarbone for polish' }
+          { name: 'White sneakers', fabric: 'Clean leather', cue: 'Keep them crisp — one polish note is enough' }
         ]
       },
       'Power Meeting': {
@@ -5780,9 +5780,17 @@
 
       wardrobeOptions = wardrobeOptions.map((opt, i) => {
         const raw = String(opt.id || '').trim().toUpperCase().replace(/^OPTION\s+/, '');
+        const pieces = sanitizeOutfitPiecesClient(opt.pieces || []);
+        const desc = String(opt.desc || '')
+          .replace(/\b(silk\s+)?scar(?:f|ves)\b/gi, '')
+          .replace(/\bshawls?\b/gi, '')
+          .replace(/\s{2,}/g, ' ')
+          .trim();
         return {
           ...opt,
-          id: raw === 'B' || (raw !== 'A' && i === 1) ? 'B' : 'A'
+          id: raw === 'B' || (raw !== 'A' && i === 1) ? 'B' : 'A',
+          pieces,
+          desc
         };
       });
       if (wardrobeOptions[0]) wardrobeOptions[0].id = 'A';
@@ -5861,16 +5869,61 @@
       return FIONA_HAIRSTYLE_OPTIONS.find((o) => o.id === normalized) || FIONA_HAIRSTYLE_OPTIONS[0];
     }
 
+    /** Drop scarves / stacked outers so Vision never gets silly piled piece lists. */
+    function sanitizeOutfitPiecesClient(pieces) {
+      if (!Array.isArray(pieces)) return [];
+      const SILLY_ACCESSORY = /\b(scarf|shawls?|stoles?|pashmina|muffler|neck\s*wrap|infinity\s*scarf|fringed?\s*scarf)\b/i;
+      const OUTER_LAYER = /\b(cardigan|blazer|coat|jacket|kimono|shrug|overshirt|open\s*(shirt|layer)|button[- ]?down|plaid\s*shirt)\b/i;
+      const SHOE = /\b(shoe|heel|sneaker|boot|sandal|flat|loafer|mule|pump)\b/i;
+      const NON_CLOTHING = /\b(lipstick|lip\b|blush|makeup|earring|necklace|bracelet|jewelry|handbag|clutch|purse|bag)\b/i;
+      const DRESS = /\b(dress|gown|jumpsuit|romper|slip)\b/i;
+      const CORE = /\b(dress|gown|jumpsuit|romper|slip|top|pant|trouser|skirt|blouse|tee|tank|cami|jean|denim|short)\b/i;
+      const textOf = (p) => {
+        if (!p) return '';
+        if (typeof p === 'string') return p;
+        return [p.name, p.fabric, p.cue, p.colorLabel].filter(Boolean).join(' ');
+      };
+      const cores = [];
+      const outers = [];
+      const shoes = [];
+      for (const p of pieces) {
+        const text = textOf(p);
+        if (!String(text).trim()) continue;
+        if (SILLY_ACCESSORY.test(text)) continue;
+        if (SHOE.test(text)) {
+          shoes.push(p);
+          continue;
+        }
+        if (OUTER_LAYER.test(text)) {
+          outers.push(p);
+          continue;
+        }
+        if (NON_CLOTHING.test(text) && !CORE.test(text)) continue;
+        cores.push(p);
+      }
+      const dresses = cores.filter((p) => DRESS.test(textOf(p)));
+      if (dresses.length) return [dresses[0], ...shoes.slice(0, 1)];
+      const chosen = cores.slice(0, 2);
+      if (chosen.length < 2 && outers.length) chosen.push(outers[0]);
+      return [...chosen, ...shoes.slice(0, 1)].slice(0, 3);
+    }
+
     function buildCompositeGlamourLook() {
       const meta = window.lastGlamourLook || {};
       const wardrobe = getSelectedWardrobeOption() || {};
       const beauty = getSelectedBeautyOption() || {};
       const hairId = getSelectedHairStyleId();
+      const cleanPieces = sanitizeOutfitPiecesClient(wardrobe.pieces || []);
+      const cleanDesc = String(wardrobe.desc || '')
+        .replace(/\b(silk\s+)?scar(?:f|ves)\b/gi, '')
+        .replace(/\bshawls?\b/gi, '')
+        .replace(/\s{2,}/g, ' ')
+        .trim();
       return {
         title: wardrobe.title || 'Curated look',
-        desc: wardrobe.desc || '',
+        desc: cleanDesc,
         neckline: wardrobe.neckline || '',
-        pieces: wardrobe.pieces || [],
+        pieces: cleanPieces,
         palette: wardrobe.palette || [],
         hairMove: beauty.hairMove || null,
         facePalette: beauty.facePalette || null,

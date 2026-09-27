@@ -211,11 +211,55 @@ function hairDirectionForVision(look, hairStyleId) {
   ].join(' ');
 }
 
+/** Drop scarves / stacked outer layers so Vision never renders silly piled looks. */
+function pieceTextForSanitize(p) {
+  if (!p) return '';
+  if (typeof p === 'string') return p;
+  return [p.name, p.fabric, p.cue, p.colorLabel].filter(Boolean).join(' ');
+}
+
+function sanitizeOutfitPieces(pieces) {
+  if (!Array.isArray(pieces)) return [];
+  const SILLY_ACCESSORY = /\b(scarf|shawls?|stoles?|pashmina|muffler|neck\s*wrap|infinity\s*scarf|fringed?\s*scarf)\b/i;
+  const OUTER_LAYER = /\b(cardigan|blazer|coat|jacket|kimono|shrug|overshirt|open\s*(shirt|layer)|button[- ]?down|plaid\s*shirt)\b/i;
+  const SHOE = /\b(shoe|heel|sneaker|boot|sandal|flat|loafer|mule|pump)\b/i;
+  const NON_CLOTHING = /\b(lipstick|lip\b|blush|makeup|earring|necklace|bracelet|jewelry|handbag|clutch|purse|bag)\b/i;
+  const DRESS = /\b(dress|gown|jumpsuit|romper|slip)\b/i;
+  const CORE = /\b(dress|gown|jumpsuit|romper|slip|top|pant|trouser|skirt|blouse|tee|tank|cami|jean|denim|short)\b/i;
+
+  const cores = [];
+  const outers = [];
+  const shoes = [];
+  for (const p of pieces) {
+    const text = pieceTextForSanitize(p);
+    if (!String(text).trim()) continue;
+    if (SILLY_ACCESSORY.test(text)) continue;
+    if (SHOE.test(text)) {
+      shoes.push(p);
+      continue;
+    }
+    if (OUTER_LAYER.test(text)) {
+      outers.push(p);
+      continue;
+    }
+    if (NON_CLOTHING.test(text) && !CORE.test(text)) continue;
+    cores.push(p);
+  }
+
+  const dresses = cores.filter((p) => DRESS.test(pieceTextForSanitize(p)));
+  if (dresses.length) {
+    return [dresses[0], ...shoes.slice(0, 1)];
+  }
+  const chosen = cores.slice(0, 2);
+  if (chosen.length < 2 && outers.length) chosen.push(outers[0]);
+  return [...chosen, ...shoes.slice(0, 1)].slice(0, 3);
+}
+
 function buildEditorialPrompt(look, occasion, vibe, hairStyleId, extras) {
   extras = extras || {};
   const silhouette = extras.silhouette || look && look.silhouette || '';
   const harmony = extras.harmony || look && (look.harmony || look.undertone) || '';
-  const pieces = Array.isArray(look && look.pieces) ? look.pieces : [];
+  const pieces = sanitizeOutfitPieces(Array.isArray(look && look.pieces) ? look.pieces : []);
   const pieceLine = pieces
     .map((p) => {
       const color = p.colorLabel || p.hex || '';
@@ -268,8 +312,8 @@ function buildEditorialPrompt(look, occasion, vibe, hairStyleId, extras) {
       ? 'GARMENT LOCK (NON-NEGOTIABLE): Dress her in the EXACT garment from IMAGE 2 — same color, fabric, lace/embroidery/3D florals, length, silhouette, neckline, and straps (strapless stays strapless; no adding spaghetti straps, sleeves, or a different neckline). Do NOT redesign, recolor, restyle, or invent a different dress (no swapping to a black one-shoulder mini). Only fit THAT piece onto her body with realistic drape.'
       : 'Do NOT drown her in oversized blazers, scarf+cardigan stacks, shapeless dark midi tents, or matronly corporate armor. ONE polished hero outfit — hot-on-her and formality-matched to the event — never frumpy, piled, or silly.',
     exactGarment
-      ? 'Put her in her exact uploaded garment from IMAGE 2. Match that photo pixel-faithfully for design details. IGNORE any wardrobe option text that describes a different dress/color/neckline — the garment photo wins.'
-      : `Dress her in: ${pieceLine || (look && look.desc) || 'the recommended outfit'}. Fit garments to HER existing body with realistic fabric drape — not pasted on, not padded out, not tented.`,
+      ? 'Put her in her exact uploaded garment from IMAGE 2. Match that photo pixel-faithfully for design details. IGNORE any wardrobe option text that describes a different dress/color/neckline — the garment photo wins. Do NOT add scarves, open shirts, or extra cardigans on top of that garment.'
+      : `Dress her in ONLY: ${pieceLine || 'one polished occasion-right dress OR a clean top + bottom'}. Fit garments to HER existing body with realistic fabric drape — not pasted on, not padded out, not tented. Ignore scarf/shawl mentions in any description text.`,
     `Makeup for the look: ${lip} lipstick, ${cheek} blush — do not change facial structure or bone structure.`,
     occasion ? `EVENT / FUNCTION (dress the outfit for this): ${occasion}.` : '',
     vibe ? `Vibe / notes: ${vibe}.` : '',
@@ -282,15 +326,15 @@ function buildEditorialPrompt(look, occasion, vibe, hairStyleId, extras) {
     (look && (look.selectedBeautyId || look.beautyOptionId || look.beautyTitle))
       ? `USER PICK — Beauty Option ${look.selectedBeautyId || look.beautyOptionId || ''}: ${look.beautyTitle || ''}. Hair + makeup MUST match this beauty pick (and its hair up vs down), not the other option.`
       : '',
-    'CLEAN OUTFIT RULE (critical — avoid silly looks): ONE clear hero outfit only. At most 2 clothing pieces + optional shoes. Ban scarf+cardigan+open-shirt stacks, bulky neck scarves, 3+ layers, costume layering, or wearing a whole closet at once. Clothes must look naturally worn with realistic fabric drape — not pasted stickers.',
-    'FORMALITY MATCH: Outfit and background must match. No banquet/wedding venue with lounge layers, pajama cardigans, or piled scarves. If the occasion is elevated, use one polished dress or clean tailored set — not random closet layers.',
-    'If IMAGE 1 is underwear/bra/swimwear, dress her in a single flattering occasion-appropriate look (slip dress, wrap, tailored set) — celebrate her body; never bury her in matronly layers.',
+    'CLEAN OUTFIT RULE (critical — avoid silly looks): ONE clear hero outfit only. Prefer a single dress/jumpsuit OR top+bottom. Absolute max 2 clothing pieces + optional shoes. FORBIDDEN examples: bulky pink neck scarf + cardigan + open plaid shirt + tank; scarf+cardigan stacks; 3+ layers; costume layering; wearing a whole closet at once. No neck scarves, shawls, or stoles. Clothes must look naturally worn with realistic fabric drape — not pasted stickers.',
+    'FORMALITY MATCH: Outfit and background must match. No banquet/wedding/gala venue with lounge layers, pajama cardigans, open flannel, or piled scarves. If the occasion is elevated, use one polished dress or clean tailored set — not random closet layers.',
+    'If IMAGE 1 is underwear/bra/swimwear, dress her in a single flattering occasion-appropriate look (slip dress, wrap, tailored set) — celebrate her body; never bury her in matronly layers or scarf piles.',
     'Soft natural or event-appropriate background OK. Tasteful, non-sexual, photorealistic. No text overlays, no logos.',
     exactGarment
-      ? `FINAL CHECK: face + body match identity selfie; garment matches the uploaded clothing photo EXACTLY; hair LENGTH matches the identity selfie EXACTLY (short stays short — no longer waves); hair styling follows "${hairOption.label}" if selected without changing length; setting suits ${occasion || 'the event'}. If anything conflicts, prefer identity selfie for face/body/hair length and garment photo for the clothes.`
+      ? `FINAL CHECK: face + body match identity selfie; garment matches the uploaded clothing photo EXACTLY with NO extra scarf/layer pile on top; hair LENGTH matches the identity selfie EXACTLY (short stays short — no longer waves); hair styling follows "${hairOption.label}" if selected without changing length; setting suits ${occasion || 'the event'}. If anything conflicts, prefer identity selfie for face/body/hair length and garment photo for the clothes.`
       : (allowHairStyle
-      ? `FINAL CHECK: face matches reference; body proportions match reference; hair LENGTH matches reference EXACTLY (short stays short — NEVER grow longer); styling CLEARLY shows "${hairOption.label}" within that length; outfit flatters her real figure for ${occasion || 'the event'}. If anything conflicts, prefer the reference selfie for face + body + hair length.`
-      : `FINAL CHECK: face, hair, and body proportions match the reference (no added curves/thickness); outfit flatters her real figure for ${occasion || 'the event'}. If anything conflicts, prefer the reference selfie for identity.`)
+      ? `FINAL CHECK: face matches reference; body proportions match reference; hair LENGTH matches reference EXACTLY (short stays short — NEVER grow longer); styling CLEARLY shows "${hairOption.label}" within that length; outfit is a clean hero look (no scarf/layer piles) that flatters her real figure for ${occasion || 'the event'}. If anything conflicts, prefer the reference selfie for face + body + hair length.`
+      : `FINAL CHECK: face, hair, and body proportions match the reference (no added curves/thickness); outfit is a clean hero look (no scarf/layer piles) that flatters her real figure for ${occasion || 'the event'}. If anything conflicts, prefer the reference selfie for identity.`)
   ].filter(Boolean).join(' ');
 }
 
