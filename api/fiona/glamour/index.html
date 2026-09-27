@@ -5061,12 +5061,24 @@
           body: JSON.stringify(requestBody),
           signal: controller ? controller.signal : undefined
         });
-        const timeoutMs = 20000;
+        // Live Claude wardrobe calls often take 35–50s with photos — stay under Vercel 60s.
+        const timeoutMs = 55000;
         if (controller) {
           setTimeout(() => { try { controller.abort(); } catch (_) {} }, timeoutMs);
         }
         res = await withTimeout(fetchPromise, timeoutMs, 'Fiona style');
       } catch (networkErr) {
+        const aborted = networkErr && (
+          networkErr.name === 'AbortError'
+          || networkErr.code === 'timeout'
+          || /abort|timed out|timeout/i.test(String(networkErr.message || ''))
+        );
+        if (aborted) {
+          const err = new Error('Fiona style timed out');
+          err.code = 'timeout';
+          err.fionaToast = 'Fiona needed a bit longer on that Style call — showing your options so you are not stuck. Tap Style again if you want a fresh live pass.';
+          throw err;
+        }
         const formatted = formatGlamourApiError(null, null, networkErr);
         console.error('[Glamour Style] network failure', networkErr);
         const err = new Error(formatted.summary);
@@ -5209,6 +5221,45 @@
         const payload = await canvasImageToApiPayload(img, { maxDim, quality });
         if (payload && payload.data) {
           payload.role = img.kind === 'closet' ? 'closet' : (img.kind === 'person' ? 'identity' : 'reference');
+          out.push(payload);
+        }
+      }
+      return out;
+    }
+
+    /** Style API photos: identity selfie + selected dress only (max 3) so live Claude finishes before timeout. */
+    async function collectStyleApiImages() {
+      await ensureCanvasImagesClassified();
+      const identity = resolveCanvasSelfieForLook();
+      const garment = resolveGarmentRefForLook();
+      const picked = [];
+      const seen = new Set();
+      const push = (img, role) => {
+        if (!img || !img.url || seen.has(img.url)) return;
+        seen.add(img.url);
+        picked.push({ img, role });
+      };
+      push(identity, 'identity');
+      push(garment, 'closet');
+      // One extra person/reference if still empty / helpful — never dump all 6–10 canvases.
+      if (picked.length < 2) {
+        const extras = getCanvasImages('wardrobe').filter((img) => img && img.url && !seen.has(img.url));
+        for (const img of extras) {
+          push(img, img.kind === 'person' ? 'identity' : 'reference');
+          if (picked.length >= 2) break;
+        }
+      }
+      const out = [];
+      for (const { img, role } of picked.slice(0, 3)) {
+        const payload = await canvasImageToApiPayload(img, {
+          maxDim: role === 'identity' ? 1100 : 1000,
+          quality: 0.72,
+          softLimit: 280000,
+          hardMaxDim: 900,
+          hardQuality: 0.62
+        });
+        if (payload && payload.data) {
+          payload.role = role;
           out.push(payload);
         }
       }
@@ -6597,7 +6648,7 @@
 
       glamourStyleInFlight = (async () => {
       try {
-        const images = await withTimeout(collectGlamourApiImages(Math.min(MAX_CANVAS_PHOTOS, 6)), 12000, 'Photo prep');
+        const images = await withTimeout(collectStyleApiImages(), 12000, 'Photo prep');
         const inferFromPhotos = images.length > 0;
         const silhouetteHint = isAutoSilhouette(selectedWardrobeSilhouette)
           ? (inferFromPhotos ? 'Auto from photos' : 'Hourglass / Defined')
@@ -6726,7 +6777,7 @@
             getCanvasImages('wardrobe').length,
             'Offline draft —'
           );
-          showToast((err && err.fionaToast) || `Live styling unavailable (${err && err.message ? err.message : 'unknown error'}). Showing offline draft.`);
+          showToast((err && err.fionaToast) || `Live styling unavailable (${err && err.message ? err.message : 'unknown error'}). Your A/B picks below still work — Generate My Look is ready.`);
         } catch (e2) {
           console.error('[Glamour Style] recovery failed', e2);
           const wHost = document.getElementById('fiona-wardrobe-options');
