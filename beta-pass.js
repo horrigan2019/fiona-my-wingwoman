@@ -6,13 +6,13 @@
 (function (global) {
   /* One-time PWA wipe so Debra leaves the stuck "Building Option A and B…" shell. */
   try {
-    var SHELL = 'fiona-shell-v19';
+    var SHELL = 'fiona-shell-v20';
     if (global.localStorage && localStorage.getItem('fiona-shell-v') !== SHELL) {
       localStorage.setItem('fiona-shell-v', SHELL);
       var finish = function () {
         try {
           var u = new URL(global.location.href);
-          u.searchParams.set('fiona_shell', '19');
+          u.searchParams.set('fiona_shell', '20');
           u.searchParams.set('_', String(Date.now()));
           global.location.replace(u.toString());
         } catch (e) {
