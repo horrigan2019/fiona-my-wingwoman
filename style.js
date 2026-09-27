@@ -1425,7 +1425,7 @@ module.exports = async function handler(req, res) {
         },
         body: JSON.stringify({
           model,
-          max_tokens: 4500,
+          max_tokens: 2800,
           temperature,
           system: FIONA_STYLE_SYSTEM,
           messages: [
