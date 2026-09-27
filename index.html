@@ -5533,7 +5533,7 @@
       'tousled-texture': 'hair-down-soft',
       'subtle-volume': 'hair-down-soft'
     };
-    const FIONA_VISION_CACHE_PREFIX = 'fiona_vision_look_v18:';
+    const FIONA_VISION_CACHE_PREFIX = 'fiona_vision_look_v19:';
     let fionaVisionSideBySide = false;
     let fionaVisionGenerating = false;
     let fionaSelectedWardrobeId = 'A';
@@ -5927,7 +5927,7 @@
       const wardrobeId = (look && (look.selectedWardrobeId || look.wardrobeOptionId)) || fionaSelectedWardrobeId || 'A';
       const beautyId = (look && (look.selectedBeautyId || look.beautyOptionId)) || fionaSelectedBeautyId || 'A';
       return [
-        'idlock-v2',
+        'idlock-v3-hairlen',
         look && look.title || '',
         occasionLabel || '',
         vibe || '',
