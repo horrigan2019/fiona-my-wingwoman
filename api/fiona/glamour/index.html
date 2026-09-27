@@ -3665,16 +3665,20 @@
       return pool[pool.length - 1];
     }
 
-    /** Dress / outfit / closet shots — including a body-in-dress photo Debra tapped as her clothing choice. */
+    /** Single dress/outfit piece for try-on — NEVER a closet shelf/rack/pile (those invent silly layered looks). */
     function isGarmentCandidate(img, identityUrl) {
       if (!img || !img.url) return false;
       if (identityUrl && img.url === identityUrl) return false;
-      if (img.kind === 'closet') return true;
-      if (img.kind && img.kind !== 'person') return true;
-      // Person-classified but Debra manually selected it as the dress to try on.
-      if (moodboardHeroManual && moodboardHeroUrl && img.url === moodboardHeroUrl) return true;
+      // Closet shelves / hanging racks / piles are inventory only — not a Vision garment ref.
+      if (img.kind === 'closet') return false;
       const name = String(img.name || '').toLowerCase();
-      if (/dress|gown|garment|outfit|closet|product|flat.?lay|wedding|formal/.test(name)) return true;
+      if (/closet|wardrobe|shelf|hanger|rack|drawer|pile|hanging/.test(name)) return false;
+      if (img.kind && img.kind !== 'person') return true; // dress flat-lay / product shot
+      // Person-classified but Debra manually tapped it as the dress to try on (not the selfie).
+      if (moodboardHeroManual && moodboardHeroUrl && img.url === moodboardHeroUrl && img.kind !== 'closet') {
+        return true;
+      }
+      if (/dress|gown|garment|outfit|product|flat.?lay|wedding|formal|slip|jumpsuit/.test(name)) return true;
       return false;
     }
 
@@ -4542,13 +4546,13 @@
       },
       'Casual Comfort Chic': {
         title: 'Soft Street Royalty',
-        desc: 'Elevated knit set in dusty rose with a defined waist (soft belt or tuck), clean white sneakers, and a silk scarf at the neck for that quiet Fiona polish.',
+        desc: 'Elevated knit set in dusty rose with a defined waist (soft belt or tuck) and clean white sneakers — quiet Fiona polish without accessory piles.',
         quote: 'Casual does not mean careless, darling. Soft fabrics, sharp intention.',
-        neckline: 'crew / soft scarf frame',
+        neckline: 'crew / soft scoop',
         pieces: [
           { name: 'Knit top', fabric: 'Fine-gauge cotton knit', cue: 'Tuck or half-tuck so the waist reads' },
           { name: 'Matching pant', fabric: 'Relaxed stretch knit', cue: 'High rise to lengthen the leg line' },
-          { name: 'Silk scarf', fabric: 'Light silk twill', cue: 'Knot once at the collarbone for polish' }
+          { name: 'White sneakers', fabric: 'Clean leather', cue: 'Keep them crisp — one polish note is enough' }
         ]
       },
       'Power Meeting': {
@@ -5321,12 +5325,14 @@
         picked.push({ img, role });
       };
       push(identity, 'identity');
-      push(garment, 'closet');
-      // One extra person/reference if still empty / helpful — never dump all 6–10 canvases.
+      if (garment && garment.kind !== 'closet') push(garment, 'garment');
+      // Optional second clothing piece only — never closet racks (they make Style invent silly layer piles).
       if (picked.length < 2) {
-        const extras = getCanvasImages('wardrobe').filter((img) => img && img.url && !seen.has(img.url));
+        const extras = getCanvasImages('wardrobe').filter((img) =>
+          img && img.url && !seen.has(img.url) && isGarmentCandidate(img, identity && identity.url)
+        );
         for (const img of extras) {
-          push(img, img.kind === 'person' ? 'identity' : 'reference');
+          push(img, 'garment');
           if (picked.length >= 2) break;
         }
       }
@@ -5398,7 +5404,7 @@
       });
     }
 
-    /** Exact uploaded garment/clothing-choice photo for Vision — never redesign this piece. */
+    /** Exact uploaded garment photo for Vision — single piece only; never a closet rack. */
     function resolveGarmentRefForLook() {
       const images = getCanvasImages('wardrobe');
       if (!images.length) return null;
@@ -5407,16 +5413,16 @@
       // Manual Canvas thumb = the dress Debra wants tried on (even if classifier said "person").
       if (moodboardHeroUrl) {
         const hero = images.find((img) => img && img.url === moodboardHeroUrl);
-        if (hero && hero.url !== identityUrl && isGarmentCandidate(hero, identityUrl)) {
+        if (hero && hero.url !== identityUrl && hero.kind !== 'closet' && isGarmentCandidate(hero, identityUrl)) {
           return hero;
         }
-        if (moodboardHeroManual && hero && hero.url !== identityUrl) {
+        // Manual tap on a closet rack is inventory browsing — do NOT send it as the try-on garment.
+        if (moodboardHeroManual && hero && hero.url !== identityUrl && hero.kind !== 'closet') {
           return hero;
         }
       }
       const garments = images.filter((img) => isGarmentCandidate(img, identityUrl));
       if (!garments.length) return null;
-      // Prefer most recently added clothing choice
       return garments[garments.length - 1];
     }
 
@@ -5671,7 +5677,7 @@
       'tousled-texture': 'hair-down-soft',
       'subtle-volume': 'hair-down-soft'
     };
-    const FIONA_VISION_CACHE_PREFIX = 'fiona_vision_look_v20:';
+    const FIONA_VISION_CACHE_PREFIX = 'fiona_vision_look_v21:';
     let fionaVisionSideBySide = false;
     let fionaVisionGenerating = false;
     let fionaSelectedWardrobeId = 'A';
@@ -5774,9 +5780,17 @@
 
       wardrobeOptions = wardrobeOptions.map((opt, i) => {
         const raw = String(opt.id || '').trim().toUpperCase().replace(/^OPTION\s+/, '');
+        const pieces = sanitizeOutfitPiecesClient(opt.pieces || []);
+        const desc = String(opt.desc || '')
+          .replace(/\b(silk\s+)?scar(?:f|ves)\b/gi, '')
+          .replace(/\bshawls?\b/gi, '')
+          .replace(/\s{2,}/g, ' ')
+          .trim();
         return {
           ...opt,
-          id: raw === 'B' || (raw !== 'A' && i === 1) ? 'B' : 'A'
+          id: raw === 'B' || (raw !== 'A' && i === 1) ? 'B' : 'A',
+          pieces,
+          desc
         };
       });
       if (wardrobeOptions[0]) wardrobeOptions[0].id = 'A';
@@ -5855,16 +5869,61 @@
       return FIONA_HAIRSTYLE_OPTIONS.find((o) => o.id === normalized) || FIONA_HAIRSTYLE_OPTIONS[0];
     }
 
+    /** Drop scarves / stacked outers so Vision never gets silly piled piece lists. */
+    function sanitizeOutfitPiecesClient(pieces) {
+      if (!Array.isArray(pieces)) return [];
+      const SILLY_ACCESSORY = /\b(scarf|shawls?|stoles?|pashmina|muffler|neck\s*wrap|infinity\s*scarf|fringed?\s*scarf)\b/i;
+      const OUTER_LAYER = /\b(cardigan|blazer|coat|jacket|kimono|shrug|overshirt|open\s*(shirt|layer)|button[- ]?down|plaid\s*shirt)\b/i;
+      const SHOE = /\b(shoe|heel|sneaker|boot|sandal|flat|loafer|mule|pump)\b/i;
+      const NON_CLOTHING = /\b(lipstick|lip\b|blush|makeup|earring|necklace|bracelet|jewelry|handbag|clutch|purse|bag)\b/i;
+      const DRESS = /\b(dress|gown|jumpsuit|romper|slip)\b/i;
+      const CORE = /\b(dress|gown|jumpsuit|romper|slip|top|pant|trouser|skirt|blouse|tee|tank|cami|jean|denim|short)\b/i;
+      const textOf = (p) => {
+        if (!p) return '';
+        if (typeof p === 'string') return p;
+        return [p.name, p.fabric, p.cue, p.colorLabel].filter(Boolean).join(' ');
+      };
+      const cores = [];
+      const outers = [];
+      const shoes = [];
+      for (const p of pieces) {
+        const text = textOf(p);
+        if (!String(text).trim()) continue;
+        if (SILLY_ACCESSORY.test(text)) continue;
+        if (SHOE.test(text)) {
+          shoes.push(p);
+          continue;
+        }
+        if (OUTER_LAYER.test(text)) {
+          outers.push(p);
+          continue;
+        }
+        if (NON_CLOTHING.test(text) && !CORE.test(text)) continue;
+        cores.push(p);
+      }
+      const dresses = cores.filter((p) => DRESS.test(textOf(p)));
+      if (dresses.length) return [dresses[0], ...shoes.slice(0, 1)];
+      const chosen = cores.slice(0, 2);
+      if (chosen.length < 2 && outers.length) chosen.push(outers[0]);
+      return [...chosen, ...shoes.slice(0, 1)].slice(0, 3);
+    }
+
     function buildCompositeGlamourLook() {
       const meta = window.lastGlamourLook || {};
       const wardrobe = getSelectedWardrobeOption() || {};
       const beauty = getSelectedBeautyOption() || {};
       const hairId = getSelectedHairStyleId();
+      const cleanPieces = sanitizeOutfitPiecesClient(wardrobe.pieces || []);
+      const cleanDesc = String(wardrobe.desc || '')
+        .replace(/\b(silk\s+)?scar(?:f|ves)\b/gi, '')
+        .replace(/\bshawls?\b/gi, '')
+        .replace(/\s{2,}/g, ' ')
+        .trim();
       return {
         title: wardrobe.title || 'Curated look',
-        desc: wardrobe.desc || '',
+        desc: cleanDesc,
         neckline: wardrobe.neckline || '',
-        pieces: wardrobe.pieces || [],
+        pieces: cleanPieces,
         palette: wardrobe.palette || [],
         hairMove: beauty.hairMove || null,
         facePalette: beauty.facePalette || null,
@@ -6116,7 +6175,7 @@
       const wardrobeId = (look && (look.selectedWardrobeId || look.wardrobeOptionId)) || fionaSelectedWardrobeId || 'A';
       const beautyId = (look && (look.selectedBeautyId || look.beautyOptionId)) || fionaSelectedBeautyId || 'A';
       return [
-        'idlock-v4-picks',
+        'idlock-v5-cleanlook',
         look && look.title || '',
         occasionLabel || '',
         vibe || '',
