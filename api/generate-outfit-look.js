@@ -276,6 +276,12 @@ function buildEditorialPrompt(look, occasion, vibe, hairStyleId, extras) {
     silhouette ? `Body type to honor: ${silhouette}.` : '',
     harmony ? `Skin tone / color harmony to honor: ${harmony}.` : '',
     look && look.title ? `Look title: ${look.title}.` : '',
+    (look && (look.selectedWardrobeId || look.wardrobeOptionId))
+      ? `USER PICK — Wardrobe Option ${look.selectedWardrobeId || look.wardrobeOptionId}: follow THIS wardrobe option's styling story (accessories, layering, setting energy). If an exact garment photo is attached, keep that garment but still honor this option's vibe/setting/shoes vs the other option.`
+      : '',
+    (look && (look.selectedBeautyId || look.beautyOptionId || look.beautyTitle))
+      ? `USER PICK — Beauty Option ${look.selectedBeautyId || look.beautyOptionId || ''}: ${look.beautyTitle || ''}. Hair + makeup MUST match this beauty pick (and its hair up vs down), not the other option.`
+      : '',
     'Soft studio or wardrobe background is OK. Tasteful, non-sexual, photorealistic. No text overlays, no logos.',
     exactGarment
       ? `FINAL CHECK: face + body match identity selfie; garment matches the uploaded clothing photo EXACTLY; hair LENGTH matches the identity selfie EXACTLY (short stays short — no longer waves); hair styling follows "${hairOption.label}" if selected without changing length; setting suits ${occasion || 'the event'}. If anything conflicts, prefer identity selfie for face/body/hair length and garment photo for the clothes.`
