@@ -335,8 +335,8 @@ function buildEditorialPrompt(look, occasion, vibe, hairStyleId, extras) {
       : '',
     'CLEAN OUTFIT RULE (critical — avoid silly looks): ONE clear hero outfit only. Prefer a single dress/jumpsuit OR top+bottom. Absolute max 2 clothing pieces + optional shoes. FORBIDDEN examples: bulky pink neck scarf + cardigan + open plaid shirt + tank; scarf+cardigan stacks; 3+ layers; costume layering; wearing a whole closet at once. No neck scarves, shawls, or stoles. Clothes must look naturally worn with realistic fabric drape — not pasted stickers.',
     'FORMALITY MATCH: Outfit and background must match. No banquet/wedding/gala venue with lounge layers, pajama cardigans, open flannel, or piled scarves. If the occasion is elevated, use one polished dress or clean tailored set — not random closet layers.',
-    'If IMAGE 1 is underwear/bra/swimwear, dress her in a single flattering occasion-appropriate look (slip dress, wrap, tailored set) — celebrate her body; never bury her in matronly layers or scarf piles.',
-    'Soft natural or event-appropriate background OK. Tasteful, non-sexual, photorealistic. No text overlays, no logos.',
+    'OUTPUT MUST BE FULLY CLOTHED in a tasteful everyday or event-appropriate outfit. Replace whatever she is wearing now with that complete look. Celebrate her body; never bury her in matronly layers or scarf piles. Non-sexual, photorealistic fashion photo only.',
+    'Soft natural or event-appropriate background OK. Tasteful, non-sexual, photorealistic. No text overlays, no logos. No lingerie or partial undress in the output.',
     exactGarment
       ? `FINAL CHECK: face + body match identity selfie; garment matches the uploaded clothing photo EXACTLY with NO extra scarf/layer pile on top; hair LENGTH matches the identity selfie EXACTLY (short stays short — no longer waves); hair styling follows "${hairOption.label}" if selected without changing length; setting suits ${occasion || 'the event'}. If anything conflicts, prefer identity selfie for face/body/hair length and garment photo for the clothes.`
       : (allowHairStyle
@@ -479,11 +479,58 @@ async function generateWithFashn(apiKey, dataUrl, prompt) {
   };
 }
 
+function isSafetyRejection(err) {
+  const msg = String((err && err.message) || '');
+  const detail = JSON.stringify((err && err.detail) || {});
+  return /safety|moderation|rejected|not allowed|sensitive|policy/i.test(msg + ' ' + detail);
+}
+
+function withSafeVisionPrompt(prompt) {
+  const lead = 'TASTEFUL FASHION EDIT ONLY: Produce a fully clothed, non-sexual, photorealistic styling photo. Replace her current clothes with a complete everyday/event outfit. Keep her exact face, body, and hair length. No lingerie, no partial undress, no text overlays.\n\n';
+  return (lead + String(prompt || ''))
+    .replace(/\b(underwear|bra|lingerie|bralette|panties|nude|naked)\b/gi, 'current outfit')
+    .slice(0, 3200);
+}
+
+async function openaiEditOnce(apiKey, bytes, mediaType, prompt, garmentBytes, garmentType, model, fidelity, quality) {
+  const form = new FormData();
+  form.append('model', model);
+  form.append('prompt', String(prompt || '').slice(0, 3200));
+  form.append('size', process.env.OPENAI_IMAGE_SIZE || '1024x1536');
+  form.append('quality', quality);
+  if (model === 'gpt-image-1' || model === 'gpt-image-1.5' || model.startsWith('gpt-image-1')) {
+    form.append('input_fidelity', fidelity);
+  }
+  const imageField = garmentBytes ? 'image[]' : 'image';
+  form.append(imageField, new Blob([bytes], { type: mediaType || 'image/jpeg' }), 'identity-selfie.jpg');
+  if (garmentBytes) {
+    form.append('image[]', new Blob([garmentBytes], { type: garmentType || 'image/jpeg' }), 'garment-exact.jpg');
+  }
+  const res = await fetch('https://api.openai.com/v1/images/edits', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${apiKey}` },
+    body: form
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const err = new Error((json && json.error && json.error.message) || `OpenAI edits failed (${model})`);
+    err.status = res.status;
+    err.detail = json;
+    throw err;
+  }
+  const b64 = json.data && json.data[0] && (json.data[0].b64_json || json.data[0].b64);
+  if (!b64) throw Object.assign(new Error('OpenAI returned no image'), { detail: json });
+  return {
+    mimeType: 'image/png',
+    base64: b64,
+    provider: `openai:${model}:edit:fidelity-${fidelity}`
+  };
+}
+
 async function generateWithOpenAI(apiKey, photo, prompt, garmentPhoto) {
   const parsed = stripDataUrl(photo.data || photo);
   const bytes = Buffer.from(parsed.base64, 'base64');
   // Identity-preserving edits only — never fall back to text-to-image (invents a different woman).
-  // gpt-image-1.5 first: stronger identity / try-on preservation per OpenAI prompting guide.
   const modelsToTry = [
     process.env.OPENAI_IMAGE_MODEL || 'gpt-image-1.5',
     'gpt-image-1.5',
@@ -495,68 +542,52 @@ async function generateWithOpenAI(apiKey, photo, prompt, garmentPhoto) {
     : 'high';
   const quality = process.env.OPENAI_IMAGE_QUALITY || 'high';
 
+  let garmentBytes = null;
+  let garmentType = 'image/jpeg';
+  if (garmentPhoto) {
+    const gParsed = stripDataUrl(garmentPhoto.data || garmentPhoto);
+    if (gParsed && gParsed.base64) {
+      garmentBytes = Buffer.from(gParsed.base64, 'base64');
+      garmentType = gParsed.mediaType || 'image/jpeg';
+    }
+  }
+
   let lastErr = null;
+  const attempts = [
+    { prompt, garmentBytes, label: 'primary' },
+    // Safety / moderation often fires on lingerie selfies — retry clothed-safe + identity-only.
+    { prompt: withSafeVisionPrompt(prompt), garmentBytes: null, label: 'safe-identity' },
+    { prompt: withSafeVisionPrompt(prompt), garmentBytes, label: 'safe-with-garment' }
+  ];
+
   for (const model of modelsToTry) {
-    try {
-      const form = new FormData();
-      form.append('model', model);
-      form.append('prompt', prompt.slice(0, 3200));
-      form.append('size', process.env.OPENAI_IMAGE_SIZE || '1024x1536');
-      form.append('quality', quality);
-      // Critical for face/body likeness on gpt-image-1 / 1.5 (default is low).
-      if (model === 'gpt-image-1' || model === 'gpt-image-1.5' || model.startsWith('gpt-image-1')) {
-        form.append('input_fidelity', fidelity);
-      }
-      // Mask-free full-image edit — model must follow IDENTITY/HAIR/BODY locks in the prompt.
-      // OpenAI rejects duplicate "image" fields — use image[] when sending identity + garment.
-      let garmentBytes = null;
-      let garmentType = 'image/jpeg';
-      if (garmentPhoto) {
-        const gParsed = stripDataUrl(garmentPhoto.data || garmentPhoto);
-        if (gParsed && gParsed.base64) {
-          garmentBytes = Buffer.from(gParsed.base64, 'base64');
-          garmentType = gParsed.mediaType || 'image/jpeg';
+    for (const attempt of attempts) {
+      // Skip duplicate primary when no garment (second attempt identical).
+      if (attempt.label === 'safe-with-garment' && !attempt.garmentBytes) continue;
+      try {
+        const result = await openaiEditOnce(
+          apiKey,
+          bytes,
+          parsed.mediaType || 'image/jpeg',
+          attempt.prompt,
+          attempt.garmentBytes,
+          garmentType,
+          model,
+          fidelity,
+          quality
+        );
+        if (attempt.label !== 'primary') {
+          result.provider = `${result.provider}:${attempt.label}`;
+        }
+        return result;
+      } catch (e) {
+        lastErr = e;
+        console.error('[generate-outfit-look] OpenAI edit failed', model, attempt.label, e && e.message);
+        // On non-safety errors for primary, still try safe path once; keep looping.
+        if (attempt.label === 'primary' && !isSafetyRejection(e)) {
+          // continue to safe retries anyway — they often recover timeouts too
         }
       }
-      const imageField = garmentBytes ? 'image[]' : 'image';
-      form.append(
-        imageField,
-        new Blob([bytes], { type: parsed.mediaType || 'image/jpeg' }),
-        'identity-selfie.jpg'
-      );
-      if (garmentBytes) {
-        form.append(
-          'image[]',
-          new Blob([garmentBytes], { type: garmentType }),
-          'garment-exact.jpg'
-        );
-      }
-
-      const res = await fetch('https://api.openai.com/v1/images/edits', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${apiKey}` },
-        body: form
-      });
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        lastErr = new Error((json && json.error && json.error.message) || `OpenAI edits failed (${model})`);
-        lastErr.status = res.status;
-        lastErr.detail = json;
-        console.error('[generate-outfit-look] OpenAI edit failed', model, lastErr.message);
-        continue;
-      }
-      const b64 = json.data && json.data[0] && (json.data[0].b64_json || json.data[0].b64);
-      if (!b64) {
-        lastErr = Object.assign(new Error('OpenAI returned no image'), { detail: json });
-        continue;
-      }
-      return {
-        mimeType: 'image/png',
-        base64: b64,
-        provider: `openai:${model}:edit:fidelity-${fidelity}`
-      };
-    } catch (e) {
-      lastErr = e;
     }
   }
 
@@ -724,17 +755,22 @@ module.exports = async function handler(req, res) {
 
     if (!result) {
       const detailMsg = typeof (lastErr && lastErr.message) === 'string' ? lastErr.message : '';
-      const billingHint = /billing|quota|credit|payment|limit/i.test(detailMsg + JSON.stringify((lastErr && lastErr.detail) || {}));
+      const detailBlob = detailMsg + JSON.stringify((lastErr && lastErr.detail) || {});
+      const billingHint = /billing|quota|credit|payment|limit/i.test(detailBlob);
+      const safetyHint = /safety|moderation|rejected|not allowed|sensitive|policy/i.test(detailBlob);
       res.statusCode = (lastErr && lastErr.status) || 502;
       res.setHeader('Content-Type', 'application/json');
       return res.end(JSON.stringify({
         error: 'Could not generate outfit look',
+        code: safetyHint ? 'safety_rejected' : (billingHint ? 'billing' : 'vision_failed'),
         detail: lastErr && (lastErr.detail || lastErr.message),
         fionaMessage: billingHint
           ? "OpenAI needs billing credit for image generation — add a little credit at platform.openai.com, then try Generate My Look again."
-          : (detailMsg
-            ? `Fiona couldn't finish the Vision look (${detailMsg}). Check OPENAI_API_KEY / billing, then try again.`
-            : "That look got stuck in the dressing room, darling. Try again in a moment — your text recommendation is still perfect.")
+          : (safetyHint
+            ? "Fiona's image studio got shy about that photo — try Generate again, or use a fully clothed photo / a clear shirt or dress shot. Your Style picks below are still solid."
+            : (detailMsg
+              ? `Fiona couldn't finish the Vision look (${detailMsg}). Tap Generate My Look once more — she often lands it on retry.`
+              : "That look got stuck in the dressing room, darling. Tap Generate My Look again — your Style picks are still perfect."))
       }));
     }
 

@@ -1172,6 +1172,37 @@
             Style My Full Look, Fiona ✨
           </button>
 
+          <!-- Honest fit-check: photo in → Fiona answers "how does this look?" -->
+          <div class="p-4 sm:p-5 rounded-2xl border border-spa-plum/25 dark:border-purple-800 bg-white/70 dark:bg-spa-darkcard/50 space-y-3">
+            <div class="space-y-1">
+              <p class="text-[10px] font-bold uppercase tracking-[0.16em] text-spa-plum dark:text-pink-300">Honest wingwoman check</p>
+              <h4 class="font-serif text-lg font-bold text-gray-900 dark:text-white">How does this look?</h4>
+              <p class="text-[12px] text-gray-600 dark:text-gray-300 leading-relaxed">Upload or take a photo of an outfit (or use what’s already on Your Canvas). Fiona gives an honest, kind read — what works, what to tweak, never mean.</p>
+            </div>
+            <label for="fitcheck-note" class="sr-only">Optional note for fit-check</label>
+            <input id="fitcheck-note" type="text" placeholder="Optional note — e.g. desk today, date night, not sure about the shoes…" class="w-full p-2.5 rounded-xl border border-pink-100 dark:border-purple-900/60 bg-spa-cream/40 dark:bg-spa-darkbg/40 focus:outline-none focus:ring-2 focus:ring-purple-300 text-sm">
+            <div class="flex flex-wrap items-center gap-2">
+              <button type="button" id="fitcheck-btn" onclick="runHowDoesThisLook()" class="px-5 py-2.5 rounded-xl bg-pink-100 dark:bg-purple-900/50 text-spa-plum dark:text-pink-200 text-xs font-bold hover:bg-pink-200 transition active:scale-95">
+                How does this look? ✨
+              </button>
+              <button type="button" onclick="startSelfieCamera('wardrobe')" class="px-3 py-2.5 rounded-xl border border-spa-plum/25 text-spa-plum dark:text-pink-200 text-xs font-semibold hover:bg-spa-blush/40 transition">
+                Take a Photo
+              </button>
+              <button type="button" onclick="triggerPhotoUpload('wardrobe')" class="px-3 py-2.5 rounded-xl border border-spa-plum/25 text-spa-plum dark:text-pink-200 text-xs font-semibold hover:bg-spa-blush/40 transition">
+                Upload Photo
+              </button>
+            </div>
+            <div id="fitcheck-result" class="hidden space-y-2 rounded-xl border border-spa-plum/20 dark:border-purple-800 bg-spa-cream/50 dark:bg-spa-darkbg/40 px-3.5 py-3">
+              <p id="fitcheck-verdict" class="font-serif text-base font-bold text-spa-plumdark dark:text-pink-100"></p>
+              <p id="fitcheck-works" class="text-[13px] text-gray-700 dark:text-gray-200 leading-relaxed"></p>
+              <p id="fitcheck-tweak" class="text-[13px] text-gray-700 dark:text-gray-200 leading-relaxed"></p>
+              <p id="fitcheck-alternate" class="text-[13px] text-gray-700 dark:text-gray-200 leading-relaxed"></p>
+              <p id="fitcheck-compliment" class="text-[12px] font-medium text-spa-plum dark:text-pink-200"></p>
+              <p id="fitcheck-quip" class="text-[12px] italic text-gray-600 dark:text-gray-300"></p>
+            </div>
+            <p id="fitcheck-error" class="hidden text-[11px] font-medium text-rose-700 dark:text-rose-300"></p>
+          </div>
+
           <!-- Glamour Recommendation Card — editorial luxury moodboard -->
           <div id="wardrobe-recommendation-box" class="hidden p-5 sm:p-6 rounded-2xl bg-spa-cream dark:bg-spa-darkcard border border-spa-plum/25 dark:border-purple-800 space-y-5 shadow-sm">
             <div class="flex flex-wrap items-end justify-between gap-2 border-b border-spa-plum/15 dark:border-purple-900/60 pb-3">
@@ -6484,20 +6515,49 @@
       };
 
       try {
-        let payload = null;
-        let res = null;
-        for (const url of ['/api/generate-outfit-look', GLAMOUR_STYLE_API]) {
-          const requestBody = url === GLAMOUR_STYLE_API
-            ? { mode: 'look', generateLook: true, ...body }
-            : body;
-          res = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(requestBody)
-          });
-          payload = await res.json().catch(() => ({}));
-          if (res.ok && payload.image && payload.image.dataUrl) break;
-          if (res.status !== 404) break;
+        const requestVision = async (reqBody) => {
+          let payload = null;
+          let res = null;
+          // Try both Vision endpoints — do not stop on the first 502/safety miss.
+          for (const url of ['/api/generate-outfit-look', GLAMOUR_STYLE_API]) {
+            try {
+              const requestBody = url === GLAMOUR_STYLE_API
+                ? { mode: 'look', generateLook: true, ...reqBody }
+                : reqBody;
+              const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+              const timer = controller ? setTimeout(() => controller.abort(), 90000) : null;
+              res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(requestBody),
+                signal: controller ? controller.signal : undefined
+              });
+              if (timer) clearTimeout(timer);
+              payload = await res.json().catch(() => ({}));
+              if (res.ok && payload.image && payload.image.dataUrl) return { res, payload };
+            } catch (e) {
+              console.warn('[Glamour Vision] endpoint failed', url, e && e.message ? e.message : e);
+            }
+          }
+          return { res, payload: payload || {} };
+        };
+
+        let { res, payload } = await requestVision(body);
+
+        // Auto-retry once without garment if safety/moderation blocked the first pass.
+        const failBlob = JSON.stringify(payload || {});
+        const safetyFail = /safety|moderation|rejected|shy about that photo/i.test(failBlob + String(payload.fionaMessage || ''));
+        if ((!res || !res.ok || !payload.image || !payload.image.dataUrl) && (safetyFail || body.garment)) {
+          setFionaVisionLoading(true, `Wardrobe ${wardrobeOptionId} + Beauty ${beautyOptionId}: retrying a softer Vision pass…`);
+          const retryBody = {
+            ...body,
+            garment: undefined,
+            exactGarment: false,
+            images: [photoPayload],
+            look: { ...body.look, exactGarment: false, fromUploads: false },
+            safeRetry: true
+          };
+          ({ res, payload } = await requestVision(retryBody));
         }
 
         if (!res || !res.ok || !payload.image || !payload.image.dataUrl) {
@@ -6505,9 +6565,9 @@
             || payload.hint
             || (payload.error && payload.detail && payload.detail.error && payload.detail.error.message)
             || payload.error
-            || "That look got stuck in the dressing room, darling. Try again in a moment.";
-          setFionaVisionError(msg);
-          showToast(msg);
+            || "That look got stuck in the dressing room, darling. Tap Generate My Look again — your Style picks are still perfect.";
+          setFionaVisionError(typeof msg === 'string' ? msg : "That look got stuck in the dressing room, darling. Tap Generate again.");
+          showToast(typeof msg === 'string' ? msg : 'Vision snag — tap Generate again.');
           return;
         }
 
@@ -6519,13 +6579,110 @@
         showToast("Fiona's Vision is ready ✨");
       } catch (err) {
         console.error('[Fiona Vision]', err);
-        const msg = "Fiona hit a tiny wardrobe snag. Refresh and try Generate My Look again.";
+        const msg = "Fiona hit a tiny wardrobe snag. Tap Generate My Look again — she often lands it on the second try.";
         setFionaVisionError(msg);
         showToast(msg);
       } finally {
         setFionaVisionLoading(false);
       }
     }
+
+    async function runHowDoesThisLook() {
+      const errEl = document.getElementById('fitcheck-error');
+      const resultEl = document.getElementById('fitcheck-result');
+      const btn = document.getElementById('fitcheck-btn');
+      if (errEl) {
+        errEl.classList.add('hidden');
+        errEl.textContent = '';
+      }
+      const note = ((document.getElementById('fitcheck-note') || {}).value || '').trim()
+        || ((document.getElementById('wardrobe-vibe') || {}).value || '').trim();
+      let photoPayload = null;
+      try {
+        photoPayload = await collectCanvasSelfieForLook();
+      } catch (_) {}
+      if (!photoPayload || !photoPayload.data) {
+        const msg = 'Upload or take a photo first — Fiona needs the look to review.';
+        if (errEl) {
+          errEl.textContent = msg;
+          errEl.classList.remove('hidden');
+        }
+        showToast(msg);
+        return;
+      }
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Fiona is looking…';
+      }
+      if (resultEl) resultEl.classList.add('hidden');
+      try {
+        const body = {
+          mode: 'fitcheck',
+          fitCheck: true,
+          howDoesThisLook: true,
+          photo: photoPayload,
+          note,
+          occasion: (typeof selectedOccasion !== 'undefined' && selectedOccasion) || '',
+          vibe: note
+        };
+        let payload = null;
+        let res = null;
+        for (const url of [GLAMOUR_STYLE_API, '/api/fiona/glamour/style', '/api/style']) {
+          try {
+            res = await fetch(url, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(body)
+            });
+            payload = await res.json().catch(() => ({}));
+            if (res.ok && (payload.verdict || payload.whatWorks || payload.compliment)) break;
+          } catch (_) {}
+        }
+        if (!res || !res.ok || !(payload && (payload.verdict || payload.whatWorks || payload.compliment))) {
+          const msg = (payload && payload.fionaMessage)
+            || (payload && payload.error)
+            || "Fiona couldn't finish the fit-check — try again in a moment.";
+          if (errEl) {
+            errEl.textContent = typeof msg === 'string' ? msg : 'Fit-check snag — try again.';
+            errEl.classList.remove('hidden');
+          }
+          showToast(typeof msg === 'string' ? msg : 'Fit-check snag — try again.');
+          return;
+        }
+        const setTxt = (id, prefix, value) => {
+          const el = document.getElementById(id);
+          if (!el) return;
+          const v = String(value || '').trim();
+          el.textContent = v ? (prefix ? `${prefix}${v}` : v) : '';
+          el.classList.toggle('hidden', !v);
+        };
+        setTxt('fitcheck-verdict', '', payload.verdict || 'Honest read');
+        setTxt('fitcheck-works', 'What works: ', payload.whatWorks);
+        setTxt('fitcheck-tweak', 'Tweak: ', payload.tweak);
+        setTxt('fitcheck-alternate', 'Try instead: ', payload.alternate);
+        setTxt('fitcheck-compliment', '', payload.compliment);
+        setTxt('fitcheck-quip', '', payload.wingwomanQuip || payload.quip);
+        if (resultEl) {
+          resultEl.classList.remove('hidden');
+          try { resultEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch (_) {}
+        }
+        showToast('Honest fit-check ready ✨');
+      } catch (err) {
+        console.error('[FitCheck]', err);
+        const msg = "Fiona couldn't finish the fit-check — try again in a moment.";
+        if (errEl) {
+          errEl.textContent = msg;
+          errEl.classList.remove('hidden');
+        }
+        showToast(msg);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'How does this look? ✨';
+        }
+      }
+    }
+    try { window.runHowDoesThisLook = runHowDoesThisLook; } catch (_) {}
 
     // Back-compat aliases used by older generateWardrobeAdvice path
     function resetAiLookPanel(statusText) {

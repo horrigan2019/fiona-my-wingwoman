@@ -338,6 +338,105 @@ async function callAnthropicJson({ apiKey, system, userContent, maxTokens = 1200
   return { data: extractJson(text), model: usedModel, raw: text };
 }
 
+const FIONA_FITCHECK_SYSTEM = `You are Fiona, an impeccably dressed, emotionally untouchable wingwoman.
+Warm, grounded, stylishly witty — never a generic corporate life coach and NEVER cruel.
+
+HONEST FIT-CHECK RULES (NON-NEGOTIABLE):
+- The user asked "How does this look?" about an uploaded photo. Answer THAT look.
+- Be honest and kind. Name what works first. If something is off (fit, color, occasion mismatch, proportion), say so gently with a concrete tweak or alternate outfit idea.
+- NEVER insult, shame, or degrade her body, face, age, hair, or taste. No "frumpy on you," no body-shaming, no mean girl energy.
+- If the look is great, say so clearly and specifically. If it needs work, frame it as "here's how we elevate this" — still encouraging.
+- Ground comments in what you SEE (color, neckline, fit, shoes, setting) and any note she typed.
+- Return ONLY valid JSON. No markdown fences.
+
+JSON shape:
+{
+  "verdict": "short honest headline (e.g. Strong desk polish / Almost — one tweak)",
+  "whatWorks": "2-3 sentences on what is working, specific and kind",
+  "tweak": "1-3 sentences on what to adjust if needed (or say 'Nothing major — wear it with confidence' if it's already working)",
+  "alternate": "One alternate outfit idea she could try, concrete and wearable",
+  "compliment": "One sincere compliment grounded in the photo",
+  "wingwomanQuip": "One punchy Fiona line that still feels honest"
+}`;
+
+async function handleFitCheck(req, res, body) {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    res.statusCode = 503;
+    res.setHeader('Content-Type', 'application/json');
+    return res.end(JSON.stringify({
+      error: 'ANTHROPIC_API_KEY is not configured',
+      code: 'missing_api_key',
+      fionaMessage: "Fiona's fit-check isn't plugged in yet — add ANTHROPIC_API_KEY in Vercel."
+    }));
+  }
+
+  const photo = body.photo || (Array.isArray(body.images) && body.images[0]) || null;
+  if (!photo || !(photo.data || typeof photo === 'string')) {
+    res.statusCode = 400;
+    res.setHeader('Content-Type', 'application/json');
+    return res.end(JSON.stringify({
+      error: 'A photo is required',
+      code: 'missing_photo',
+      fionaMessage: 'Upload or take a photo of the look first, gorgeous.'
+    }));
+  }
+
+  const note = String(body.note || body.vibe || body.userQuestion || '').trim();
+  const occasion = String(body.occasion || '').trim();
+  const mediaType = (typeof photo === 'object' && (photo.mediaType || photo.media_type)) || 'image/jpeg';
+  const data = String(typeof photo === 'string' ? photo : photo.data).replace(/^data:[^;]+;base64,/, '');
+
+  const content = [
+    {
+      type: 'image',
+      source: { type: 'base64', media_type: mediaType, data }
+    },
+    {
+      type: 'text',
+      text: `How does this look? Give an honest, kind fit-check on the outfit/person in this photo.
+
+Occasion context: ${occasion || '(not specified)'}
+Her note: ${note || '(none — just read the photo)'}
+
+Return the JSON shape from your instructions.`
+    }
+  ];
+
+  try {
+    const { data: json, model } = await callAnthropicJson({
+      apiKey,
+      system: FIONA_FITCHECK_SYSTEM,
+      userContent: content,
+      maxTokens: 900,
+      temperature: 0.55
+    });
+    const out = json && typeof json === 'object' ? json : {};
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'application/json');
+    return res.end(JSON.stringify({
+      ok: true,
+      mode: 'fitcheck',
+      model,
+      verdict: out.verdict || 'Honest read',
+      whatWorks: out.whatWorks || out.compliment || '',
+      tweak: out.tweak || '',
+      alternate: out.alternate || '',
+      compliment: out.compliment || '',
+      wingwomanQuip: out.wingwomanQuip || out.quip || ''
+    }));
+  } catch (err) {
+    console.error('[fiona/glamour/style] fitcheck failure', err);
+    res.statusCode = (err && err.status) || 502;
+    res.setHeader('Content-Type', 'application/json');
+    return res.end(JSON.stringify({
+      error: 'Fit-check failed',
+      detail: err && (err.detail || err.message),
+      fionaMessage: "Fiona couldn't finish the fit-check — try again in a moment."
+    }));
+  }
+}
+
 async function handleJournalReflect(req, res, body) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
@@ -706,10 +805,23 @@ async function handleLookPhoto(req, res, body) {
   const primary = body.photo && (body.photo.data || typeof body.photo === 'string')
     ? (typeof body.photo === 'string' ? { data: body.photo } : body.photo)
     : null;
+  const garment = body.garment && (body.garment.data || typeof body.garment === 'string')
+    ? (typeof body.garment === 'string' ? { data: body.garment } : body.garment)
+    : null;
   const fromImages = Array.isArray(body.images)
     ? body.images.filter((img) => img && img.data)
     : [];
-  const images = (primary ? [primary, ...fromImages] : fromImages).slice(0, 1);
+  // Identity first, optional exact garment second — never drop the garment on this fallback path.
+  let images = [];
+  if (primary) images.push(primary);
+  for (const img of fromImages) {
+    if (!images.some((x) => x && x.data === img.data)) images.push(img);
+  }
+  if (garment && !images.some((x) => x && x.data === garment.data)) {
+    if (images.length) images = [images[0], garment];
+    else images = [garment];
+  }
+  images = images.slice(0, 2);
   if (!images.length) {
     res.statusCode = 400;
     res.setHeader('Content-Type', 'application/json');
@@ -722,7 +834,8 @@ async function handleLookPhoto(req, res, body) {
 
   const look = body.look || {};
   const hairStyleId = body.hairStyleId || body.hairstyleId || (look && look.hairStyleId) || 'keep-mine';
-  const prompt = buildLookImagePrompt(look, body.occasion, body.vibe, hairStyleId);
+  let prompt = buildLookImagePrompt(look, body.occasion, body.vibe, hairStyleId);
+  prompt += '\nOUTPUT MUST BE FULLY CLOTHED — tasteful, non-sexual fashion photo. No lingerie in the result.';
   const hasOpenAI = Boolean(process.env.OPENAI_API_KEY);
   const hasGemini = Boolean(process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY);
   if (!hasOpenAI && !hasGemini) {
@@ -731,7 +844,8 @@ async function handleLookPhoto(req, res, body) {
     return res.end(JSON.stringify({
       error: 'Look photo generation is not configured',
       code: 'missing_image_api_key',
-      hint: 'Add OPENAI_API_KEY (preferred) or GEMINI_API_KEY in Vercel, then redeploy.'
+      hint: 'Add OPENAI_API_KEY (preferred) or GEMINI_API_KEY in Vercel, then redeploy.',
+      fionaMessage: "Fiona's Vision isn't plugged in yet — add an image key in Vercel and she'll dress you in a blink."
     }));
   }
 
@@ -740,17 +854,31 @@ async function handleLookPhoto(req, res, body) {
     let lastErr = null;
     const preferGemini = String(process.env.VISION_PREFER_GEMINI || '').toLowerCase() === '1'
       || String(process.env.VISION_PREFER_GEMINI || '').toLowerCase() === 'true';
-    const tryOpenAI = async () => { try { return await generateLookWithOpenAI(images, prompt); } catch (e) { lastErr = e; return null; } };
-    const tryGemini = async () => { try { return await generateLookWithGemini(images, prompt); } catch (e) { lastErr = e; return null; } };
-    if (preferGemini && hasGemini) result = await tryGemini();
-    if (!result && hasOpenAI) result = await tryOpenAI();
-    if (!result && hasGemini) result = await tryGemini();
+    const tryOpenAI = async (imgs, p) => { try { return await generateLookWithOpenAI(imgs, p); } catch (e) { lastErr = e; return null; } };
+    const tryGemini = async (imgs, p) => { try { return await generateLookWithGemini(imgs, p); } catch (e) { lastErr = e; return null; } };
+    if (preferGemini && hasGemini) result = await tryGemini(images, prompt);
+    if (!result && hasOpenAI) result = await tryOpenAI(images, prompt);
+    // Safety recovery: identity-only + softer prompt.
+    if (!result && hasOpenAI && images.length > 1) {
+      const safePrompt = ('TASTEFUL FASHION EDIT ONLY. Fully clothed output. Keep her exact face, body, and hair length.\n\n' + prompt)
+        .replace(/\b(underwear|bra|lingerie|bralette|panties)\b/gi, 'current outfit');
+      result = await tryOpenAI([images[0]], safePrompt);
+    }
+    if (!result && hasGemini) result = await tryGemini([images[0]], prompt);
     if (!result) {
+      const detailMsg = String((lastErr && lastErr.message) || '');
+      const safetyHint = /safety|moderation|rejected|not allowed|sensitive|policy/i.test(detailMsg + JSON.stringify((lastErr && lastErr.detail) || {}));
       res.statusCode = (lastErr && lastErr.status) || 502;
       res.setHeader('Content-Type', 'application/json');
       return res.end(JSON.stringify({
         error: 'Could not generate look photo',
-        detail: (lastErr && (lastErr.detail || lastErr.message)) || 'empty image response'
+        code: safetyHint ? 'safety_rejected' : 'vision_failed',
+        detail: (lastErr && (lastErr.detail || lastErr.message)) || 'empty image response',
+        fionaMessage: safetyHint
+          ? "Fiona's image studio got shy about that photo — tap Generate again, or try a fully clothed photo. Your Style picks are still solid."
+          : (detailMsg
+            ? `Fiona couldn't finish the Vision look (${detailMsg}). Tap Generate My Look once more.`
+            : "That look got stuck in the dressing room, darling. Tap Generate My Look again.")
       }));
     }
     res.statusCode = 200;
@@ -772,7 +900,8 @@ async function handleLookPhoto(req, res, body) {
     res.setHeader('Content-Type', 'application/json');
     return res.end(JSON.stringify({
       error: 'Look photo generation failed',
-      detail: err && err.message ? err.message : String(err)
+      detail: err && err.message ? err.message : String(err),
+      fionaMessage: "Fiona hit a tiny wardrobe snag. Tap Generate My Look again."
     }));
   }
 }
@@ -1461,6 +1590,11 @@ module.exports = async function handler(req, res) {
   // Journal reflection path
   if (body && (body.journalEntry || body.mode === 'reflect')) {
     return handleJournalReflect(req, res, body);
+  }
+
+  // Honest "How does this look?" fit-check
+  if (body && (body.mode === 'fitcheck' || body.fitCheck === true || body.howDoesThisLook === true)) {
+    return handleFitCheck(req, res, body);
   }
 
   // AI look photo of the user in the recommended glam
