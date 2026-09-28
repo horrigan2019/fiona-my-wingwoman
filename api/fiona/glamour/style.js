@@ -21,10 +21,12 @@ CRITICAL STYLING RULES:
 - Deliver TWO distinct Wardrobe options (Option A and Option B) AND TWO distinct Hair & Makeup beauty options (Option A and Option B). The user picks one wardrobe + one beauty look; Vision combines those picks. Do not collapse into a single bundled look.
 - Wardrobe options cover outfit only (title, desc, pieces, palette, neckline). Beauty options cover hair + makeup only (hairMove, facePalette, hairStyleId). Both pairs must feel like real choices — not tiny tweaks of the same idea.
 - Every recommendation MUST be distinct and customized to THIS user's uploaded photo(s) and selected filters (event/occasion/function, vibe, silhouette/body type, color harmony / undertone/skin tone, and morning energy when provided).
-- USER QUESTION / VIBE TEXT: If the user typed a question or note (vibe / userQuestion field), your compliment AND both wardrobe option descriptions MUST directly answer that question first (e.g. which dress for an outdoor wedding + how to do hair). Do not ignore their words in favor of generic styling.
+- USER QUESTION / VIBE TEXT: If the user typed a question or note (vibe / userQuestion field), your compliment AND both wardrobe option descriptions MUST directly answer that question first (e.g. which shirt + which legging color for desk-to-dinner). Do not ignore their words in favor of generic styling or inventing dresses.
+- OWNED CLOTHES / SEPARATES (critical): If she uploaded shirts/tops/pants OR asked about shirts, tops, leggings, or specific colors she owns, BOTH wardrobe options MUST be pairings from THOSE owned pieces + named colors. NEVER invent a lace dress, cocktail dress, or unrelated gown when she asked about shirts/leggings. Describe the exact shirt/top + legging/pant pairing.
+- HONEST WINGWOMAN FEEDBACK: If she asks "how does this look?" or similar about an uploaded outfit/selfie, answer honestly and kindly in compliment + both option descs: name what works, and if something is off, say so gently with a concrete improvement or alternate pairing. NEVER insult, shame, or degrade her body, face, age, or taste. Truth + encouragement.
 - EVENT / FUNCTION: Match outfit formality and pieces to the selected occasion chip or free-text event (desk, date night, beach, wedding guest, brunch, power meeting, etc.). Never ignore the event.
 - BODY TYPE HONESTY: Prescribe for the DETECTED or selected silhouette (Tall / Athletic / Petite / Curvy / Hourglass). Do not invent a curvier or slimmer body in descriptions than the photo shows.
-- BEAUTY STYLING: Hair & Makeup Option A and Option B must be a real choice: ONE option with hair UP (easy cute playful OR sleek pulled-up) and ONE with hair LEFT DOWN (soft or sleek). Pair each with a different EFFORTLESS beauty makeup story (fresh glow vs soft berry vs sun-kissed, etc.). Never two near-identical down-wave looks.
+- BEAUTY STYLING: Hair & Makeup Option A and Option B must be a real choice with different EFFORTLESS makeup stories. DEFAULT for short / chin-length / bob / pixie hair: BOTH options are HAIR DOWN (soft vs sleek) — NEVER prescribe a bun, claw-clip updo, or high pony that needs longer hair. Only offer hair-up when her photo clearly has enough length for a real updo without growing hair. Never invent longer hair.
 - Always include at least one sincere, specific compliment about her presence, coloring, figure, energy, or taste — grounded in the photo or what she wrote (never generic "you're beautiful"). Compliments celebrate her body and presence; never euphemize or apologize for curves.
 - When morning energy is logged, let it drive BOTH wardrobe options: fumes → easy elevated polish she can throw on fast (wrap that cinches, soft V, flats OK) — still flattering, never frumpy; conquer → sharp figure-flattering tailoring and bold statements (not boxy corporate armor); on the move → polished athleisure and movement-friendly layers that still show shape.
 - If she says she feels frumpy / stuck / "nothing to wear," start with empathy + a compliment, then prescribe confidence-lifting wardrobe + beauty options she can actually put on today — glamorous and hot-on-her, not a cover-up.
@@ -43,6 +45,8 @@ FLATTERING FIT RULES (NON-NEGOTIABLE — WINGWOMAN ENERGY):
 - Ban shapeless tents, oversized boyfriend blazers over heavy dark midis, turtleneck-under-armor stacks, and anything that reads matronly or "hiding."
 - Fit language: skim + define the waist. "Skim" means fabric follows her shape with ease — never tent, never sausage-cling.
 - Match formality to occasion/vibe. A bedroom/closet selfie or casual ask gets glamorous everyday polish — not boardroom.
+- CLEAN LOOKS ONLY (anti-silly — NON-NEGOTIABLE): Each wardrobe option is ONE clear hero look. Prefer a single dress/jumpsuit OR a clean top+bottom. Absolute max: 2 clothing pieces + optional shoes. At most ONE light outer layer (open blazer OR cardigan — never both, never plus an open shirt). FORBIDDEN: neck scarves, shawls, stoles, scarf+cardigan stacks, tank+plaid+cardigan piles, 3+ layers, or dressing her in everything from a closet rack. Closet photos are inventory to pick FROM — pick one hero piece (or one clean pairing), never the whole rack.
+- Underwear / bra / lingerie selfies: prescribe ONE elevated, hot-on-her, occasion-right look (slip dress, wrap, tailored set) — never matronly cover-up layering or accessory piles.
 
 MAKEUP / LIP RULES (NON-NEGOTIABLE):
 - Lipstick MUST be wearable everyday-to-evening makeup: rose, berry, mauve, nude, coral, terracotta, plum, cherry, or classic red.
@@ -520,9 +524,9 @@ function hairDirectionForVision(look, hairStyleId) {
   if (isUp) {
     return [
       identityHair,
-      `INTENTIONAL HAIR UP (user selected "${option.label}"): ${option.vision}`,
-      'Hair MUST read as UP / pinned / tucked for this look — but ONLY using her real short-or-long length. If short, use a short-hair up style (tiny twist, bobby-pin tuck, soft crown lift) — NEVER grow hair to fill a big bun.',
-      'Makeup follows the selected effortless beauty option. Ignore notes that would cut, grow, or leave hair a different length.'
+      'If her hair is short / chin-length / bob, KEEP IT SHORT AND DOWN — do NOT create a bun, high pony, messy updo, or longer hair to fake an updo.',
+      `INTENTIONAL HAIR NOTE (user selected "${option.label}"): only attempt an up style if she clearly has enough real length; otherwise polish her short hair DOWN at exact length.`,
+      'NEVER grow hair to fill a bun. Makeup follows the selected effortless beauty option.'
     ].join(' ');
   }
 
@@ -544,9 +548,10 @@ function hairDirectionForVision(look, hairStyleId) {
 }
 
 function buildLookImagePrompt(look, occasion, vibe, hairStyleId) {
-  const pieces = Array.isArray(look && look.pieces)
-    ? look.pieces.map((p) => `${p.name} (${p.fabric || ''} ${p.colorLabel || p.hex || ''})`.trim()).join('; ')
-    : '';
+  const cleanPieces = sanitizeOutfitPieces(Array.isArray(look && look.pieces) ? look.pieces : []);
+  const pieces = cleanPieces
+    .map((p) => `${p.name} (${p.fabric || ''} ${p.colorLabel || p.hex || ''})`.trim())
+    .join('; ');
   const face = look && look.facePalette
     ? `Lips ${((look.facePalette.lip || [])[1]) || ''}, cheeks ${((look.facePalette.cheek || [])[1]) || ''}. ${look.facePalette.note || ''}`
     : '';
@@ -563,16 +568,17 @@ function buildLookImagePrompt(look, occasion, vibe, hairStyleId) {
     changeLine,
     'FLATTERING FIT: Dress her to look intentional and gorgeous on HER body — define the waist, skim (never tent) bust and hips, celebrate soft curves. Prefer wrap that cinches, soft V / wrap neckline, A-line, vertical lines, right proportions.',
     'If dressing from her uploaded clothing photos: keep the EXACT garment design (neckline, straps/strapless, color, fabric, details) — never redesign. Otherwise avoid matronly blazer armor; keep looks hot-on-her and polished for the event.',
+    'CLEAN OUTFIT (anti-silly): ONE hero outfit only — a single dress OR top+bottom. Ban neck scarves, scarf+cardigan stacks, tank+open-shirt+cardigan piles, and pasted-on layers. Clothes must drape naturally.',
     `Look title: ${(look && look.title) || 'Curated look'}`,
     `EVENT / FUNCTION: ${occasion || 'everyday'}`,
     vibe ? `Vibe: ${vibe}` : '',
-    look && look.desc ? `Outfit description (ignore any hair-length changes in this text): ${look.desc}` : '',
-    pieces ? `Dress her in these pieces (fit flatteringly to HER body — cinch waist, skim curves): ${pieces}` : '',
+    look && look.desc ? `Outfit description (ignore any hair-length changes or scarf mentions in this text): ${look.desc}` : '',
+    pieces ? `Dress her in ONLY these clean pieces (fit flatteringly — cinch waist, skim curves): ${pieces}` : '',
     face ? `Light makeup only: ${face}` : '',
     'Soft studio or wardrobe background OK. Tasteful, non-sexual, photorealistic. No text overlays, no logos.',
     allowHairRestyle
-      ? `FINAL CHECK: face matches the reference; hair LENGTH and CUT/shape match the reference exactly (no bobbing, no shortening, no growing longer / no long waves if short); only the selected "${hairOption.label}" styling finish + makeup differ within that length; body type matches the reference; outfit flatters her real figure (waist visible, not tented). If anything conflicts, prefer the reference selfie for face + body + hair length — keep the flattering fit and selected styling polish.`
-      : 'FINAL CHECK: face matches the reference, hair length/cut/style matches the reference, body type matches the reference, outfit flatters her real figure (waist visible, not tented). If anything conflicts, prefer the reference selfie for identity — keep the flattering fit.'
+      ? `FINAL CHECK: face matches the reference; hair LENGTH and CUT/shape match the reference exactly (no bobbing, no shortening, no growing longer / no long waves if short); only the selected "${hairOption.label}" styling finish + makeup differ within that length; body type matches the reference; outfit is a clean hero look (no scarf piles) that flatters her real figure. If anything conflicts, prefer the reference selfie for face + body + hair length — keep the flattering fit and selected styling polish.`
+      : 'FINAL CHECK: face matches the reference, hair length/cut/style matches the reference, body type matches the reference, outfit is a clean hero look (no scarf piles) that flatters her real figure. If anything conflicts, prefer the reference selfie for identity — keep the flattering fit.'
   ].filter(Boolean).join('\n');
 }
 
@@ -867,17 +873,19 @@ Filters:
 ${detectBlock}
 
 If morning energy is provided, weight ease vs polish on BOTH wardrobe options — but ALWAYS stay flattering (fumes = easy elevated that still cinches/defines; conquer = sharp figure-flattering, not boxy armor; move = polished athleisure with shape).
-If photos are present, ground both wardrobe options in her actual figure, coloring, and uploaded clothing. If she uploaded clothing-choice photos (dresses/outfits), Option A and B MUST each recommend one of THOSE exact pieces (or a clear pairing from them) — describe faithfully; NEVER redesign the garment. Identity selfie = who you dress; closet/garment shots = exact clothes only.
+If photos are present, ground both wardrobe options in her actual figure, coloring, and uploaded clothing. If she uploaded clothing-choice photos (shirts/dresses/outfits) OR closet inventory, Option A and B MUST each recommend exact owned pieces (or a clear pairing from them) — describe faithfully; NEVER redesign the garment and NEVER invent a dress when she asked about shirts/leggings. Identity selfie = who you dress; closet/garment shots = exact clothes only.
+If she typed colors she owns (e.g. black/cream/navy/brown/maroon leggings) + asked which shirt, answer with two concrete shirt+legging pairings using those colors — not cocktail dresses.
+If she asks how an uploaded look looks: be honest and kind — what works, what to tweak, one better alternate. Never insult.
 If the identity photo shows swimwear/bikini/beachwear, celebrate that body: prescribe flattering, occasion-aware, hot-on-her options that match vibe/occasion — NOT a default matronly black midi wrap + cardigan/shawl, and NOT boardroom blazer armor unless occasion is explicitly corporate/black-tie.
-Hair & Makeup options are STYLING + effortless makeup only — NEVER haircuts. Keep her real hair (no extensions, no cutting).
-Beauty Option A and Option B MUST be:
-- One HAIR UP look: hairStyleId "hair-up-playful" (easy cute playful updo / claw clip / soft messy bun) OR "hair-up-sleek" (sleek pony / low sleek bun / polished twist)
-- One HAIR DOWN look: hairStyleId "hair-down-soft" (leave it down soft waves) OR "hair-down-sleek" (leave it down sleek polished)
-Also set different EFFORTLESS makeup on each (titles like "Effortless Fresh Glow", "Effortless Soft Berry", "Effortless Sun-Kissed") with distinct lip/cheek stories — wearable, natural, not heavy glam unless the event truly needs it.
-Allowed hairStyleId values: "keep-mine" | "hair-up-playful" | "hair-up-sleek" | "hair-down-soft" | "hair-down-sleek" (legacy soft-waves/sleek-side-part remapped server-side). Never two UP or two DOWN.
+Hair & Makeup options are STYLING + effortless makeup only — NEVER haircuts. Keep her real hair (no extensions, no cutting, no growing).
+SHORT HAIR LOCK: If her photo shows short / chin-length / bob / pixie hair, Beauty Option A and B MUST BOTH be hair DOWN:
+- hairStyleId "hair-down-soft" AND "hair-down-sleek" (different makeup stories). Do NOT use hair-up-playful or hair-up-sleek — short hair cannot honestly wear a big updo.
+Only when she clearly has medium/long hair may you offer one UP + one DOWN.
+Also set different EFFORTLESS makeup on each (titles like "Effortless Fresh Glow", "Effortless Soft Berry") with distinct lip/cheek stories — wearable, natural, not heavy glam unless the event truly needs it.
+Allowed hairStyleId values: "keep-mine" | "hair-up-playful" | "hair-up-sleek" | "hair-down-soft" | "hair-down-sleek" (legacy soft-waves/sleek-side-part remapped server-side).
 If no photos, still invent fresh options from the filters — do not reuse a canned plum-cami-blazer or navy-wrap-plus-charcoal-blazer default.
 If she feels frumpy or needs "what to wear" help, lead with empathy + a specific compliment that celebrates her body, then glamorous confidence-lifting options — never a cover-up.
-Include field "compliment" with one sincere compliment grounded in her photo or vibe — warm, specific, body-positive (curves as assets).
+Include field "compliment" with one sincere compliment grounded in her photo or vibe — warm, specific, body-positive (curves as assets). Mention short/bob hair honestly when relevant ("that sharp bob…").
 If quote/note/desc mentions a weekday, it MUST say ${localWeekday} (today) — never invent a different day.
 
 Style BOTH wardrobe options for the DETECTED silhouette and DETECTED harmony when photos exist.
@@ -887,10 +895,11 @@ SILHOUETTE FIT GUIDE:
 - Petite: raise visual waist, crop cleanly, scale pieces so she looks elongated — still polished, not childish.
 - Tall / Long Lines: unbroken verticals, high-rise, length that flatters — intentional midi only when occasion warrants; for casual / selfie / swimwear energy prefer hot-on-her proportions (not matronly column dresses).
 - Athletic / Straight: add soft shape with wrap, peplum, or nipped layer — feminine without bulk.
-Match formality to occasion/vibe. Casual / selfie / swimwear / everyday ≠ boardroom blazer stack or funeral-formal black midi + cardigan.
+Match formality to occasion/vibe. Casual / selfie / swimwear / everyday ≠ boardroom blazer stack or funeral-formal black midi + cardigan. Elevated event (wedding/banquet/gala) → one polished dress or clean tailored set — never lounge layers + scarf at a formal venue.
 facePalette.lip MUST be a wearable lipstick (rose/berry/mauve/nude/coral/plum/red) — NEVER green, sage, or olive lipstick. Clothing palette may include olive/sage for garments only.
 
 Wardrobe Option A and Option B must be CLEARLY different (e.g. dress vs separates, or different color stories / necklines) while both flattering. Beauty Option A and Option B must be CLEARLY different (different hair finish + lip/cheek story).
+pieces arrays: 1–2 clothing items (+ optional shoes). NO scarves/shawls. At most one outer layer total.
 
 Return JSON only:
 {
@@ -904,12 +913,11 @@ Return JSON only:
     {
       "id": "A",
       "title": "Wardrobe option A title (unique)",
-      "desc": "2-4 sentences focused on the OUTFIT (not hair/makeup), tailored to detected figure/skin tone and photo",
+      "desc": "2-4 sentences focused on the OUTFIT (not hair/makeup), tailored to detected figure/skin tone and photo — clean hero look, no scarf piles",
       "neckline": "short neckline note",
       "pieces": [
-        { "name": "Piece name", "fabric": "Fabric — texture note", "cue": "One-line styling cue", "hex": "#HEX", "colorLabel": "Color name" },
-        { "name": "...", "fabric": "...", "cue": "...", "hex": "#HEX", "colorLabel": "..." },
-        { "name": "...", "fabric": "...", "cue": "...", "hex": "#HEX", "colorLabel": "..." }
+        { "name": "Hero piece (e.g. wrap dress)", "fabric": "Fabric — texture note", "cue": "One-line styling cue", "hex": "#HEX", "colorLabel": "Color name" },
+        { "name": "Optional second piece or shoes", "fabric": "...", "cue": "...", "hex": "#HEX", "colorLabel": "..." }
       ],
       "palette": [
         { "hex": "#HEX", "label": "Name" },
@@ -921,12 +929,11 @@ Return JSON only:
     {
       "id": "B",
       "title": "Wardrobe option B title (clearly different from A)",
-      "desc": "2-4 sentences focused on the OUTFIT",
+      "desc": "2-4 sentences focused on the OUTFIT — clean hero look, no scarf piles",
       "neckline": "short neckline note",
       "pieces": [
-        { "name": "Piece name", "fabric": "Fabric — texture note", "cue": "One-line styling cue", "hex": "#HEX", "colorLabel": "Color name" },
-        { "name": "...", "fabric": "...", "cue": "...", "hex": "#HEX", "colorLabel": "..." },
-        { "name": "...", "fabric": "...", "cue": "...", "hex": "#HEX", "colorLabel": "..." }
+        { "name": "Hero piece", "fabric": "Fabric — texture note", "cue": "One-line styling cue", "hex": "#HEX", "colorLabel": "Color name" },
+        { "name": "Optional second piece or shoes", "fabric": "...", "cue": "...", "hex": "#HEX", "colorLabel": "..." }
       ],
       "palette": [
         { "hex": "#HEX", "label": "Name" },
@@ -1068,6 +1075,51 @@ function normalizeOptionId(raw, fallback) {
   return fallback;
 }
 
+/** Drop scarves / stacked outer layers so Style never ships silly piled looks to Vision. */
+function pieceTextForSanitize(p) {
+  if (!p) return '';
+  if (typeof p === 'string') return p;
+  return [p.name, p.fabric, p.cue, p.colorLabel].filter(Boolean).join(' ');
+}
+
+function sanitizeOutfitPieces(pieces) {
+  if (!Array.isArray(pieces)) return [];
+  const SILLY_ACCESSORY = /\b(scarf|shawls?|stoles?|pashmina|muffler|neck\s*wrap|infinity\s*scarf|fringed?\s*scarf)\b/i;
+  const OUTER_LAYER = /\b(cardigan|blazer|coat|jacket|kimono|shrug|overshirt|open\s*(shirt|layer)|button[- ]?down|plaid\s*shirt)\b/i;
+  const SHOE = /\b(shoe|heel|sneaker|boot|sandal|flat|loafer|mule|pump)\b/i;
+  const NON_CLOTHING = /\b(lipstick|lip\b|blush|makeup|earring|necklace|bracelet|jewelry|handbag|clutch|purse|bag)\b/i;
+  const DRESS = /\b(dress|gown|jumpsuit|romper|slip)\b/i;
+  const CORE = /\b(dress|gown|jumpsuit|romper|slip|top|pant|trouser|skirt|blouse|tee|tank|cami|jean|denim|short)\b/i;
+
+  const cores = [];
+  const outers = [];
+  const shoes = [];
+  for (const p of pieces) {
+    const text = pieceTextForSanitize(p);
+    if (!String(text).trim()) continue;
+    if (SILLY_ACCESSORY.test(text)) continue;
+    if (SHOE.test(text)) {
+      shoes.push(p);
+      continue;
+    }
+    if (OUTER_LAYER.test(text)) {
+      outers.push(p);
+      continue;
+    }
+    if (NON_CLOTHING.test(text) && !CORE.test(text)) continue;
+    cores.push(p);
+  }
+
+  const dresses = cores.filter((p) => DRESS.test(pieceTextForSanitize(p)));
+  if (dresses.length) {
+    return [dresses[0], ...shoes.slice(0, 1)];
+  }
+  // Prefer a clean top+bottom. Only add one outer if we lack a second core piece.
+  const chosen = cores.slice(0, 2);
+  if (chosen.length < 2 && outers.length) chosen.push(outers[0]);
+  return [...chosen, ...shoes.slice(0, 1)].slice(0, 3);
+}
+
 function flattenSelectedGlamourLook(data, wardrobeOpt, beautyOpt) {
   if (!data || typeof data !== 'object') return data;
   const w = wardrobeOpt || {};
@@ -1075,7 +1127,7 @@ function flattenSelectedGlamourLook(data, wardrobeOpt, beautyOpt) {
   data.title = w.title || data.title || 'Curated look';
   data.desc = w.desc || data.desc || '';
   data.neckline = w.neckline || data.neckline || '';
-  data.pieces = Array.isArray(w.pieces) ? w.pieces : data.pieces;
+  data.pieces = sanitizeOutfitPieces(Array.isArray(w.pieces) ? w.pieces : data.pieces);
   data.palette = Array.isArray(w.palette) ? w.palette : data.palette;
   data.hairMove = b.hairMove || data.hairMove;
   data.facePalette = b.facePalette || data.facePalette;
@@ -1103,36 +1155,36 @@ function synthesizeWardrobeB(optA) {
 
 function synthesizeBeautyPair(data, lipFallback, weekday, allowedHair) {
   const faceA = sanitizeFacePaletteObj(data && data.facePalette, lipFallback, weekday);
-  const upId = allowedHair.has('hair-up-playful') ? 'hair-up-playful' : 'hair-up-sleek';
-  const downId = allowedHair.has('hair-down-soft') ? 'hair-down-soft' : 'hair-down-sleek';
+  const softId = allowedHair.has('hair-down-soft') ? 'hair-down-soft' : 'keep-mine';
+  const sleekId = allowedHair.has('hair-down-sleek') ? 'hair-down-sleek' : softId;
   return [
     {
       id: 'A',
-      title: 'Hair Up · Cute Playful + Effortless Glow',
-      summary: 'Easy cute playful updo with effortless fresh makeup — soft skin, rosy cheek, wearable nude-pink lip.',
+      title: 'Effortless Fresh Glow — Soft & Down',
+      summary: 'Hair stays down at her exact length with effortless fresh makeup — soft skin, rosy cheek, wearable nude-pink lip. No fake updo.',
       hairMove: {
-        title: 'Easy cute playful up',
-        body: 'Claw-clip twist or soft playful bun — fun and effortless, using her real hair only.',
-        cues: ['Style: hair up', 'Mood: cute playful', 'Hold: easy']
+        title: 'Leave it down · soft',
+        body: 'Soft piecey movement on her real length only — never grow hair for a bun.',
+        cues: ['Style: hair down', 'Mood: fresh', 'Length: unchanged']
       },
       facePalette: faceA,
-      hairStyleId: upId
+      hairStyleId: softId
     },
     {
       id: 'B',
-      title: 'Hair Down · Soft + Effortless Soft Berry',
-      summary: 'Leave it down with soft waves and a second effortless makeup story — soft berry lip, healthy flush.',
+      title: 'Effortless Soft Berry — Sleek & Down',
+      summary: 'Leave it down sleek with a second effortless makeup story — soft berry lip, healthy flush.',
       hairMove: {
-        title: 'Leave it down · soft',
-        body: 'Hair stays down with soft romantic waves — clearly different from the up option.',
-        cues: ['Style: hair down', 'Texture: soft waves', 'Length: unchanged']
+        title: 'Leave it down · sleek',
+        body: 'Hair stays down with a sleek deep side part — clearly different from soft, never an updo.',
+        cues: ['Style: hair down', 'Finish: sleek', 'Length: unchanged']
       },
       facePalette: {
         lip: lipFallback,
         cheek: (faceA && faceA.cheek) || ['#E07A5F', 'Rose Radiance'],
         note: 'Effortless soft berry — still rose/berry/nude family.'
       },
-      hairStyleId: downId
+      hairStyleId: sleekId
     }
   ];
 }
@@ -1200,8 +1252,17 @@ function ensureDualGlamourOptions(data, lipFallback, weekday) {
       if (typeof next[key] === 'string') next[key] = alignTextToWeekday(next[key], weekday);
     }
     if (!Array.isArray(next.pieces)) next.pieces = data.pieces || [];
+    next.pieces = sanitizeOutfitPieces(next.pieces);
     if (!Array.isArray(next.palette)) next.palette = data.palette || [];
     if (!next.title) next.title = id === 'A' ? 'Wardrobe Option A' : 'Wardrobe Option B';
+    // Strip scarf/pile language from copy so Vision is not steered into silly stacks.
+    if (typeof next.desc === 'string') {
+      next.desc = next.desc
+        .replace(/\b(silk\s+)?scar(?:f|ves)\b/gi, '')
+        .replace(/\bshawls?\b/gi, '')
+        .replace(/\s{2,}/g, ' ')
+        .trim();
+    }
     return next;
   });
 
@@ -1221,7 +1282,7 @@ function ensureDualGlamourOptions(data, lipFallback, weekday) {
     next.facePalette = sanitizeFacePaletteObj(next.facePalette, lipFallback, weekday);
     let hairId = normalizeHairStyleId(next.hairStyleId || next.suggestedHairStyleId || '');
     if (!allowedHair.has(hairId) || hairId === 'keep-mine') {
-      hairId = i === 0 ? 'hair-up-playful' : 'hair-down-soft';
+      hairId = i === 0 ? 'hair-down-soft' : 'hair-down-sleek';
     }
     next.hairStyleId = hairId;
     if (!next.title) {
@@ -1232,8 +1293,25 @@ function ensureDualGlamourOptions(data, lipFallback, weekday) {
     delete next.suggestedHairStyleId;
     return next;
   });
-  // Guarantee one UP and one DOWN beauty pick.
-  if (beautyOptions.length === 2) {
+  // Prefer honest short-hair styling: if notes say bob/short, force two DOWN finishes.
+  const shortHairBlob = [
+    data.compliment,
+    data.detectionNotes,
+    data.quote,
+    data.detectedSilhouette
+  ].filter(Boolean).join(' ');
+  const shortHair = /\b(short\s*hair|chin[- ]?length|pixie|bob\b|cropped)\b/i.test(shortHairBlob);
+  if (shortHair && beautyOptions.length === 2) {
+    beautyOptions[0].hairStyleId = 'hair-down-soft';
+    beautyOptions[1].hairStyleId = 'hair-down-sleek';
+    if (!/down/i.test(beautyOptions[0].title || '')) {
+      beautyOptions[0].title = 'Effortless Fresh Glow — Soft & Down';
+    }
+    if (!/down|sleek/i.test(beautyOptions[1].title || '')) {
+      beautyOptions[1].title = 'Effortless Soft Berry — Sleek & Down';
+    }
+  } else if (beautyOptions.length === 2) {
+    // Longer hair: keep a real UP vs DOWN choice when possible.
     const c0 = hairCat(beautyOptions[0].hairStyleId);
     const c1 = hairCat(beautyOptions[1].hairStyleId);
     if (c0 === c1 || c0 === 'other' || c1 === 'other') {
@@ -1242,12 +1320,13 @@ function ensureDualGlamourOptions(data, lipFallback, weekday) {
         if (!/down/i.test(beautyOptions[1].title || '')) {
           beautyOptions[1].title = 'Hair Down · Soft + Effortless Soft Berry';
         }
+      } else if (c0 === 'down' && c1 === 'down') {
+        // Two downs is OK (soft vs sleek) — ensure they differ.
+        beautyOptions[0].hairStyleId = 'hair-down-soft';
+        beautyOptions[1].hairStyleId = 'hair-down-sleek';
       } else {
-        beautyOptions[0].hairStyleId = 'hair-up-playful';
-        if (!/up/i.test(beautyOptions[0].title || '')) {
-          beautyOptions[0].title = 'Hair Up · Cute Playful + Effortless Glow';
-        }
-        if (c1 !== 'down') beautyOptions[1].hairStyleId = 'hair-down-soft';
+        beautyOptions[0].hairStyleId = 'hair-down-soft';
+        beautyOptions[1].hairStyleId = 'hair-down-sleek';
       }
     }
   }

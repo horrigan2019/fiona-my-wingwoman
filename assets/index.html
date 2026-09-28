@@ -1094,7 +1094,7 @@
                     Clear
                   </button>
                 </div>
-                <p id="wardrobe-status" class="text-[11px] text-gray-600 dark:text-gray-300">Take a Photo opens your live camera. Upload from Gallery picks a file from this device.</p>
+                <p id="wardrobe-status" class="text-[11px] text-gray-600 dark:text-gray-300">Take a Photo opens your device camera. Upload from Gallery picks a file from this device.</p>
                 <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-1">
                   <button type="button" id="save-wardrobe-photos-btn" onclick="saveGlamourPhotosForLater()" class="hidden px-3 py-1.5 rounded-lg bg-teal-700 text-white text-[10px] font-bold hover:bg-teal-800 transition">💾 Save for later</button>
                   <span id="wardrobe-saved-badge" class="hidden text-[10px] font-semibold text-teal-700 dark:text-teal-300">Saved on this device</span>
@@ -1110,7 +1110,7 @@
               <div id="wardrobe-thumbs" class="flex gap-2 overflow-x-auto pb-1"></div>
             </div>
             <input id="wardrobe-upload-input" type="file" accept="image/*" multiple class="sr-only" aria-label="Upload wardrobe photo from gallery" onchange="handleCanvasUpload(event, 'wardrobe')">
-            <input id="wardrobe-camera-input" type="file" accept="image/*" capture="user" class="sr-only" aria-label="Mobile camera fallback for wardrobe selfie" onchange="handleCanvasUpload(event, 'wardrobe')">
+            <input id="wardrobe-camera-input" type="file" accept="image/*" capture="environment" class="sr-only" aria-label="Take a photo with device camera for wardrobe" onchange="handleCanvasUpload(event, 'wardrobe')">
           </div>
 
           <!-- Event / function selector -->
@@ -1168,7 +1168,7 @@
           </div>
 
           <!-- Outfit Recommendation Trigger -->
-          <button onclick="generateWardrobeAdvice()" class="px-6 py-2.5 rounded-xl bg-spa-plum text-white text-xs font-bold hover:bg-spa-plumdark active:scale-95 transition shadow-sm">
+          <button type="button" onclick="generateWardrobeAdvice()" class="px-6 py-2.5 rounded-xl bg-spa-plum text-white text-xs font-bold hover:bg-spa-plumdark active:scale-95 transition shadow-sm">
             Style My Full Look, Fiona ✨
           </button>
 
@@ -1260,7 +1260,7 @@
                   <p id="fiona-beauty-pick-status" class="text-[10px] font-semibold text-spa-plum/70 dark:text-pink-300/70">Tap a card</p>
                 </div>
                 <div id="fiona-beauty-options" class="grid grid-cols-1 sm:grid-cols-2 gap-3 min-h-[5.5rem]" role="radiogroup" aria-label="Hair and makeup options">
-                  <p class="text-[11px] text-gray-500 dark:text-gray-400 sm:col-span-2">Style My Full Look to reveal Hair &amp; Makeup A and B (one hair up, one hair down + effortless makeup).</p>
+                  <p class="text-[11px] text-gray-500 dark:text-gray-400 sm:col-span-2">Style My Full Look to reveal Hair &amp; Makeup A and B (soft vs sleek polish on your real length + effortless makeup).</p>
                 </div>
                 <p id="fiona-beauty-hint" class="text-[10px] text-gray-500 dark:text-gray-400 leading-snug">One Style click delivers both pairs. One option puts hair up (playful or sleek); the other leaves it down. Each has a different effortless makeup vibe. Face + body stay yours.</p>
               </section>
@@ -1386,7 +1386,7 @@
                     Clear
                   </button>
                 </div>
-                <p id="glam-status" class="text-[11px] text-gray-600 dark:text-gray-300">Take a Selfie opens your live camera. Upload from Gallery picks a file from this device.</p>
+                <p id="glam-status" class="text-[11px] text-gray-600 dark:text-gray-300">Take a Selfie opens your device camera. Upload from Gallery picks a file from this device.</p>
                 <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-1">
                   <button type="button" id="save-glam-photos-btn" onclick="saveGlamourPhotosForLater()" class="hidden px-3 py-1.5 rounded-lg bg-teal-700 text-white text-[10px] font-bold hover:bg-teal-800 transition">💾 Save for later</button>
                   <span id="glam-saved-badge" class="hidden text-[10px] font-semibold text-teal-700 dark:text-teal-300">Saved on this device</span>
@@ -1404,7 +1404,7 @@
 
             <!-- Hidden file inputs (sr-only so iOS can open them) -->
             <input id="glam-upload-input" type="file" accept="image/*" multiple class="sr-only" aria-label="Upload photo from gallery" onchange="handleCanvasUpload(event, 'glam')">
-            <input id="glam-camera-input" type="file" accept="image/*" capture="user" class="sr-only" aria-label="Mobile camera fallback for selfie" onchange="handleCanvasUpload(event, 'glam')">
+            <input id="glam-camera-input" type="file" accept="image/*" capture="user" class="sr-only" aria-label="Take a selfie with device camera" onchange="handleCanvasUpload(event, 'glam')">
           </div>
 
           <!-- Undertone Selector -->
@@ -3527,6 +3527,9 @@
       if (/selfie|portrait|person|face|body|bikini|swim|mirror|fit.?check|selfie-capture|camera-capture/.test(n)) {
         return 'person';
       }
+      if (/shirt|blouse|tee\b|t-?shirt|top\b|cami|tank|sweater|hoodie|legging|pant|trouser|jean|skirt|dress|gown|jumpsuit|romper|jacket|coat|cardigan|flat.?lay|product|garment|outfit/.test(n)) {
+        return 'garment';
+      }
       return null;
     }
 
@@ -3607,7 +3610,7 @@
 
     async function classifyCanvasImageKind(img) {
       if (!img) return 'unknown';
-      if (img.kind === 'person' || img.kind === 'closet') return img.kind;
+      if (img.kind === 'person' || img.kind === 'closet' || img.kind === 'garment') return img.kind;
       const fromName = guessKindFromName(img.name);
       if (fromName) {
         img.kind = fromName;
@@ -3665,16 +3668,23 @@
       return pool[pool.length - 1];
     }
 
-    /** Dress / outfit / closet shots — including a body-in-dress photo Debra tapped as her clothing choice. */
+    /** Single clothing piece for try-on (shirt, dress, top) — NEVER a closet shelf/rack/pile. */
     function isGarmentCandidate(img, identityUrl) {
       if (!img || !img.url) return false;
       if (identityUrl && img.url === identityUrl) return false;
-      if (img.kind === 'closet') return true;
-      if (img.kind && img.kind !== 'person') return true;
-      // Person-classified but Debra manually selected it as the dress to try on.
-      if (moodboardHeroManual && moodboardHeroUrl && img.url === moodboardHeroUrl) return true;
+      // Closet shelves / hanging racks / piles are inventory only — not a Vision garment ref.
+      if (img.kind === 'closet') return false;
       const name = String(img.name || '').toLowerCase();
-      if (/dress|gown|garment|outfit|closet|product|flat.?lay|wedding|formal/.test(name)) return true;
+      if (/closet|wardrobe|shelf|hanger|rack|drawer|pile|hanging/.test(name)) return false;
+      if (img.kind === 'garment') return true;
+      if (img.kind && img.kind !== 'person') return true; // flat-lay / product / unknown clothing
+      // Person-classified but Debra manually tapped it as the piece to try on (not the selfie).
+      if (moodboardHeroManual && moodboardHeroUrl && img.url === moodboardHeroUrl && img.kind !== 'closet') {
+        return true;
+      }
+      if (/dress|gown|garment|outfit|product|flat.?lay|wedding|formal|slip|jumpsuit|shirt|blouse|tee\b|t-?shirt|top\b|cami|tank|legging|pant|trouser|jean|skirt|sweater/.test(name)) {
+        return true;
+      }
       return false;
     }
 
@@ -4206,71 +4216,40 @@
       activeCameraTarget = ids.target;
       setCanvasError(ids.target, '');
       stopSelfieCamera(false);
-      // Always prefer live getUserMedia — on Windows/desktop, <input capture> opens a file dialog.
-      preferredCameraFacing = 'user';
-
-      const hint = document.getElementById('camera-capture-hint');
-      if (hint) {
-        hint.textContent = ids.target === 'wardrobe'
-          ? 'Live camera · line up your look, then capture'
-          : 'Live camera · line up your face, then capture';
+      // Prefer the device's native camera app (no custom in-app frame).
+      // <input capture> opens the OS camera on phones; on desktop it falls back to a file picker.
+      const camInput = document.getElementById(ids.camera);
+      if (camInput) {
+        camInput.setAttribute('capture', ids.target === 'wardrobe' ? 'environment' : 'user');
+        camInput.setAttribute('accept', 'image/*');
+        try { camInput.value = ''; } catch (_) {}
+        camInput.click();
+        const statusEl = document.getElementById(ids.status);
+        if (statusEl) {
+          statusEl.textContent = ids.target === 'wardrobe'
+            ? 'Opening your device camera — snap the look, then it lands on Your Canvas.'
+            : 'Opening your device camera — snap your selfie, then it lands on Your Canvas.';
+        }
+        showToast('Opening your device camera…');
+        return;
       }
 
+      // Rare fallback if the hidden camera input is missing — use in-app getUserMedia.
+      preferredCameraFacing = 'user';
       if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
         try {
           await startCameraWithFacing('user');
           showToast('Camera live — capture when ready ✨');
           return;
         } catch (err) {
-          const name = err && err.name;
-          if (name === 'NotAllowedError' || name === 'SecurityError') {
-            setCanvasError(ids.target, 'Camera access was denied. Allow camera permission, or use Upload from Gallery for a file.');
-            showToast('Allow camera access to Take a Photo, or use Upload from Gallery.');
-            return;
-          }
-          if (name === 'NotFoundError' || name === 'DevicesNotFoundError') {
-            setCanvasError(ids.target, 'No camera found. Use Upload from Gallery to pick a file.');
-            showToast('No camera found — use Upload from Gallery.');
-            return;
-          }
-          // Some devices reject ideal facingMode — try a plain video constraint once more.
-          try {
-            if (selfieMediaStream) {
-              selfieMediaStream.getTracks().forEach((t) => t.stop());
-              selfieMediaStream = null;
-            }
-            selfieMediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-            const video = document.getElementById('selfie-video');
-            const panel = document.getElementById('camera-capture-panel');
-            if (!video || !panel) throw new Error('camera UI missing');
-            video.srcObject = selfieMediaStream;
-            panel.classList.remove('hidden');
-            updateCameraFacingUi();
-            try { await video.play(); } catch (_) {}
-            const liveStatus = document.getElementById(ids.status);
-            if (liveStatus) liveStatus.textContent = 'Camera live — capture when ready.';
-            showToast('Camera live — capture when ready ✨');
-            return;
-          } catch (_) {
-            setCanvasError(ids.target, 'Camera could not start. Use Upload from Gallery for a file.');
-            showToast('Camera could not start — use Upload from Gallery.');
-            return;
-          }
+          setCanvasError(ids.target, 'Camera could not start. Use Upload from Gallery for a file.');
+          showToast('Camera could not start — use Upload from Gallery.');
+          return;
         }
       }
 
-      // Last-resort mobile fallback only (capture=user). On desktop this becomes a file dialog — avoid unless no getUserMedia.
-      const isCoarsePointer = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
-      const camInput = document.getElementById(ids.camera);
-      if (isCoarsePointer && camInput) {
-        camInput.setAttribute('capture', 'user');
-        camInput.value = '';
-        camInput.click();
-        return;
-      }
-
-      setCanvasError(ids.target, 'Live camera is not available in this browser. Use Upload from Gallery instead.');
-      showToast('Live camera unavailable — use Upload from Gallery.');
+      setCanvasError(ids.target, 'Camera is not available in this browser. Use Upload from Gallery instead.');
+      showToast('Camera unavailable — use Upload from Gallery.');
     }
 
     function captureSelfieFrame(options = {}) {
@@ -4542,13 +4521,13 @@
       },
       'Casual Comfort Chic': {
         title: 'Soft Street Royalty',
-        desc: 'Elevated knit set in dusty rose with a defined waist (soft belt or tuck), clean white sneakers, and a silk scarf at the neck for that quiet Fiona polish.',
+        desc: 'Elevated knit set in dusty rose with a defined waist (soft belt or tuck) and clean white sneakers — quiet Fiona polish without accessory piles.',
         quote: 'Casual does not mean careless, darling. Soft fabrics, sharp intention.',
-        neckline: 'crew / soft scarf frame',
+        neckline: 'crew / soft scoop',
         pieces: [
           { name: 'Knit top', fabric: 'Fine-gauge cotton knit', cue: 'Tuck or half-tuck so the waist reads' },
           { name: 'Matching pant', fabric: 'Relaxed stretch knit', cue: 'High rise to lengthen the leg line' },
-          { name: 'Silk scarf', fabric: 'Light silk twill', cue: 'Knot once at the collarbone for polish' }
+          { name: 'White sneakers', fabric: 'Clean leather', cue: 'Keep them crisp — one polish note is enough' }
         ]
       },
       'Power Meeting': {
@@ -5308,7 +5287,7 @@
       return out;
     }
 
-    /** Style API photos: identity selfie + selected dress only (max 3) so live Claude finishes before timeout. */
+    /** Style API photos: identity + owned clothing pieces (shirts/dresses) — never closet racks. */
     async function collectStyleApiImages() {
       await ensureCanvasImagesClassified();
       const identity = resolveCanvasSelfieForLook();
@@ -5321,23 +5300,43 @@
         picked.push({ img, role });
       };
       push(identity, 'identity');
-      push(garment, 'closet');
-      // One extra person/reference if still empty / helpful — never dump all 6–10 canvases.
-      if (picked.length < 2) {
-        const extras = getCanvasImages('wardrobe').filter((img) => img && img.url && !seen.has(img.url));
-        for (const img of extras) {
-          push(img, img.kind === 'person' ? 'identity' : 'reference');
-          if (picked.length >= 2) break;
+      if (garment && garment.kind !== 'closet') push(garment, 'garment');
+      // Include multiple owned tops/pieces so Style can answer "which shirt" from uploads.
+      const extras = getCanvasImages('wardrobe').filter((img) =>
+        img && img.url && !seen.has(img.url) && isGarmentCandidate(img, identity && identity.url)
+      );
+      for (const img of extras) {
+        push(img, 'garment');
+        if (picked.length >= 5) break; // identity + up to 4 owned pieces
+      }
+      // Full-body person shot as second identity cue when available (helps fit + short hair).
+      if (picked.length < 5) {
+        const people = getCanvasImages('wardrobe').filter((img) =>
+          img && img.kind === 'person' && img.url && !seen.has(img.url)
+        );
+        for (const img of people) {
+          push(img, 'identity');
+          if (picked.length >= 5) break;
+        }
+      }
+      // Closet / pile photos as inventory only (role=closet) so Style can name her real shirts.
+      if (picked.length < 6) {
+        const closets = getCanvasImages('wardrobe').filter((img) =>
+          img && img.kind === 'closet' && img.url && !seen.has(img.url)
+        );
+        for (const img of closets) {
+          push(img, 'closet');
+          if (picked.length >= 6) break;
         }
       }
       const out = [];
-      for (const { img, role } of picked.slice(0, 3)) {
+      for (const { img, role } of picked.slice(0, 6)) {
         const payload = await canvasImageToApiPayload(img, {
-          maxDim: role === 'identity' ? 1100 : 1000,
-          quality: 0.72,
-          softLimit: 280000,
-          hardMaxDim: 900,
-          hardQuality: 0.62
+          maxDim: role === 'identity' ? 1100 : 960,
+          quality: 0.7,
+          softLimit: 240000,
+          hardMaxDim: 860,
+          hardQuality: 0.58
         });
         if (payload && payload.data) {
           payload.role = role;
@@ -5398,7 +5397,7 @@
       });
     }
 
-    /** Exact uploaded garment/clothing-choice photo for Vision — never redesign this piece. */
+    /** Exact uploaded garment photo for Vision — single piece only; never a closet rack. */
     function resolveGarmentRefForLook() {
       const images = getCanvasImages('wardrobe');
       if (!images.length) return null;
@@ -5407,16 +5406,16 @@
       // Manual Canvas thumb = the dress Debra wants tried on (even if classifier said "person").
       if (moodboardHeroUrl) {
         const hero = images.find((img) => img && img.url === moodboardHeroUrl);
-        if (hero && hero.url !== identityUrl && isGarmentCandidate(hero, identityUrl)) {
+        if (hero && hero.url !== identityUrl && hero.kind !== 'closet' && isGarmentCandidate(hero, identityUrl)) {
           return hero;
         }
-        if (moodboardHeroManual && hero && hero.url !== identityUrl) {
+        // Manual tap on a closet rack is inventory browsing — do NOT send it as the try-on garment.
+        if (moodboardHeroManual && hero && hero.url !== identityUrl && hero.kind !== 'closet') {
           return hero;
         }
       }
       const garments = images.filter((img) => isGarmentCandidate(img, identityUrl));
       if (!garments.length) return null;
-      // Prefer most recently added clothing choice
       return garments[garments.length - 1];
     }
 
@@ -5671,7 +5670,7 @@
       'tousled-texture': 'hair-down-soft',
       'subtle-volume': 'hair-down-soft'
     };
-    const FIONA_VISION_CACHE_PREFIX = 'fiona_vision_look_v20:';
+    const FIONA_VISION_CACHE_PREFIX = 'fiona_vision_look_v21:';
     let fionaVisionSideBySide = false;
     let fionaVisionGenerating = false;
     let fionaSelectedWardrobeId = 'A';
@@ -5741,26 +5740,28 @@
           body: 'Keep your real length with soft shine.',
           cues: ['Volume: soft crown', 'Part: natural', 'Texture: flexible hold']
         };
-        const hairARaw = normalizeHairStyleId((look && look.suggestedHairStyleId) || 'keep-mine');
-        const hairA = allowedHair.has(hairARaw) ? hairARaw : 'keep-mine';
-        const hairB = String(hairA).startsWith('hair-up') ? 'hair-down-soft' : 'hair-up-playful';
+        const hairARaw = normalizeHairStyleId((look && look.suggestedHairStyleId) || 'hair-down-soft');
+        const hairA = (allowedHair.has(hairARaw) && hairARaw !== 'keep-mine' && !String(hairARaw).startsWith('hair-up'))
+          ? hairARaw
+          : 'hair-down-soft';
+        const hairB = hairA === 'hair-down-sleek' ? 'hair-down-soft' : 'hair-down-sleek';
         beautyOptions = [
           {
             id: 'A',
-            title: move.title || 'Beauty Option A',
-            summary: move.body || 'Polished hair styling and wearable makeup — same cut length.',
+            title: move.title || 'Effortless Fresh Glow — Soft & Down',
+            summary: move.body || 'Polished hair styling and wearable makeup — same cut length, hair down.',
             hairMove: move,
             facePalette: face,
             hairStyleId: hairA
           },
           {
             id: 'B',
-            title: String(hairB).startsWith('hair-up') ? 'Hair Up · Cute Playful + Effortless Glow' : 'Hair Down · Soft + Effortless Soft Berry',
-            summary: 'A second beauty mood — different hair styling and lip story, same haircut length.',
+            title: 'Effortless Soft Berry — Sleek & Down',
+            summary: 'A second beauty mood — sleek down finish + different lip story, same haircut length.',
             hairMove: {
-              title: String(hairB).startsWith('hair-up') ? 'Easy cute playful up' : 'Leave it down · soft',
-              body: 'Same haircut length as your photo — styling + makeup only, never a new cut.',
-              cues: ['Volume: intentional', 'Part: deliberate', 'Texture: polished']
+              title: 'Leave it down · sleek',
+              body: 'Same haircut length as your photo — sleek down polish + makeup only, never a new cut or updo.',
+              cues: ['Volume: intentional', 'Part: deep side', 'Texture: sleek']
             },
             facePalette: sanitizeFacePalette({
               lip: getFacePaletteForHarmony(harmony).lip,
@@ -5774,25 +5775,39 @@
 
       wardrobeOptions = wardrobeOptions.map((opt, i) => {
         const raw = String(opt.id || '').trim().toUpperCase().replace(/^OPTION\s+/, '');
+        const pieces = sanitizeOutfitPiecesClient(opt.pieces || []);
+        const desc = String(opt.desc || '')
+          .replace(/\b(silk\s+)?scar(?:f|ves)\b/gi, '')
+          .replace(/\bshawls?\b/gi, '')
+          .replace(/\s{2,}/g, ' ')
+          .trim();
         return {
           ...opt,
-          id: raw === 'B' || (raw !== 'A' && i === 1) ? 'B' : 'A'
+          id: raw === 'B' || (raw !== 'A' && i === 1) ? 'B' : 'A',
+          pieces,
+          desc
         };
       });
       if (wardrobeOptions[0]) wardrobeOptions[0].id = 'A';
       if (wardrobeOptions[1]) wardrobeOptions[1].id = 'B';
 
+      const shortHair = /\b(short\s*hair|chin[- ]?length|pixie|bob\b|dark\s*bob|sharp\s*bob|cropped)\b/i.test(
+        [look && look.compliment, look && look.detectionNotes, look && look.quote].filter(Boolean).join(' ')
+      );
       beautyOptions = beautyOptions.map((opt, i) => {
         const id = i === 0 ? 'A' : 'B';
         let hairId = normalizeHairStyleId(opt.hairStyleId || opt.suggestedHairStyleId || '');
         const inferred = inferHairStyleIdFromBeauty({ ...opt, id });
         if (!allowedHair.has(hairId) || hairId === 'keep-mine') {
-          hairId = (inferred && inferred !== 'keep-mine') ? inferred : (i === 0 ? 'hair-up-playful' : 'hair-down-soft');
+          hairId = (inferred && inferred !== 'keep-mine') ? inferred : (i === 0 ? 'hair-down-soft' : 'hair-down-sleek');
         } else if (inferred && inferred !== 'keep-mine') {
           // Prefer copy ("Down & Dewy" / "Updo") when it clearly conflicts with a stale hairStyleId.
           const rawUp = String(hairId).startsWith('hair-up');
           const infUp = String(inferred).startsWith('hair-up');
           if (rawUp !== infUp) hairId = inferred;
+        }
+        if (shortHair && String(hairId).startsWith('hair-up')) {
+          hairId = i === 0 ? 'hair-down-soft' : 'hair-down-sleek';
         }
         return {
           ...opt,
@@ -5802,8 +5817,19 @@
         };
       });
       if (beautyOptions.length === 2 && beautyOptions[0].hairStyleId === beautyOptions[1].hairStyleId) {
-        beautyOptions[0].hairStyleId = 'hair-up-playful';
-        beautyOptions[1].hairStyleId = 'hair-down-soft';
+        beautyOptions[0].hairStyleId = 'hair-down-soft';
+        beautyOptions[1].hairStyleId = 'hair-down-sleek';
+      }
+      // Short hair: never keep an up/down pair that includes updo — force two distinct DOWN finishes.
+      if (shortHair && beautyOptions.length === 2) {
+        beautyOptions[0].hairStyleId = 'hair-down-soft';
+        beautyOptions[1].hairStyleId = 'hair-down-sleek';
+        if (!/down/i.test(beautyOptions[0].title || '')) {
+          beautyOptions[0].title = 'Effortless Fresh Glow — Soft & Down';
+        }
+        if (!/down|sleek/i.test(beautyOptions[1].title || '')) {
+          beautyOptions[1].title = 'Effortless Soft Berry — Sleek & Down';
+        }
       }
 
       return { wardrobeOptions, beautyOptions };
@@ -5839,14 +5865,31 @@
       if (wantsDown) {
         return /sleek|smooth|side\s*part|cool-girl|polish/.test(blob) ? 'hair-down-sleek' : 'hair-down-soft';
       }
-      if (beauty.id === 'B') return 'hair-down-soft';
-      if (beauty.id === 'A') return 'hair-up-playful';
+      if (beauty.id === 'B') return 'hair-down-sleek';
+      if (beauty.id === 'A') return 'hair-down-soft';
       return 'keep-mine';
+    }
+
+    function looksLikeShortHairContext() {
+      const meta = window.lastGlamourLook || {};
+      const blob = [
+        meta.compliment,
+        meta.detectionNotes,
+        meta.quote,
+        meta.vibe,
+        meta.look && meta.look.desc,
+        meta.look && meta.look.beautySummary
+      ].filter(Boolean).join(' ').toLowerCase();
+      return /\b(short\s*hair|chin[- ]?length|pixie|bob\b|dark\s*bob|sharp\s*bob|cropped|too\s*short\s*for\s*(an?\s*)?updo)\b/.test(blob);
     }
 
     function getSelectedHairStyleId() {
       const beauty = getSelectedBeautyOption();
-      const id = inferHairStyleIdFromBeauty(beauty);
+      let id = inferHairStyleIdFromBeauty(beauty);
+      // Short / bob hair: never send hair-up (models invent long buns). Force a down polish.
+      if (looksLikeShortHairContext() && String(id).startsWith('hair-up')) {
+        id = beauty && beauty.id === 'B' ? 'hair-down-sleek' : 'hair-down-soft';
+      }
       return FIONA_HAIRSTYLE_OPTIONS.some((o) => o.id === id) ? id : 'keep-mine';
     }
 
@@ -5855,16 +5898,61 @@
       return FIONA_HAIRSTYLE_OPTIONS.find((o) => o.id === normalized) || FIONA_HAIRSTYLE_OPTIONS[0];
     }
 
+    /** Drop scarves / stacked outers so Vision never gets silly piled piece lists. */
+    function sanitizeOutfitPiecesClient(pieces) {
+      if (!Array.isArray(pieces)) return [];
+      const SILLY_ACCESSORY = /\b(scarf|shawls?|stoles?|pashmina|muffler|neck\s*wrap|infinity\s*scarf|fringed?\s*scarf)\b/i;
+      const OUTER_LAYER = /\b(cardigan|blazer|coat|jacket|kimono|shrug|overshirt|open\s*(shirt|layer)|button[- ]?down|plaid\s*shirt)\b/i;
+      const SHOE = /\b(shoe|heel|sneaker|boot|sandal|flat|loafer|mule|pump)\b/i;
+      const NON_CLOTHING = /\b(lipstick|lip\b|blush|makeup|earring|necklace|bracelet|jewelry|handbag|clutch|purse|bag)\b/i;
+      const DRESS = /\b(dress|gown|jumpsuit|romper|slip)\b/i;
+      const CORE = /\b(dress|gown|jumpsuit|romper|slip|top|pant|trouser|skirt|blouse|tee|tank|cami|jean|denim|short)\b/i;
+      const textOf = (p) => {
+        if (!p) return '';
+        if (typeof p === 'string') return p;
+        return [p.name, p.fabric, p.cue, p.colorLabel].filter(Boolean).join(' ');
+      };
+      const cores = [];
+      const outers = [];
+      const shoes = [];
+      for (const p of pieces) {
+        const text = textOf(p);
+        if (!String(text).trim()) continue;
+        if (SILLY_ACCESSORY.test(text)) continue;
+        if (SHOE.test(text)) {
+          shoes.push(p);
+          continue;
+        }
+        if (OUTER_LAYER.test(text)) {
+          outers.push(p);
+          continue;
+        }
+        if (NON_CLOTHING.test(text) && !CORE.test(text)) continue;
+        cores.push(p);
+      }
+      const dresses = cores.filter((p) => DRESS.test(textOf(p)));
+      if (dresses.length) return [dresses[0], ...shoes.slice(0, 1)];
+      const chosen = cores.slice(0, 2);
+      if (chosen.length < 2 && outers.length) chosen.push(outers[0]);
+      return [...chosen, ...shoes.slice(0, 1)].slice(0, 3);
+    }
+
     function buildCompositeGlamourLook() {
       const meta = window.lastGlamourLook || {};
       const wardrobe = getSelectedWardrobeOption() || {};
       const beauty = getSelectedBeautyOption() || {};
       const hairId = getSelectedHairStyleId();
+      const cleanPieces = sanitizeOutfitPiecesClient(wardrobe.pieces || []);
+      const cleanDesc = String(wardrobe.desc || '')
+        .replace(/\b(silk\s+)?scar(?:f|ves)\b/gi, '')
+        .replace(/\bshawls?\b/gi, '')
+        .replace(/\s{2,}/g, ' ')
+        .trim();
       return {
         title: wardrobe.title || 'Curated look',
-        desc: wardrobe.desc || '',
+        desc: cleanDesc,
         neckline: wardrobe.neckline || '',
-        pieces: wardrobe.pieces || [],
+        pieces: cleanPieces,
         palette: wardrobe.palette || [],
         hairMove: beauty.hairMove || null,
         facePalette: beauty.facePalette || null,
@@ -5917,7 +6005,7 @@
       if (!hosts.length) return;
       const list = (window.lastGlamourLook && window.lastGlamourLook.beautyOptions) || [];
       if (!list.length) {
-        setAllHostsHtml('fiona-beauty-options', '<p class="text-[11px] text-gray-500 dark:text-gray-400 sm:col-span-2">Style My Full Look to reveal Hair &amp; Makeup A and B (one hair up, one hair down + effortless makeup).</p>');
+        setAllHostsHtml('fiona-beauty-options', '<p class="text-[11px] text-gray-500 dark:text-gray-400 sm:col-span-2">Style My Full Look to reveal Hair &amp; Makeup A and B (soft vs sleek on your real length + effortless makeup).</p>');
         return;
       }
       const html = list.map((opt) => {
@@ -6116,7 +6204,7 @@
       const wardrobeId = (look && (look.selectedWardrobeId || look.wardrobeOptionId)) || fionaSelectedWardrobeId || 'A';
       const beautyId = (look && (look.selectedBeautyId || look.beautyOptionId)) || fionaSelectedBeautyId || 'A';
       return [
-        'idlock-v4-picks',
+        'idlock-v5-cleanlook',
         look && look.title || '',
         occasionLabel || '',
         vibe || '',
@@ -6481,11 +6569,13 @@
 
       // Prefer the occasion chip first so Desk to Dinner ≠ Power Meeting ≠ Soft Evening.
       let lookKey = occasionLabel;
+      const vibeLower = String(vibe || '').toLowerCase();
+      const asksOwnedSeparates = /\b(shirt|shirts|blouse|tee|top|tops|legging|leggings|pant|pants)\b/.test(vibeLower);
       if (vibe) {
-        const v = vibe.toLowerCase();
+        const v = vibeLower;
         if (/brunch|coffee|casual|weekend|errand|errands/.test(v)) lookKey = 'Casual Comfort Chic';
         else if (/meeting|interview|pitch|board|office|work|presentation/.test(v)) lookKey = 'Power Meeting';
-        else if (/date|dinner|evening|gallery|cocktail|night|party/.test(v)) lookKey = 'Soft Evening Out';
+        else if (/date|dinner|evening|gallery|cocktail|night|party/.test(v) && !asksOwnedSeparates) lookKey = 'Soft Evening Out';
         else if (/home|cozy|lounge|netflix|rest|recover|flare/.test(v)) lookKey = 'Cozy Home Luxe';
       }
       // Energy reshapes within the occasion family — fumes softens, conquer sharpens, move sportifies.
@@ -6516,82 +6606,160 @@
         move: 'In Motion'
       }[energyId] || 'Curated';
 
-      const pieces = (base.pieces || []).map((piece, index) => {
-        const swatch = palette[index % palette.length] || {};
-        return {
-          ...piece,
-          hex: swatch.hex || '#5E2750',
-          colorLabel: swatch.label || 'Plum',
-          cue: `${piece.cue} · ${energyLead.split(',')[0]}`
-        };
-      });
+      const colorMentions = [];
+      const colorRe = /\b(black|cream|navy|brown|maroon|white|olive|burgundy|beige|tan|grey|gray|pink|red|blue|green)\b/gi;
+      let cm;
+      while ((cm = colorRe.exec(vibeLower)) !== null) {
+        const c = cm[1].toLowerCase();
+        if (!colorMentions.includes(c)) colorMentions.push(c);
+      }
+      const colorLabel = (c) => c ? c.charAt(0).toUpperCase() + c.slice(1) : 'Navy';
+      const colorHex = {
+        black: '#1A1A1A', cream: '#F5F0E6', navy: '#1B2A4A', brown: '#5C4033',
+        maroon: '#5C1A1A', white: '#F7F7F7', olive: '#556B2F', burgundy: '#6B1C23',
+        beige: '#D8C3A5', tan: '#C4A484', grey: '#6B6B6B', gray: '#6B6B6B',
+        pink: '#C97B84', red: '#8B1E2D', blue: '#2F4F7A', green: '#2F5D50'
+      };
 
-      const altKey = lookKey === 'Desk to Dinner' ? 'Casual Comfort Chic'
-        : lookKey === 'Soft Evening Out' ? 'Desk to Dinner'
-        : lookKey === 'Power Meeting' ? 'Soft Evening Out'
-        : 'Desk to Dinner';
-      const altBase = WARDROBE_LOOKS[altKey] || base;
-      const altPieces = (altBase.pieces || pieces).map((piece, index) => {
-        const swatch = palette[(index + 1) % palette.length] || {};
-        return {
-          ...piece,
-          hex: swatch.hex || '#5E2750',
-          colorLabel: swatch.label || 'Plum',
-          cue: `${piece.cue} · celebrate the waist`
+      let pieces;
+      let altPieces;
+      let lookA;
+      let lookB;
+      if (asksOwnedSeparates) {
+        const cA = colorMentions[0] || 'navy';
+        const cB = colorMentions.find((c) => c !== cA) || (colorMentions[1] || 'maroon');
+        const shirtHint = /shirt|blouse|tee|top/.test(vibeLower);
+        pieces = [
+          {
+            name: shirtHint ? `${colorLabel(cA)} shirt (your upload)` : `${colorLabel(cA)} top (your upload)`,
+            fabric: 'Your exact owned piece',
+            cue: 'Wear THIS exact shirt/top — never invent a dress',
+            hex: colorHex[cA] || '#1B2A4A',
+            colorLabel: colorLabel(cA)
+          },
+          {
+            name: `${colorLabel(cA === 'navy' ? (colorMentions.includes('navy') ? 'navy' : cA) : cA)} leggings`,
+            fabric: 'Your owned leggings',
+            cue: 'Pair with the legging color you asked about',
+            hex: colorHex[cA] || '#1B2A4A',
+            colorLabel: colorLabel(cA)
+          }
+        ];
+        // Prefer distinct legging colors when listed (e.g. navy vs maroon).
+        const legA = colorMentions.includes('navy') ? 'navy' : cA;
+        const legB = colorMentions.includes('maroon') ? 'maroon'
+          : colorMentions.includes('black') ? 'black' : cB;
+        pieces[1].name = `${colorLabel(legA)} leggings`;
+        pieces[1].hex = colorHex[legA] || pieces[1].hex;
+        pieces[1].colorLabel = colorLabel(legA);
+        altPieces = [
+          {
+            name: shirtHint ? `${colorLabel(cB)} shirt (your upload)` : `${colorLabel(cB)} top (your upload)`,
+            fabric: 'Your exact owned piece',
+            cue: 'Second shirt choice from your uploads / colors',
+            hex: colorHex[cB] || '#5C1A1A',
+            colorLabel: colorLabel(cB)
+          },
+          {
+            name: `${colorLabel(legB)} leggings`,
+            fabric: 'Your owned leggings',
+            cue: 'Bold desk-to-dinner alternate',
+            hex: colorHex[legB] || '#5C1A1A',
+            colorLabel: colorLabel(legB)
+          }
+        ];
+        lookA = {
+          id: 'A',
+          title: `${colorLabel(legA)} + ${colorLabel(cA)}: Sharp Owned Pairing`,
+          desc: `Answers your question for ${occasionLabel}: go ${colorLabel(legA)} leggings with your ${colorLabel(cA)} shirt/top — polished, intentional, and made from what you already own. No invented dresses.${silhouetteNote ? ` ${silhouetteNote}` : ''}`,
+          neckline: 'crew / scoop',
+          pieces,
+          palette: palette.map((p) => ({ hex: p.hex, label: p.label }))
         };
-      });
+        lookB = {
+          id: 'B',
+          title: `${colorLabel(legB)} + ${colorLabel(cB)}: Moody Owned Pairing`,
+          desc: `Answers your question for ${occasionLabel}: if you want more drama, go ${colorLabel(legB)} leggings with your ${colorLabel(cB)} shirt/top — still your clothes, still flattering for ${silhouette}.`,
+          neckline: 'soft scoop',
+          pieces: altPieces,
+          palette: palette.map((p) => ({ hex: p.hex, label: p.label }))
+        };
+      } else {
+        pieces = (base.pieces || []).map((piece, index) => {
+          const swatch = palette[index % palette.length] || {};
+          return {
+            ...piece,
+            hex: swatch.hex || '#5E2750',
+            colorLabel: swatch.label || 'Plum',
+            cue: `${piece.cue} · ${energyLead.split(',')[0]}`
+          };
+        });
+        const altKey = lookKey === 'Desk to Dinner' ? 'Casual Comfort Chic'
+          : lookKey === 'Soft Evening Out' ? 'Desk to Dinner'
+          : lookKey === 'Power Meeting' ? 'Soft Evening Out'
+          : 'Desk to Dinner';
+        const altBase = WARDROBE_LOOKS[altKey] || base;
+        altPieces = (altBase.pieces || pieces).map((piece, index) => {
+          const swatch = palette[(index + 1) % palette.length] || {};
+          return {
+            ...piece,
+            hex: swatch.hex || '#5E2750',
+            colorLabel: swatch.label || 'Plum',
+            cue: `${piece.cue} · celebrate the waist`
+          };
+        });
+        lookA = {
+          id: 'A',
+          title: `${titlePrefix} ${base.title} · ${silShort}`,
+          desc: `${energyLead}. ${base.desc} Built for ${occasionLabel}${vibe ? ` (“${vibe}”)` : ''}. ${silhouetteNote} ${harmonyNote} Energy brief: ${energyBias}.`,
+          neckline: base.neckline || 'soft V / wrap',
+          pieces,
+          palette: palette.map((p) => ({ hex: p.hex, label: p.label }))
+        };
+        lookB = {
+          id: 'B',
+          title: `Alternate ${altBase.title} · ${silShort}`,
+          desc: `Second wardrobe direction: ${altBase.desc} Still flattering for ${silhouette} — waist intentional, never tented. ${harmonyNote}`,
+          neckline: altBase.neckline || 'soft scoop',
+          pieces: altPieces,
+          palette: palette.map((p) => ({ hex: p.hex, label: p.label }))
+        };
+      }
 
       const face = getFacePaletteForHarmony(harmony);
       const hairMove = getHairMoveForLook({ title: base.title, neckline: base.neckline }, silhouette);
-
-      const lookA = {
-        id: 'A',
-        title: `${titlePrefix} ${base.title} · ${silShort}`,
-        desc: `${energyLead}. ${base.desc} Built for ${occasionLabel}${vibe ? ` (“${vibe}”)` : ''}. ${silhouetteNote} ${harmonyNote} Energy brief: ${energyBias}.`,
-        neckline: base.neckline || 'soft V / wrap',
-        pieces,
-        palette: palette.map((p) => ({ hex: p.hex, label: p.label }))
-      };
-      const lookB = {
-        id: 'B',
-        title: `Alternate ${altBase.title} · ${silShort}`,
-        desc: `Second wardrobe direction: ${altBase.desc} Still flattering for ${silhouette} — waist intentional, never tented. ${harmonyNote}`,
-        neckline: altBase.neckline || 'soft scoop',
-        pieces: altPieces,
-        palette: palette.map((p) => ({ hex: p.hex, label: p.label }))
-      };
-
+      // Short / bob hair cannot honestly wear a big updo — default beauty to two DOWN finishes.
       const beautyA = {
         id: 'A',
-        title: 'Hair Up · Cute Playful + Effortless Glow',
-        summary: 'Easy cute playful updo with effortless fresh makeup — soft skin, rosy cheek, wearable nude-pink lip.',
+        title: 'Effortless Fresh Glow — Soft & Down',
+        summary: 'Your real length worn soft and down with effortless fresh makeup — no fake updo, no growing hair.',
         hairMove: {
-          title: 'Easy cute playful up',
-          body: 'Claw-clip twist or soft playful bun — fun and effortless, using her real hair only.',
-          cues: ['Style: hair up', 'Mood: cute playful', 'Hold: easy']
+          title: 'Leave it down · soft',
+          body: 'Hair stays DOWN at your exact length — soft piecey movement only. Never a bun or lengthened updo.',
+          cues: ['Style: hair down', 'Length: unchanged', 'Hold: soft']
         },
         facePalette: {
           lip: face.lip,
           cheek: face.cheek,
           note: `${harmony} harmony — effortless fresh glow; lips stay rosy/berry/nude.`
         },
-        hairStyleId: 'hair-up-playful'
+        hairStyleId: 'hair-down-soft'
       };
       const beautyB = {
         id: 'B',
-        title: 'Hair Down · Soft + Effortless Soft Berry',
-        summary: 'Leave it down with soft waves and a second effortless makeup story — soft berry lip, healthy flush.',
+        title: 'Effortless Soft Berry — Sleek & Down',
+        summary: 'Same cut length, sleek polished down finish + a second effortless makeup story — soft berry lip, healthy flush.',
         hairMove: {
-          title: 'Leave it down · soft',
-          body: 'Hair stays down with soft romantic waves — clearly different from the up option.',
-          cues: ['Style: hair down', 'Texture: soft waves', 'Length: unchanged']
+          title: 'Leave it down · sleek',
+          body: 'Hair stays DOWN with a sleek deep side part on your exact length — clearly different from soft, never an updo.',
+          cues: ['Style: hair down', 'Finish: sleek', 'Length: unchanged']
         },
         facePalette: sanitizeFacePalette({
           lip: face.lip,
           cheek: face.cheek,
           note: 'Effortless soft berry — still rose/berry/nude family.'
         }, harmony),
-        hairStyleId: 'hair-down-soft'
+        hairStyleId: 'hair-down-sleek'
       };
 
       return {
@@ -6657,8 +6825,8 @@
             <p class="text-[11px] text-gray-600">Tap to select — Fiona is refining this pick.</p>
           </button>`).join('');
         const bHtml = [
-          ['A', 'Hair Up · Cute Playful', 'hair-up-playful'],
-          ['B', 'Hair Down · Soft', 'hair-down-soft']
+          ['A', 'Soft & Down · Fresh Glow', 'hair-down-soft'],
+          ['B', 'Sleek & Down · Soft Berry', 'hair-down-sleek']
         ].map(([id, title], i) => `
           <button type="button" role="radio" aria-checked="${id === 'A'}" data-beauty-option="${id}" onclick="selectFionaBeautyOption('${id}')"
             class="text-left p-3 border border-spa-plum/30 bg-white dark:bg-spa-darkbg space-y-1">
@@ -6676,8 +6844,8 @@
               { id: 'B', title: 'Wardrobe Option B', desc: 'Refining…', pieces: [], palette: [] }
             ],
             beautyOptions: [
-              { id: 'A', title: 'Hair Up · Cute Playful + Effortless Glow', hairStyleId: 'hair-up-playful', summary: 'Hair up' },
-              { id: 'B', title: 'Hair Down · Soft + Effortless Soft Berry', hairStyleId: 'hair-down-soft', summary: 'Hair down' }
+              { id: 'A', title: 'Effortless Fresh Glow — Soft & Down', hairStyleId: 'hair-down-soft', summary: 'Hair down soft' },
+              { id: 'B', title: 'Effortless Soft Berry — Sleek & Down', hairStyleId: 'hair-down-sleek', summary: 'Hair down sleek' }
             ],
             occasionLabel: occasionLabel,
             vibe: vibe || '',
@@ -6735,19 +6903,25 @@
     let glamourStyleInFlight = null;
 
     async function generateWardrobeAdvice() {
-      if (glamourStyleInFlight) {
-        showToast('Still building your options — one moment, gorgeous.');
-        return;
-      }
-      if (!consumePhotoAnalysis()) return;
       const vibe = (document.getElementById('wardrobe-vibe')?.value || '').trim();
       const occasionLabel = selectedOccasion;
+      // Second tap while building: scroll to the picks already on screen — never feel "dead".
+      if (glamourStyleInFlight) {
+        try {
+          paintInstantStylePickers(occasionLabel, vibe);
+          revealGlamourPickersIntoView();
+          ensureGlamourPickersVisible();
+        } catch (_) {}
+        showToast('Your options are already building below — scroll to pick Wardrobe + Beauty ✨');
+        return;
+      }
+      // Paint first so the FIRST click always shows usable A/B answers (incl. shirt/legging asks).
       const btn = document.querySelector('button[onclick="generateWardrobeAdvice()"]');
       const previousLabel = btn ? btn.innerText : '';
-        if (btn) {
-          btn.disabled = true;
-          btn.innerText = 'Fiona is building your 4 options…';
-        }
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = 'Fiona is building your 4 options…';
+      }
 
       // Reveal results shell immediately so Debra sees the picker dock on the FIRST click.
       try {
@@ -6792,6 +6966,15 @@
         }, 4000);
       } catch (_) {
         try { paintInstantStylePickers(occasionLabel, vibe); } catch (__) {}
+      }
+
+      // Consume free analysis AFTER first-click UI is painted (so a paywall never eats the click).
+      if (!consumePhotoAnalysis()) {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = previousLabel || 'Style My Full Look, Fiona ✨';
+        }
+        return;
       }
 
       glamourStyleInFlight = (async () => {
