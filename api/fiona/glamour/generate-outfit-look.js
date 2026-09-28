@@ -188,9 +188,9 @@ function hairDirectionForVision(look, hairStyleId) {
   if (isUp) {
     return [
       identityHair,
-      `INTENTIONAL HAIR UP (user selected "${option.label}"): ${option.vision}`,
-      'Hair MUST read as UP / pinned / tucked for this look — but ONLY using her real short-or-long length. If short, use a short-hair up style (tiny twist, bobby-pin tuck, soft crown lift) — NEVER grow hair to fill a big bun.',
-      'Makeup follows the selected effortless beauty option. Ignore notes that would cut, grow, or leave hair a different length.'
+      'If her hair is short / chin-length / bob, KEEP IT SHORT AND DOWN — do NOT create a bun, high pony, messy updo, or longer hair to fake an updo.',
+      `INTENTIONAL HAIR NOTE (user selected "${option.label}"): only attempt an up style if she clearly has enough real length; otherwise polish her short hair DOWN at exact length.`,
+      'NEVER grow hair to fill a bun. Makeup follows the selected effortless beauty option.'
     ].join(' ');
   }
 
@@ -312,11 +312,18 @@ function buildEditorialPrompt(look, occasion, vibe, hairStyleId, extras) {
       ? 'GARMENT LOCK (NON-NEGOTIABLE): Dress her in the EXACT garment from IMAGE 2 — same color, fabric, lace/embroidery/3D florals, length, silhouette, neckline, and straps (strapless stays strapless; no adding spaghetti straps, sleeves, or a different neckline). Do NOT redesign, recolor, restyle, or invent a different dress (no swapping to a black one-shoulder mini). Only fit THAT piece onto her body with realistic drape.'
       : 'Do NOT drown her in oversized blazers, scarf+cardigan stacks, shapeless dark midi tents, or matronly corporate armor. ONE polished hero outfit — hot-on-her and formality-matched to the event — never frumpy, piled, or silly.',
     exactGarment
-      ? 'Put her in her exact uploaded garment from IMAGE 2. Match that photo pixel-faithfully for design details. IGNORE any wardrobe option text that describes a different dress/color/neckline — the garment photo wins. Do NOT add scarves, open shirts, or extra cardigans on top of that garment.'
+      ? 'Put her in her exact uploaded garment from IMAGE 2. Match that photo pixel-faithfully for design details. IGNORE any wardrobe option text that describes a different dress/color/neckline — the garment photo wins. Do NOT add scarves, open shirts, or extra cardigans on top of that garment. If IMAGE 2 is a shirt/top on another person or mannequin, copy ONLY that shirt/top onto IMAGE 1 and complete the look with the named bottom from the wardrobe pieces (e.g. leggings) — still HER face and body.'
       : `Dress her in ONLY: ${pieceLine || 'one polished occasion-right dress OR a clean top + bottom'}. Fit garments to HER existing body with realistic fabric drape — not pasted on, not padded out, not tented. Ignore scarf/shawl mentions in any description text.`,
+    (() => {
+      const ask = `${vibe || ''} ${pieceLine || ''} ${(look && look.desc) || ''} ${(look && look.title) || ''}`.toLowerCase();
+      if (/\b(shirt|shirts|blouse|tee|top|tops|legging|leggings)\b/.test(ask)) {
+        return 'OWNED SEPARATES LOCK (critical): She asked about shirts/tops and leggings. Dress her in that shirt/top + legging/pant pairing ONLY. FORBIDDEN: inventing a lace dress, cocktail dress, gown, or unrelated formal dress. Background should match the occasion without changing the clothes into a dress.';
+      }
+      return '';
+    })(),
     `Makeup for the look: ${lip} lipstick, ${cheek} blush — do not change facial structure or bone structure.`,
     occasion ? `EVENT / FUNCTION (dress the outfit for this): ${occasion}.` : '',
-    vibe ? `Vibe / notes: ${vibe}.` : '',
+    vibe ? `Vibe / notes (ANSWER THIS with the clothes — do not ignore): ${vibe}.` : '',
     silhouette ? `Body type to honor: ${silhouette}.` : '',
     harmony ? `Skin tone / color harmony to honor: ${harmony}.` : '',
     look && look.title ? `Look title: ${look.title}.` : '',
