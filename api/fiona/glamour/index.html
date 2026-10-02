@@ -1094,7 +1094,7 @@
                     Clear
                   </button>
                 </div>
-                <p id="wardrobe-status" class="text-[11px] text-gray-600 dark:text-gray-300">Take a Photo opens your device camera. Upload from Gallery picks a file from this device.</p>
+                <p id="wardrobe-status" class="text-[11px] text-gray-600 dark:text-gray-300">Take a Photo opens a live camera with Capture + 3s Countdown. Upload from Gallery picks a file from this device.</p>
                 <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-1">
                   <button type="button" id="save-wardrobe-photos-btn" onclick="saveGlamourPhotosForLater()" class="hidden px-3 py-1.5 rounded-lg bg-teal-700 text-white text-[10px] font-bold hover:bg-teal-800 transition">💾 Save for later</button>
                   <span id="wardrobe-saved-badge" class="hidden text-[10px] font-semibold text-teal-700 dark:text-teal-300">Saved on this device</span>
@@ -1417,7 +1417,7 @@
                     Clear
                   </button>
                 </div>
-                <p id="glam-status" class="text-[11px] text-gray-600 dark:text-gray-300">Take a Selfie opens your device camera. Upload from Gallery picks a file from this device.</p>
+                <p id="glam-status" class="text-[11px] text-gray-600 dark:text-gray-300">Take a Selfie opens a live camera with Capture + 3s Countdown. Upload from Gallery picks a file from this device.</p>
                 <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-1">
                   <button type="button" id="save-glam-photos-btn" onclick="saveGlamourPhotosForLater()" class="hidden px-3 py-1.5 rounded-lg bg-teal-700 text-white text-[10px] font-bold hover:bg-teal-800 transition">💾 Save for later</button>
                   <span id="glam-saved-badge" class="hidden text-[10px] font-semibold text-teal-700 dark:text-teal-300">Saved on this device</span>
@@ -1523,12 +1523,13 @@
       </div>
       <canvas id="selfie-canvas" class="hidden"></canvas>
       <div class="flex flex-wrap justify-center gap-2">
-        <button type="button" onclick="captureSelfieFrame()" class="px-5 py-2.5 rounded-xl bg-spa-plum text-white text-xs font-bold">Capture Photo</button>
-        <button type="button" id="camera-countdown-btn" onclick="startCaptureCountdown()" class="px-5 py-2.5 rounded-xl bg-pink-100/20 text-pink-100 text-xs font-bold border border-pink-200/40">3s Countdown</button>
+        <button type="button" id="camera-countdown-btn" onclick="startCaptureCountdown()" class="px-5 py-2.5 rounded-xl bg-spa-plum text-white text-xs font-bold">3s Countdown</button>
+        <button type="button" onclick="captureSelfieFrame()" class="px-5 py-2.5 rounded-xl bg-pink-100/20 text-pink-100 text-xs font-bold border border-pink-200/40">Capture Now</button>
         <button type="button" id="camera-flip-btn" onclick="flipCameraFacing()" class="px-4 py-2.5 rounded-xl bg-white/10 text-white text-xs font-semibold border border-white/30">Flip Camera</button>
+        <button type="button" onclick="openNativeDeviceCamera()" class="px-4 py-2.5 rounded-xl bg-white/10 text-white text-xs font-semibold border border-white/30">Device Camera</button>
         <button type="button" onclick="stopSelfieCamera()" class="px-4 py-2.5 rounded-xl bg-white/10 text-white text-xs font-semibold border border-white/30">Cancel</button>
       </div>
-      <p class="text-[10px] text-pink-200/70 text-center">Use Upload from Gallery if you want a file from this device instead.</p>
+      <p class="text-[10px] text-pink-200/70 text-center">Tap <span class="font-semibold text-pink-100">3s Countdown</span> to step into frame, or Device Camera for your phone’s built-in camera. Upload from Gallery works anytime.</p>
     </div>
   </div>
 
@@ -4242,45 +4243,88 @@
       }
     }
 
+    function openNativeDeviceCamera() {
+      const ids = canvasIds(activeCameraTarget || 'wardrobe');
+      const camInput = document.getElementById(ids.camera);
+      if (!camInput) {
+        showToast('Device camera unavailable — use Upload from Gallery.');
+        return;
+      }
+      stopSelfieCamera(false);
+      camInput.setAttribute('capture', ids.target === 'wardrobe' ? 'environment' : 'user');
+      camInput.setAttribute('accept', 'image/*');
+      try { camInput.value = ''; } catch (_) {}
+      camInput.click();
+      const statusEl = document.getElementById(ids.status);
+      if (statusEl) {
+        statusEl.textContent = 'Opening your device camera — snap, then it lands on Your Canvas.';
+      }
+      showToast('Opening your device camera…');
+    }
+
     async function startSelfieCamera(target) {
       const ids = canvasIds(target || 'glam');
       activeCameraTarget = ids.target;
       setCanvasError(ids.target, '');
       stopSelfieCamera(false);
-      // Prefer the device's native camera app (no custom in-app frame).
-      // <input capture> opens the OS camera on phones; on desktop it falls back to a file picker.
-      const camInput = document.getElementById(ids.camera);
-      if (camInput) {
-        camInput.setAttribute('capture', ids.target === 'wardrobe' ? 'environment' : 'user');
-        camInput.setAttribute('accept', 'image/*');
-        try { camInput.value = ''; } catch (_) {}
-        camInput.click();
-        const statusEl = document.getElementById(ids.status);
-        if (statusEl) {
-          statusEl.textContent = ids.target === 'wardrobe'
-            ? 'Opening your device camera — snap the look, then it lands on Your Canvas.'
-            : 'Opening your device camera — snap your selfie, then it lands on Your Canvas.';
-        }
-        showToast('Opening your device camera…');
-        return;
+      resetCaptureCountdownUi();
+
+      // Live in-app camera so Style Me keeps Capture + 3s Countdown.
+      preferredCameraFacing = ids.target === 'wardrobe' ? 'user' : 'user';
+      const hint = document.getElementById('camera-capture-hint');
+      if (hint) {
+        hint.textContent = ids.target === 'wardrobe'
+          ? 'Live camera · line up your look — tap 3s Countdown or Capture Now'
+          : 'Live camera · line up your face — tap 3s Countdown or Capture Now';
       }
 
-      // Rare fallback if the hidden camera input is missing — use in-app getUserMedia.
-      preferredCameraFacing = 'user';
       if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
         try {
-          await startCameraWithFacing('user');
-          showToast('Camera live — capture when ready ✨');
+          await startCameraWithFacing(preferredCameraFacing);
+          const statusEl = document.getElementById(ids.status);
+          if (statusEl) {
+            statusEl.textContent = 'Camera live — use 3s Countdown to step into frame, or Capture Now.';
+          }
+          showToast('Camera live — 3s Countdown is ready ✨');
           return;
         } catch (err) {
-          setCanvasError(ids.target, 'Camera could not start. Use Upload from Gallery for a file.');
-          showToast('Camera could not start — use Upload from Gallery.');
-          return;
+          const name = err && err.name;
+          if (name === 'NotAllowedError' || name === 'SecurityError') {
+            setCanvasError(ids.target, 'Camera access was denied. Allow camera permission, use Device Camera, or Upload from Gallery.');
+            showToast('Allow camera access, or use Device Camera / Upload from Gallery.');
+            return;
+          }
+          if (name === 'NotFoundError' || name === 'DevicesNotFoundError') {
+            setCanvasError(ids.target, 'No camera found. Use Upload from Gallery to pick a file.');
+            showToast('No camera found — use Upload from Gallery.');
+            return;
+          }
+          // Some devices reject ideal facingMode — try a plain video constraint once more.
+          try {
+            if (selfieMediaStream) {
+              selfieMediaStream.getTracks().forEach((t) => t.stop());
+              selfieMediaStream = null;
+            }
+            selfieMediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+            const video = document.getElementById('selfie-video');
+            const panel = document.getElementById('camera-capture-panel');
+            if (!video || !panel) throw new Error('camera UI missing');
+            video.srcObject = selfieMediaStream;
+            panel.classList.remove('hidden');
+            updateCameraFacingUi();
+            try { await video.play(); } catch (_) {}
+            const liveStatus = document.getElementById(ids.status);
+            if (liveStatus) liveStatus.textContent = 'Camera live — use 3s Countdown or Capture Now.';
+            showToast('Camera live — 3s Countdown is ready ✨');
+            return;
+          } catch (_) {
+            // Fall through to native device camera.
+          }
         }
       }
 
-      setCanvasError(ids.target, 'Camera is not available in this browser. Use Upload from Gallery instead.');
-      showToast('Camera unavailable — use Upload from Gallery.');
+      // Fallback: native OS camera (no in-app 3s countdown available there).
+      openNativeDeviceCamera();
     }
 
     function captureSelfieFrame(options = {}) {
