@@ -1,13 +1,12 @@
-# Native camera + 3s countdown (no app frame)
+# Take Photo: countdown then actual photo (no silent fail)
 
-## What Debra asked for
-- **No frame** around the camera (phone’s own camera — not an in-app preview card)
-- A **3 second timer**
+## Bug Debra hit
+Countdown 3→2→1 ran, then **nothing** — phones block `input.click()` after a timer (needs a fresh tap).
 
-## Flow
-1. Tap **Take a Photo**
-2. Full-screen black screen shows **3 → 2 → 1** (no camera preview / no card)
-3. Phone’s native camera opens via `<input capture>`
-4. She snaps the photo there — no in-app frame
+## Fix
+1. On **Take a Photo** tap, warm the camera offscreen (keeps the gesture) — no framed preview
+2. Blank full-screen **3 → 2 → 1**
+3. Auto-snap onto Your Canvas when the stream is ready
+4. If live camera is blocked: show **Open Camera** (one tap → native camera)
 
-Also bumps PWA shell/cache to **v21** so stale framed UI cannot stick.
+PWA shell/cache bumped to **v22**.
