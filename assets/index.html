@@ -37,12 +37,12 @@
   <!-- One-time shell migration: wipe stale PWA cache that stuck on Building… -->
   <script>
     (function () {
-      var SHELL = 'fiona-shell-v23';
+      var SHELL = 'fiona-shell-v24';
       try {
         if (localStorage.getItem('fiona-shell-v') === SHELL) return;
         localStorage.setItem('fiona-shell-v', SHELL);
         var done = function () {
-          try { location.replace(location.pathname + location.search + (location.search ? '&' : '?') + 'fiona_shell=23&_=' + Date.now()); }
+          try { location.replace(location.pathname + location.search + (location.search ? '&' : '?') + 'fiona_shell=24&_=' + Date.now()); }
           catch (e) { location.reload(); }
         };
         var tasks = [];
@@ -1205,6 +1205,37 @@
               <p id="fitcheck-quip" class="text-[12px] italic text-gray-600 dark:text-gray-300"></p>
             </div>
             <p id="fitcheck-error" class="hidden text-[11px] font-medium text-rose-700 dark:text-rose-300"></p>
+          </div>
+
+          <!-- Ask Fiona: which piece/outfit to wear from her photos -->
+          <div class="p-4 sm:p-5 rounded-2xl border border-spa-plum/25 dark:border-purple-800 bg-gradient-to-br from-pink-50/80 via-white to-spa-cream/60 dark:from-purple-950/40 dark:via-spa-darkcard/60 dark:to-spa-darkbg/40 space-y-3">
+            <div class="space-y-1">
+              <p class="text-[10px] font-bold uppercase tracking-[0.16em] text-spa-plum dark:text-pink-300">Ask Fiona</p>
+              <h4 class="font-serif text-lg font-bold text-gray-900 dark:text-white">Which one should I wear?</h4>
+              <p class="text-[12px] text-gray-600 dark:text-gray-300 leading-relaxed">Take photos or upload the outfits/pieces you’re choosing between (and a selfie of you if you can). Fiona picks the winner for you — decisive, kind, based on what she sees.</p>
+            </div>
+            <label for="ask-fiona-note" class="sr-only">Optional note for Ask Fiona</label>
+            <input id="ask-fiona-note" type="text" placeholder="Optional — e.g. desk today, date night, black shirt vs blue…" class="w-full p-2.5 rounded-xl border border-pink-100 dark:border-purple-900/60 bg-white/80 dark:bg-spa-darkbg/40 focus:outline-none focus:ring-2 focus:ring-purple-300 text-sm">
+            <div class="flex flex-wrap items-center gap-2">
+              <button type="button" id="ask-fiona-btn" onclick="runAskFionaWhatToWear()" class="px-5 py-2.5 rounded-xl bg-spa-plum text-white text-xs font-bold hover:bg-spa-plumdark transition active:scale-95">
+                Ask Fiona ✨
+              </button>
+              <button type="button" onclick="openNativeDeviceCamera('wardrobe')" class="px-3 py-2.5 rounded-xl border border-spa-plum/25 text-spa-plum dark:text-pink-200 text-xs font-semibold hover:bg-spa-blush/40 transition">
+                Take a Photo
+              </button>
+              <button type="button" onclick="triggerPhotoUpload('wardrobe')" class="px-3 py-2.5 rounded-xl border border-spa-plum/25 text-spa-plum dark:text-pink-200 text-xs font-semibold hover:bg-spa-blush/40 transition">
+                Upload Photo
+              </button>
+            </div>
+            <div id="ask-fiona-result" class="hidden space-y-2 rounded-xl border border-spa-plum/20 dark:border-purple-800 bg-white/90 dark:bg-spa-darkbg/50 px-3.5 py-3">
+              <p id="ask-fiona-pick" class="font-serif text-base font-bold text-spa-plumdark dark:text-pink-100"></p>
+              <p id="ask-fiona-why" class="text-[13px] text-gray-700 dark:text-gray-200 leading-relaxed"></p>
+              <p id="ask-fiona-skip" class="text-[13px] text-gray-700 dark:text-gray-200 leading-relaxed"></p>
+              <p id="ask-fiona-how" class="text-[13px] text-gray-700 dark:text-gray-200 leading-relaxed"></p>
+              <p id="ask-fiona-compliment" class="text-[12px] font-medium text-spa-plum dark:text-pink-200"></p>
+              <p id="ask-fiona-quip" class="text-[12px] italic text-gray-600 dark:text-gray-300"></p>
+            </div>
+            <p id="ask-fiona-error" class="hidden text-[11px] font-medium text-rose-700 dark:text-rose-300"></p>
           </div>
 
           <!-- Glamour Recommendation Card — editorial luxury moodboard -->
@@ -6901,6 +6932,113 @@
       }
     }
     try { window.runHowDoesThisLook = runHowDoesThisLook; } catch (_) {}
+
+    async function runAskFionaWhatToWear() {
+      const errEl = document.getElementById('ask-fiona-error');
+      const resultEl = document.getElementById('ask-fiona-result');
+      const btn = document.getElementById('ask-fiona-btn');
+      if (errEl) {
+        errEl.classList.add('hidden');
+        errEl.textContent = '';
+      }
+      const note = ((document.getElementById('ask-fiona-note') || {}).value || '').trim()
+        || ((document.getElementById('wardrobe-vibe') || {}).value || '').trim();
+
+      let images = [];
+      try {
+        images = await collectGlamourApiImages(Math.min(8, MAX_CANVAS_PHOTOS));
+      } catch (_) {}
+      if (!images.length) {
+        try {
+          const one = await collectCanvasSelfieForLook();
+          if (one && one.data) images = [one];
+        } catch (_) {}
+      }
+      if (!images.length) {
+        const msg = 'Take a photo or upload the pieces you’re choosing between first — Fiona needs something to pick from.';
+        if (errEl) {
+          errEl.textContent = msg;
+          errEl.classList.remove('hidden');
+        }
+        showToast(msg);
+        return;
+      }
+
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Fiona is choosing…';
+      }
+      if (resultEl) resultEl.classList.add('hidden');
+
+      try {
+        const body = {
+          mode: 'ask',
+          askFiona: true,
+          whatToWear: true,
+          images,
+          note,
+          userQuestion: note || 'Which one should I wear?',
+          occasion: (typeof selectedOccasion !== 'undefined' && selectedOccasion) || '',
+          vibe: note
+        };
+        let payload = null;
+        let res = null;
+        for (const url of [GLAMOUR_STYLE_API, '/api/fiona/glamour/style', '/api/style']) {
+          try {
+            res = await fetch(url, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(body)
+            });
+            payload = await res.json().catch(() => ({}));
+            if (res.ok && (payload.pick || payload.why || payload.compliment)) break;
+          } catch (_) {}
+        }
+        if (!res || !res.ok || !(payload && (payload.pick || payload.why || payload.compliment))) {
+          const msg = (payload && payload.fionaMessage)
+            || (payload && payload.error)
+            || "Fiona couldn't finish picking — try again in a moment.";
+          if (errEl) {
+            errEl.textContent = typeof msg === 'string' ? msg : 'Ask Fiona snag — try again.';
+            errEl.classList.remove('hidden');
+          }
+          showToast(typeof msg === 'string' ? msg : 'Ask Fiona snag — try again.');
+          return;
+        }
+        const setTxt = (id, prefix, value) => {
+          const el = document.getElementById(id);
+          if (!el) return;
+          const v = String(value || '').trim();
+          el.textContent = v ? (prefix ? `${prefix}${v}` : v) : '';
+          el.classList.toggle('hidden', !v);
+        };
+        setTxt('ask-fiona-pick', '', payload.pick || 'Wear this one');
+        setTxt('ask-fiona-why', 'Why: ', payload.why);
+        setTxt('ask-fiona-skip', 'Skip: ', payload.skip);
+        setTxt('ask-fiona-how', 'Style it: ', payload.howToStyle);
+        setTxt('ask-fiona-compliment', '', payload.compliment);
+        setTxt('ask-fiona-quip', '', payload.wingwomanQuip || payload.quip);
+        if (resultEl) {
+          resultEl.classList.remove('hidden');
+          try { resultEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch (_) {}
+        }
+        showToast('Fiona picked for you ✨');
+      } catch (err) {
+        console.error('[AskFiona]', err);
+        const msg = "Fiona couldn't finish picking — try again in a moment.";
+        if (errEl) {
+          errEl.textContent = msg;
+          errEl.classList.remove('hidden');
+        }
+        showToast(msg);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'Ask Fiona ✨';
+        }
+      }
+    }
+    try { window.runAskFionaWhatToWear = runAskFionaWhatToWear; } catch (_) {}
 
     // Back-compat aliases used by older generateWardrobeAdvice path
     function resetAiLookPanel(statusText) {
