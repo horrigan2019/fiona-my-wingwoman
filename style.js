@@ -359,6 +359,27 @@ JSON shape:
   "wingwomanQuip": "One punchy Fiona line that still feels honest"
 }`;
 
+const FIONA_ASK_WEAR_SYSTEM = `You are Fiona, an impeccably dressed, emotionally untouchable wingwoman sipping an espresso.
+Warm, grounded, stylishly witty — never a generic corporate life coach and NEVER cruel.
+
+ASK FIONA — WHICH TO WEAR (NON-NEGOTIABLE):
+- She uploaded photo(s) of herself and/or clothes she owns (shirts, dresses, pants, full outfits). Your ONLY job: pick WHAT she should wear.
+- If multiple pieces/outfits are visible, choose ONE clear winner for the occasion and explain why it suits HER (body, coloring, vibe in the photos).
+- If only one look is shown, decide wear / tweak / skip for that occasion and say what to pair with it from what you see.
+- Prefer her OWNED pieces in the photos. Do NOT invent dresses, shoes, or brands she did not show.
+- Be decisive. Lead with the pick. Kind honesty — never body-shame.
+- Return ONLY valid JSON. No markdown fences.
+
+JSON shape:
+{
+  "pick": "Short decisive headline — e.g. Wear the black wrap blouse with the soft cream pants",
+  "why": "2-4 sentences: why THIS choice for her body, coloring, and occasion, grounded in the photos",
+  "skip": "What not to wear from the uploads (or 'Nothing to skip — this is the clear winner') and a brief why",
+  "howToStyle": "1-3 concrete finishing notes (shoes, jewelry, hair/makeup vibe) that stay wearable",
+  "compliment": "One sincere compliment grounded in what you see",
+  "wingwomanQuip": "One punchy Fiona line"
+}`;
+
 async function handleFitCheck(req, res, body) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
@@ -433,6 +454,88 @@ Return the JSON shape from your instructions.`
       error: 'Fit-check failed',
       detail: err && (err.detail || err.message),
       fionaMessage: "Fiona couldn't finish the fit-check — try again in a moment."
+    }));
+  }
+}
+
+async function handleAskWhatToWear(req, res, body) {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    res.statusCode = 503;
+    res.setHeader('Content-Type', 'application/json');
+    return res.end(JSON.stringify({
+      error: 'ANTHROPIC_API_KEY is not configured',
+      code: 'missing_api_key',
+      fionaMessage: "Ask Fiona isn't plugged in yet — add ANTHROPIC_API_KEY in Vercel."
+    }));
+  }
+
+  const images = [];
+  const pushImg = (photo) => {
+    if (!photo) return;
+    const mediaType = (typeof photo === 'object' && (photo.mediaType || photo.media_type)) || 'image/jpeg';
+    const raw = String(typeof photo === 'string' ? photo : photo.data || '').replace(/^data:[^;]+;base64,/, '');
+    if (!raw) return;
+    images.push({ mediaType, data: raw, role: (photo && photo.role) || 'reference' });
+  };
+  if (Array.isArray(body.images)) body.images.forEach(pushImg);
+  if (body.photo) pushImg(body.photo);
+  if (!images.length) {
+    res.statusCode = 400;
+    res.setHeader('Content-Type', 'application/json');
+    return res.end(JSON.stringify({
+      error: 'At least one photo is required',
+      code: 'missing_photo',
+      fionaMessage: 'Take a photo or upload the pieces you’re choosing between first, gorgeous.'
+    }));
+  }
+
+  const note = String(body.note || body.vibe || body.userQuestion || '').trim();
+  const occasion = String(body.occasion || '').trim();
+  const content = images.slice(0, 8).map((img) => ({
+    type: 'image',
+    source: { type: 'base64', media_type: img.mediaType, data: img.data }
+  }));
+  content.push({
+    type: 'text',
+    text: `Ask Fiona: which one should I wear?
+
+Occasion / event: ${occasion || '(not specified — assume her everyday polished default)'}
+Her note / question: ${note || '(none — pick the strongest look from the photos for the occasion)'}
+
+Photos may include her body/face and/or clothes she owns. Choose ONE clear answer. Return the JSON shape from your instructions.`
+  });
+
+  try {
+    const { data: json, model } = await callAnthropicJson({
+      apiKey,
+      system: FIONA_ASK_WEAR_SYSTEM,
+      userContent: content,
+      maxTokens: 1000,
+      temperature: 0.55
+    });
+    const out = json && typeof json === 'object' ? json : {};
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'application/json');
+    return res.end(JSON.stringify({
+      ok: true,
+      mode: 'ask',
+      model,
+      pick: out.pick || out.verdict || 'Wear this one',
+      why: out.why || out.whatWorks || '',
+      skip: out.skip || '',
+      howToStyle: out.howToStyle || out.tweak || '',
+      compliment: out.compliment || '',
+      wingwomanQuip: out.wingwomanQuip || out.quip || ''
+    }));
+  } catch (err) {
+    console.error('[fiona/glamour/style] ask-what-to-wear failure', err);
+    res.statusCode = (err && err.status) || 502;
+    res.setHeader('Content-Type', 'application/json');
+    return res.end(JSON.stringify({
+      error: 'Ask Fiona failed',
+      detail: err && (err.detail || err.message),
+      fionaMessage: "Fiona couldn't finish picking — try again in a moment."
     }));
   }
 }
@@ -1595,6 +1698,11 @@ module.exports = async function handler(req, res) {
   // Honest "How does this look?" fit-check
   if (body && (body.mode === 'fitcheck' || body.fitCheck === true || body.howDoesThisLook === true)) {
     return handleFitCheck(req, res, body);
+  }
+
+  // Ask Fiona: which outfit/piece to wear from her photos
+  if (body && (body.mode === 'ask' || body.mode === 'whattowear' || body.askFiona === true || body.whatToWear === true)) {
+    return handleAskWhatToWear(req, res, body);
   }
 
   // AI look photo of the user in the recommended glam
